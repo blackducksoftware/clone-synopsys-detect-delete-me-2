@@ -286,6 +286,9 @@ class DetectConfiguration {
     }
 
     //properties start
+    @ValueDescription(description="A list of containers that detect is running in.", defaultValue="", group=DetectConfiguration.GROUP_GENERAL)
+    @Value('${detect.container.name:}')
+    String containerName
 
     @ValueDescription(description="If true, detect will always exit with code 0.", defaultValue="false", group=DetectConfiguration.GROUP_GENERAL)
     @Value('${detect.force.success:}')
@@ -705,6 +708,10 @@ class DetectConfiguration {
 
     int getExecutionParallelism() {
         return executionParallelism == null ? Runtime.runtime.availableProcessors() : executionParallelism
+    }
+
+    public String[] getContainerNames() {
+        return containerName.split(",");
     }
 
     public boolean getCleanupBdioFiles() {

@@ -23,6 +23,9 @@
  */
 package com.blackducksoftware.integration.hub.detect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.blackducksoftware.integration.hub.dataservice.phonehome.PhoneHomeDataService;
@@ -31,20 +34,23 @@ import com.blackducksoftware.integration.phonehome.PhoneHomeRequestBody;
 
 @Component
 public class DetectPhoneHomeManager {
-    private PhoneHomeResponse phoneHomeResponse;
+    private List<PhoneHomeResponse> phoneHomeResponses;
 
-    public void startPhoneHome(final PhoneHomeDataService phoneHomeDataService, final PhoneHomeRequestBody phoneHomeRequestBody) {
-        phoneHomeResponse = phoneHomeDataService.startPhoneHome(phoneHomeRequestBody);
-    }
-
-    public void endPhoneHome() {
-        if (phoneHomeResponse != null) {
-            phoneHomeResponse.endPhoneHome();
+    public void startPhoneHome(final PhoneHomeDataService phoneHomeDataService, final PhoneHomeRequestBody[] phoneHomeRequestBodies) {
+        phoneHomeResponses = new ArrayList<>();
+        for (final PhoneHomeRequestBody phoneHomeRequestBody : phoneHomeRequestBodies) {
+            phoneHomeResponses.add(phoneHomeDataService.startPhoneHome(phoneHomeRequestBody));
         }
     }
 
-    public PhoneHomeResponse getPhoneHomeResponse() {
-        return phoneHomeResponse;
+    public void endPhoneHome() {
+        if (phoneHomeResponses != null) {
+            for (final PhoneHomeResponse response : phoneHomeResponses) {
+                if (response != null) {
+                    response.endPhoneHome();
+                }
+            }
+        }
     }
 
 }

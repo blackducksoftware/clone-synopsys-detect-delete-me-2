@@ -70,10 +70,29 @@ class BdioUploader {
         Set<BomToolType> applicableBomTools = detectProject.getApplicableBomTools();
         String applicableBomToolsString = StringUtils.join(applicableBomTools, ", ");
 
+        List<PhoneHomeRequestBody> bodies = new ArrayList<PhoneHomeRequestBody>();
         PhoneHomeRequestBodyBuilder phoneHomeRequestBodyBuilder = phoneHomeDataService.createInitialPhoneHomeRequestBodyBuilder(ThirdPartyName.DETECT, hubDetectVersion, hubDetectVersion);
         phoneHomeRequestBodyBuilder.addToMetaDataMap('bomToolTypes', applicableBomToolsString);
+        bodies.add(phoneHomeRequestBodyBuilder.build());
 
-        PhoneHomeRequestBody phoneHomeRequestBody = phoneHomeRequestBodyBuilder.build();
-        detectPhoneHomeManager.startPhoneHome(phoneHomeDataService, phoneHomeRequestBody);
+        try {
+            for (String container : detectConfiguration.getContainerNames()){
+                String[] pieces = container.split("@");
+                if (pieces.size() == 3){
+                    String name = pieces[0];
+                    String version = pieces[1];
+                    String version2 = pieces[2];
+                    PhoneHomeRequestBodyBuilder containerPhoneHomeRequestBodyBuilder = phoneHomeDataService.createInitialPhoneHomeRequestBodyBuilder(name, version, version2);
+                    bodies.add(containerPhoneHomeRequestBodyBuilder.build());
+                }else{
+                    logger.trace("Detect container name was in an invalid format: " + container);
+                }
+            }
+        }catch (Exception e){
+            logger.trace("An exception occured doing dynamic phone home.");
+            logger.trace(e.toString());
+        }
+
+        detectPhoneHomeManager.startPhoneHome(phoneHomeDataService, bodies.toArray() as PhoneHomeRequestBody[]);
     }
 }
