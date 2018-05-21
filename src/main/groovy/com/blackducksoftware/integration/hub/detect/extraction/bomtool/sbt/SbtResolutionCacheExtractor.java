@@ -16,6 +16,7 @@ import com.blackducksoftware.integration.hub.detect.extraction.bomtool.sbt.model
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.sbt.models.SbtProject;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileFinder;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileManager;
 
@@ -32,6 +33,8 @@ public class SbtResolutionCacheExtractor extends Extractor<SbtResolutionCacheCon
     @Autowired
     protected DetectFileFinder detectFileFinder;
 
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
 
     @Autowired
     ExternalIdFactory externalIdFactory;
@@ -52,7 +55,7 @@ public class SbtResolutionCacheExtractor extends Extractor<SbtResolutionCacheCon
             String projectName = null;
             String projectVersion = null;
             for (final SbtDependencyModule module : project.modules) {
-                final DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.SBT, module.name, project.projectExternalId, module.graph).build();
+                final DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.SBT, context.directory, project.projectExternalId, module.graph);
                 if (projectName == null) {
                     projectName = project.projectName;
                     projectVersion = project.projectVersion;

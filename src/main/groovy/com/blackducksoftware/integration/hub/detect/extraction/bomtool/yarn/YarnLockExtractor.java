@@ -24,6 +24,7 @@ import com.blackducksoftware.integration.hub.detect.extraction.bomtool.yarn.pars
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.yarn.parse.YarnLockParser;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileManager;
 import com.blackducksoftware.integration.hub.detect.util.executable.Executable;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableRunner;
@@ -52,6 +53,9 @@ public class YarnLockExtractor extends Extractor<YarnLockContext> {
     @Autowired
     ExecutableRunner executableRunner;
 
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final YarnLockContext context) {
         try {
@@ -70,7 +74,7 @@ public class YarnLockExtractor extends Extractor<YarnLockContext> {
             }
 
             final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.NPM, context.directory.getCanonicalPath());
-            final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.YARN, context.directory.getCanonicalPath(), externalId, dependencyGraph).build();
+            final DetectCodeLocation detectCodeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.YARN, context.directory, externalId, dependencyGraph);
 
             return new Extraction.Builder().success(detectCodeLocation).build();
         } catch (final Exception e) {

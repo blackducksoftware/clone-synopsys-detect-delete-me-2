@@ -12,11 +12,11 @@ import com.blackducksoftware.integration.hub.bdio.model.Forge;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
-import com.blackducksoftware.integration.hub.detect.extraction.Extraction.ExtractionResult;
-import com.blackducksoftware.integration.hub.detect.extraction.bomtool.rubygems.parse.RubygemsNodePackager;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
+import com.blackducksoftware.integration.hub.detect.extraction.bomtool.rubygems.parse.RubygemsNodePackager;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 
 @Component
 public class GemlockExtractor extends Extractor<GemlockContext> {
@@ -27,6 +27,9 @@ public class GemlockExtractor extends Extractor<GemlockContext> {
     @Autowired
     ExternalIdFactory externalIdFactory;
 
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final GemlockContext context) {
         try {
@@ -35,7 +38,7 @@ public class GemlockExtractor extends Extractor<GemlockContext> {
             final DependencyGraph dependencyGraph = rubygemsNodePackager.extractProjectDependencies(gemlockText);
             final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.RUBYGEMS, context.directory.toString());
 
-            final DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.RUBYGEMS, context.directory.toString(), externalId, dependencyGraph).build();
+            final DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.RUBYGEMS, context.directory, externalId, dependencyGraph);
             return new Extraction.Builder().success(codeLocation).build();
         } catch (final Exception e) {
             return new Extraction.Builder().exception(e).build();

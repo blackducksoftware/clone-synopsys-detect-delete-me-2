@@ -15,11 +15,11 @@ import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.DetectConfiguration;
 import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
-import com.blackducksoftware.integration.hub.detect.extraction.Extraction.ExtractionResult;
-import com.blackducksoftware.integration.hub.detect.extraction.bomtool.conda.parse.CondaListParser;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
+import com.blackducksoftware.integration.hub.detect.extraction.bomtool.conda.parse.CondaListParser;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.executable.Executable;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableOutput;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableRunner;
@@ -39,6 +39,9 @@ public class CondaCliExtractor extends Extractor<CondaCliContext>{
 
     @Autowired
     protected DetectConfiguration detectConfiguration;
+
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
 
     @Override
     public Extraction extract(final CondaCliContext context) {
@@ -60,7 +63,7 @@ public class CondaCliExtractor extends Extractor<CondaCliContext>{
 
             final DependencyGraph dependencyGraph = condaListParser.parse(listJsonText, infoJsonText);
             final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.ANACONDA, context.directory.toString());
-            final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.CONDA, context.directory.toString(), externalId, dependencyGraph).build();
+            final DetectCodeLocation detectCodeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.CONDA, context.directory, externalId, dependencyGraph);
 
             return new Extraction.Builder().success(detectCodeLocation).build();
         } catch (final Exception e) {

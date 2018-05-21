@@ -23,61 +23,24 @@
  */
 package com.blackducksoftware.integration.hub.detect.model;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.blackducksoftware.integration.hub.bdio.graph.DependencyGraph;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 
-public class DetectCodeLocation {
-    private final BomToolType bomToolType;
-    private final String sourcePath;
-    private final String dockerImage;
+public abstract class DetectCodeLocation {
     private final ExternalId externalId;
     private final DependencyGraph dependencyGraph;
 
-    public static class Builder {
-        private final BomToolType bomToolType;
-        private final String sourcePath;
-        private String dockerImage;
-        private final ExternalId externalId;
-        private final DependencyGraph dependencyGraph;
-
-        public Builder(final BomToolType bomToolType, final String sourcePath, final ExternalId externalId, final DependencyGraph dependencyGraph) {
-            this.bomToolType = bomToolType;
-            this.sourcePath = sourcePath;
-            this.externalId = externalId;
-            this.dependencyGraph = dependencyGraph;
-        }
-
-        public Builder dockerImage(final String dockerImage) {
-            this.dockerImage = dockerImage;
-            return this;
-        }
-
-        public DetectCodeLocation build() {
-            return new DetectCodeLocation(this);
-        }
+    public DetectCodeLocation(final ExternalId externalId, final DependencyGraph dependencyGraph) {
+        this.externalId = externalId;
+        this.dependencyGraph = dependencyGraph;
     }
 
-    private DetectCodeLocation(final Builder builder) {
-        this.bomToolType = builder.bomToolType;
-        this.sourcePath = builder.sourcePath;
-        this.dockerImage = builder.dockerImage;
-        this.externalId = builder.externalId;
-        this.dependencyGraph = builder.dependencyGraph;
-    }
-
-    public BomToolType getBomToolType() {
-        return bomToolType;
-    }
-
-    public String getSourcePath() {
-        return sourcePath;
-    }
-
-    public String getDockerImage() {
-        return dockerImage;
-    }
-
-    public ExternalId getBomToolProjectExternalId() {
+    public ExternalId getExternalId() {
         return externalId;
     }
 
@@ -85,4 +48,26 @@ public class DetectCodeLocation {
         return dependencyGraph;
     }
 
+    protected String createCommonName(final List<String> primaryPieces, final String prefix, final String suffix, final String codeLocationType) {
+        return createCommonName(primaryPieces, prefix, suffix, codeLocationType, "");
+    }
+
+    protected String createCommonName(final List<String> primaryPieces, final String prefix, final String suffix, final String codeLocationType, final String bomToolType) {
+        String name = primaryPieces.stream().collect(Collectors.joining("/"));
+
+        if (StringUtils.isNotBlank(prefix)) {
+            name = String.format("%s/%s", prefix, name);
+        }
+        if (StringUtils.isNotBlank(suffix)) {
+            name = String.format("%s/%s", name, suffix);
+        }
+
+        String endPiece = codeLocationType;
+        if (StringUtils.isNotBlank(bomToolType)) {
+            endPiece = String.format("%s/%s", bomToolType, endPiece);
+        }
+
+        name = String.format("%s %s", name, endPiece);
+        return name;
+    }
 }

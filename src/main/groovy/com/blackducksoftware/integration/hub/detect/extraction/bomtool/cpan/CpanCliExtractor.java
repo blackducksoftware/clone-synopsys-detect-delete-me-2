@@ -13,11 +13,11 @@ import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.DetectConfiguration;
 import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
-import com.blackducksoftware.integration.hub.detect.extraction.Extraction.ExtractionResult;
-import com.blackducksoftware.integration.hub.detect.extraction.bomtool.cpan.parse.CpanPackager;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
+import com.blackducksoftware.integration.hub.detect.extraction.bomtool.cpan.parse.CpanPackager;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableOutput;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableRunner;
 
@@ -37,6 +37,9 @@ public class CpanCliExtractor extends Extractor<CpanCliContext>{
     @Autowired
     protected DetectConfiguration detectConfiguration;
 
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final CpanCliContext context) {
         try {
@@ -48,7 +51,7 @@ public class CpanCliExtractor extends Extractor<CpanCliContext>{
 
             final DependencyGraph dependencyGraph = cpanPackager.makeDependencyGraph(listText, showdeps);
             final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.CPAN, context.directory.toString());
-            final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.CPAN, context.directory.toString(), externalId, dependencyGraph).build();
+            final DetectCodeLocation detectCodeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.CPAN, context.directory, externalId, dependencyGraph);
             return new Extraction.Builder().success(detectCodeLocation).build();
         } catch (final Exception e) {
             return new Extraction.Builder().exception(e).build();

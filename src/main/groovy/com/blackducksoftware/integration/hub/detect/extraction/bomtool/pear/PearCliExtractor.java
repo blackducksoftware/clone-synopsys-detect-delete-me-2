@@ -14,6 +14,7 @@ import com.blackducksoftware.integration.hub.detect.extraction.bomtool.pear.pars
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.pear.parse.PearParseResult;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileFinder;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableOutput;
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableRunner;
@@ -35,6 +36,9 @@ public class PearCliExtractor extends Extractor<PearCliContext> {
     @Autowired
     protected ExecutableRunner executableRunner;
 
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final PearCliContext context) {
         try {
@@ -45,7 +49,7 @@ public class PearCliExtractor extends Extractor<PearCliContext> {
 
             final PearParseResult result = pearDependencyFinder.parse(packageFile, pearListing, pearDependencies);
             final ExternalId id = externalIdFactory.createNameVersionExternalId(Forge.PEAR, result.name, result.version);
-            final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.PEAR, context.directory.toString(), id, result.dependencyGraph).build();
+            final DetectCodeLocation detectCodeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.PEAR, context.directory, id, result.dependencyGraph);
 
 
             return new Extraction.Builder().success(detectCodeLocation).projectName(result.name).projectVersion(result.version).build();

@@ -37,6 +37,7 @@ import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFac
 import com.blackducksoftware.integration.hub.detect.DetectConfiguration
 import com.blackducksoftware.integration.hub.detect.model.BomToolType
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -53,6 +54,9 @@ class PackagistParser {
 
     @Autowired
     ExternalIdFactory externalIdFactory
+
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
 
     public PackagistParseResult getDependencyGraphFromProject(String sourcePath, String composerJsonText, String composerLockText) {
         MutableDependencyGraph graph = new MutableMapDependencyGraph();
@@ -96,7 +100,7 @@ class PackagistParser {
             projectExternalId = externalIdFactory.createNameVersionExternalId(Forge.PACKAGIST, projectName, projectVersion);
         }
 
-        DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.PACKAGIST, sourcePath, projectExternalId, graph).build();
+        DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.PACKAGIST, new File(sourcePath), projectExternalId, graph);
 
         return new PackagistParseResult(projectName, projectVersion, codeLocation);
     }

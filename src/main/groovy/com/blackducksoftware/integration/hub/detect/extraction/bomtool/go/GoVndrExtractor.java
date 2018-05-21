@@ -13,11 +13,11 @@ import com.blackducksoftware.integration.hub.bdio.model.Forge;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
-import com.blackducksoftware.integration.hub.detect.extraction.Extraction.ExtractionResult;
-import com.blackducksoftware.integration.hub.detect.extraction.bomtool.go.parse.VndrParser;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
+import com.blackducksoftware.integration.hub.detect.extraction.bomtool.go.parse.VndrParser;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.google.gson.Gson;
 
 @Component
@@ -29,6 +29,9 @@ public class GoVndrExtractor  extends Extractor<GoVndrContext> {
     @Autowired
     ExternalIdFactory externalIdFactory;
 
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final GoVndrContext context) {
         try {
@@ -39,7 +42,7 @@ public class GoVndrExtractor  extends Extractor<GoVndrContext> {
             final DependencyGraph dependencyGraph = vndrParser.parseVendorConf(venderConfContents);
             final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.GOLANG, context.directory.toString());
 
-            final DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.GO_VNDR, sourceDirectory.toString(), externalId, dependencyGraph).build();
+            final DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.GO_VNDR, sourceDirectory, externalId, dependencyGraph);
             return new Extraction.Builder().success(codeLocation).build();
         }catch (final Exception e) {
             return new Extraction.Builder().exception(e).build();

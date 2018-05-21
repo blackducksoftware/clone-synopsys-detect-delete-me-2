@@ -34,6 +34,7 @@ import com.blackducksoftware.integration.hub.bdio.model.dependency.Dependency
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory
 import com.blackducksoftware.integration.hub.detect.model.BomToolType
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory
 
 import groovy.transform.TypeChecked
 
@@ -52,6 +53,9 @@ class PipInspectorTreeParser {
 
     @Autowired
     ExternalIdFactory externalIdFactory
+
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
 
     PipParseResult parse(String treeText, String sourcePath) {
         def lines = treeText.trim().split(System.lineSeparator()).toList()
@@ -116,7 +120,7 @@ class PipInspectorTreeParser {
         }
 
         if (project && !(project.name.equals('') && project.version.equals('') && dependencyGraph && dependencyGraph.getRootDependencyExternalIds().empty)) {
-            DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.PIP, sourcePath, project.externalId, dependencyGraph).build()
+            DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.PIP, new File(sourcePath), project.externalId, dependencyGraph);
             return new PipParseResult(project.name, project.version, codeLocation);
         } else {
             null

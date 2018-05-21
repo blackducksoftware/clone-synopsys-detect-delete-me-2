@@ -27,6 +27,7 @@ import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileFinder;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileManager;
 import com.blackducksoftware.integration.hub.detect.util.executable.Executable;
@@ -63,6 +64,9 @@ public class DockerExtractor extends Extractor<DockerContext> {
 
     @Autowired
     Gson gson;
+
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
 
     static final String DEPENDENCIES_PATTERN = "*bdio.jsonld";
 
@@ -166,7 +170,7 @@ public class DockerExtractor extends Extractor<DockerContext> {
             final String externalIdPath = simpleBdioDocument.project.bdioExternalIdentifier.externalId;
             final ExternalId projectExternalId = externalIdFactory.createPathExternalId(dockerForge, externalIdPath);
 
-            final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.DOCKER, directory.toString(), projectExternalId, dependencyGraph).dockerImage(imageName).build();
+            final DetectCodeLocation detectCodeLocation = codeLocationFactory.createDockerCodeLocation(BomToolType.DOCKER, directory, imageName, projectExternalId, dependencyGraph);
             return new Extraction.Builder().success(detectCodeLocation).projectName(projectName).projectVersion(projectVersionName).build();
 
         } else {

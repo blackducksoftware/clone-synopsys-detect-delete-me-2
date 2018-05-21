@@ -27,6 +27,7 @@ import java.util.Map.Entry
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import com.blackducksoftware.integration.hub.bdio.graph.MutableDependencyGraph
@@ -36,6 +37,7 @@ import com.blackducksoftware.integration.hub.bdio.model.dependency.Dependency
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory
 import com.blackducksoftware.integration.hub.detect.model.BomToolType
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -52,6 +54,9 @@ class NpmCliDependencyFinder {
     private static final String JSON_DEPENDENCIES = 'dependencies'
 
     public ExternalIdFactory externalIdFactory;
+
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
 
     NpmCliDependencyFinder(ExternalIdFactory externalIdFactory) {
         this.externalIdFactory = externalIdFactory;
@@ -78,7 +83,7 @@ class NpmCliDependencyFinder {
 
         def externalId = externalIdFactory.createNameVersionExternalId(Forge.NPM, projectName, projectVersion)
 
-        DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.NPM, sourcePath, externalId, graph).build()
+        DetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.NPM, new File(sourcePath), externalId, graph);
 
         return new NpmParseResult(projectName, projectVersion, codeLocation)
 

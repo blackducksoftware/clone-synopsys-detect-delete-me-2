@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.detect.extraction.bomtool.maven.parse;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +43,7 @@ import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.util.ExcludedIncludedFilter;
 
 @Component
@@ -50,6 +52,7 @@ public class MavenCodeLocationPackager {
     private static final Logger logger = LoggerFactory.getLogger(MavenCodeLocationPackager.class);
 
     private final ExternalIdFactory externalIdFactory;
+    private final DetectCodeLocationFactory codeLocationFactory;
     private List<MavenParseResult> codeLocations = new ArrayList<>();
     private MavenParseResult currentMavenProject = null;
     private Stack<Dependency> dependencyParentStack = new Stack<>();
@@ -57,8 +60,9 @@ public class MavenCodeLocationPackager {
     private int level;
     private MutableDependencyGraph currentGraph = null;
 
-    public MavenCodeLocationPackager(final ExternalIdFactory externalIdFactory) {
+    public MavenCodeLocationPackager(final ExternalIdFactory externalIdFactory, final DetectCodeLocationFactory codeLocationFactory) {
         this.externalIdFactory = externalIdFactory;
+        this.codeLocationFactory = codeLocationFactory;
     }
 
     public List<MavenParseResult> extractCodeLocations(final String sourcePath, final String mavenOutputText, final String excludedModules, final String includedModules) {
@@ -161,7 +165,7 @@ public class MavenCodeLocationPackager {
             if (!sourcePath.endsWith(dependency.name)) {
                 codeLocationSourcePath += "/" + dependency.name;
             }
-            final DetectCodeLocation codeLocation =  new DetectCodeLocation.Builder(BomToolType.MAVEN, codeLocationSourcePath, dependency.externalId, graph).build();
+            final DetectCodeLocation codeLocation =  codeLocationFactory.createBomCodeLocation(BomToolType.MAVEN, new File(codeLocationSourcePath), dependency.externalId, graph);
             return new MavenParseResult(dependency.name, dependency.version, codeLocation);
         }
         return null;

@@ -38,8 +38,9 @@ import com.blackducksoftware.integration.hub.detect.extraction.bomtool.nuget.mod
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.nuget.model.NugetInspection
 import com.blackducksoftware.integration.hub.detect.hub.HubSignatureScanner
 import com.blackducksoftware.integration.hub.detect.hub.ScanPathSource
+import com.blackducksoftware.integration.hub.detect.model.BomDetectCodeLocation
 import com.blackducksoftware.integration.hub.detect.model.BomToolType
-import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory
 import com.blackducksoftware.integration.hub.detect.nameversion.NameVersionNodeTransformer
 import com.blackducksoftware.integration.hub.detect.util.DetectFileManager
 import com.blackducksoftware.integration.hub.detect.util.executable.ExecutableRunner
@@ -73,11 +74,14 @@ class NugetInspectorPackager {
     @Autowired
     ExternalIdFactory externalIdFactory
 
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
+
     public NugetParseResult createDetectCodeLocation(File dependencyNodeFile) {
         String text = dependencyNodeFile.getText(StandardCharsets.UTF_8.toString())
         NugetInspection nugetInspection = gson.fromJson(text, NugetInspection.class)
 
-        def codeLocations = new ArrayList<DetectCodeLocation>()
+        def codeLocations = new ArrayList<BomDetectCodeLocation>()
         def projectName
         def projectVersion
         nugetInspection.containers.each {
@@ -115,7 +119,7 @@ class NugetInspectorPackager {
                 if (!projectVersionName) {
                     projectVersionName = container.version
                 }
-                new DetectCodeLocation.Builder(BomToolType.NUGET, sourcePath, externalIdFactory.createNameVersionExternalId(Forge.NUGET, projectName, projectVersionName), children).build()
+                codeLocationFactory.createBomCodeLocation(BomToolType.NUGET, new File(sourcePath), externalIdFactory.createNameVersionExternalId(Forge.NUGET, projectName, projectVersionName), children);
             }
             return new NugetParseResult(projectName, projectVersionName, codeLocations);
         } else if (NugetContainerType.PROJECT == nugetContainer.type) {
@@ -126,7 +130,7 @@ class NugetInspectorPackager {
             builder.addPackageSets(nugetContainer.packages)
             def children = builder.createDependencyGraph(nugetContainer.dependencies)
 
-            DetectCodeLocation codeLocation = new DetectCodeLocation.Builder(BomToolType.NUGET, sourcePath, externalIdFactory.createNameVersionExternalId(Forge.NUGET, projectName, projectVersionName), children).build();
+            BomDetectCodeLocation codeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.NUGET, new File(sourcePath), externalIdFactory.createNameVersionExternalId(Forge.NUGET, projectName, projectVersionName), children);
             return new NugetParseResult(projectName, projectVersionName, codeLocation);
         }
     }

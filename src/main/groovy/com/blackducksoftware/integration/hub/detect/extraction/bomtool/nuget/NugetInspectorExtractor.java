@@ -22,7 +22,9 @@ import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.nuget.parse.NugetInspectorPackager;
 import com.blackducksoftware.integration.hub.detect.extraction.bomtool.nuget.parse.NugetParseResult;
+import com.blackducksoftware.integration.hub.detect.model.BomDetectCodeLocation;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileFinder;
 import com.blackducksoftware.integration.hub.detect.util.DetectFileManager;
 import com.blackducksoftware.integration.hub.detect.util.executable.Executable;
@@ -49,6 +51,9 @@ public class NugetInspectorExtractor extends Extractor<NugetInspectorContext>  {
 
     @Autowired
     NugetInspectorPackager nugetInspectorPackager;
+
+    @Autowired
+    public DetectCodeLocationFactory codeLocationFactory;
 
     @Override
     public Extraction extract(final NugetInspectorContext context) {
@@ -88,7 +93,7 @@ public class NugetInspectorExtractor extends Extractor<NugetInspectorContext>  {
                     .map(it -> nugetInspectorPackager.createDetectCodeLocation(it))
                     .collect(Collectors.toList());
 
-            final List<DetectCodeLocation> codeLocations = parseResults.stream()
+            final List<BomDetectCodeLocation> codeLocations = parseResults.stream()
                     .flatMap(it -> it.codeLocations.stream())
                     .collect(Collectors.toList());
 
@@ -96,18 +101,18 @@ public class NugetInspectorExtractor extends Extractor<NugetInspectorContext>  {
                 logger.warn("Unable to extract any dependencies from nuget");
             }
 
-            final Map<String, DetectCodeLocation> codeLocationsBySource = new HashMap<>();
+            final Map<String, BomDetectCodeLocation> codeLocationsBySource = new HashMap<>();
             final DependencyGraphCombiner combiner = new DependencyGraphCombiner();
 
             codeLocations.stream().forEach ( codeLocation -> {
-                if (codeLocationsBySource.containsKey(codeLocation.getSourcePath())) {
+                if (codeLocationsBySource.containsKey(codeLocation.getRelativePath())) {
                     logger.info("Multiple project code locations were generated for: " + context.directory.toString());
                     logger.info("This most likely means the same project exists in multiple solutions.");
                     logger.info("The code location's dependencies will be combined, in the future they will exist seperately for each solution.");
-                    final DetectCodeLocation destination = codeLocationsBySource.get(codeLocation.getSourcePath());
+                    final DetectCodeLocation destination = codeLocationsBySource.get(codeLocation.getRelativePath());
                     combiner.addGraphAsChildrenToRoot((MutableDependencyGraph) destination.getDependencyGraph(), codeLocation.getDependencyGraph());
                 } else {
-                    codeLocationsBySource.put(codeLocation.getSourcePath(), codeLocation);
+                    codeLocationsBySource.put(codeLocation.getRelativePath(), codeLocation);
                 }
             });
 

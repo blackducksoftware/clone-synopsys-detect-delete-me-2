@@ -9,11 +9,11 @@ import com.blackducksoftware.integration.hub.bdio.model.Forge;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalId;
 import com.blackducksoftware.integration.hub.bdio.model.externalid.ExternalIdFactory;
 import com.blackducksoftware.integration.hub.detect.extraction.Extraction;
-import com.blackducksoftware.integration.hub.detect.extraction.Extraction.ExtractionResult;
-import com.blackducksoftware.integration.hub.detect.extraction.bomtool.go.parse.DepPackager;
 import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
+import com.blackducksoftware.integration.hub.detect.extraction.bomtool.go.parse.DepPackager;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
+import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocationFactory;
 
 @Component
 public class GoDepExtractor extends Extractor<GoDepContext> {
@@ -24,6 +24,9 @@ public class GoDepExtractor extends Extractor<GoDepContext> {
     @Autowired
     ExternalIdFactory externalIdFactory;
 
+    @Autowired
+    protected DetectCodeLocationFactory codeLocationFactory;
+
     @Override
     public Extraction extract(final GoDepContext context) {
 
@@ -32,7 +35,7 @@ public class GoDepExtractor extends Extractor<GoDepContext> {
             graph = new MutableMapDependencyGraph();
         }
         final ExternalId externalId = externalIdFactory.createPathExternalId(Forge.GOLANG, context.directory.toString());
-        final DetectCodeLocation detectCodeLocation = new DetectCodeLocation.Builder(BomToolType.GO_DEP, context.directory.toString(), externalId, graph).build();
+        final DetectCodeLocation detectCodeLocation = codeLocationFactory.createBomCodeLocation(BomToolType.GO_DEP, context.directory, externalId, graph);
 
         return new Extraction.Builder().success(detectCodeLocation).build();
 
