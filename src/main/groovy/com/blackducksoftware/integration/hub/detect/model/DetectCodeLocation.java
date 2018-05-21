@@ -48,6 +48,8 @@ public abstract class DetectCodeLocation {
         return dependencyGraph;
     }
 
+    public abstract String getName(final String projectName, final String projectVersionName, final String prefix, final String suffix);
+
     protected String createCommonName(final List<String> primaryPieces, final String prefix, final String suffix, final String codeLocationType) {
         return createCommonName(primaryPieces, prefix, suffix, codeLocationType, "");
     }

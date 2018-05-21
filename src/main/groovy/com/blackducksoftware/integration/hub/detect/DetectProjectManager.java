@@ -67,6 +67,7 @@ import com.blackducksoftware.integration.hub.detect.extraction.Extractor;
 import com.blackducksoftware.integration.hub.detect.extraction.StrategyEvaluation;
 import com.blackducksoftware.integration.hub.detect.hub.HubSignatureScanner;
 import com.blackducksoftware.integration.hub.detect.hub.ScanPathSource;
+import com.blackducksoftware.integration.hub.detect.model.BomDetectCodeLocation;
 import com.blackducksoftware.integration.hub.detect.model.BomToolType;
 import com.blackducksoftware.integration.hub.detect.model.DetectCodeLocation;
 import com.blackducksoftware.integration.hub.detect.model.DetectProject;
@@ -309,11 +310,11 @@ public class DetectProjectManager implements SummaryResultReporter, ExitCodeRepo
         } else {
             for (final DetectCodeLocation detectCodeLocation : detectProject.getDetectCodeLocations()) {
                 if (detectCodeLocation.getDependencyGraph() == null) {
-                    logger.warn(String.format("Dependency graph is null for code location %s", detectCodeLocation.getSourcePath()));
+                    logger.warn(String.format("Dependency graph is null for code location %s", detectProject.getCodeLocationName(detectCodeLocation)));
                     continue;
                 }
                 if (detectCodeLocation.getDependencyGraph().getRootDependencies().size() <= 0) {
-                    logger.warn(String.format("Could not find any dependencies for code location %s", detectCodeLocation.getSourcePath()));
+                    logger.warn(String.format("Could not find any dependencies for code location %s", detectProject.getCodeLocationName(detectCodeLocation)));
                 }
                 aggregateDependencyGraph.addGraphAsChildrenToRoot(detectCodeLocation.getDependencyGraph());
             }
@@ -403,8 +404,8 @@ public class DetectProjectManager implements SummaryResultReporter, ExitCodeRepo
         return projectVersion;
     }
 
-    private SimpleBdioDocument createSimpleBdioDocument(final String codeLocationName, final String projectName, final String projectVersionName, final DetectCodeLocation detectCodeLocation) {
-        final ExternalId projectExternalId = detectCodeLocation.getBomToolProjectExternalId();
+    private SimpleBdioDocument createSimpleBdioDocument(final String codeLocationName, final String projectName, final String projectVersionName, final BomDetectCodeLocation detectCodeLocation) {
+        final ExternalId projectExternalId = detectCodeLocation.getExternalId();
         final DependencyGraph dependencyGraph = detectCodeLocation.getDependencyGraph();
 
         return createSimpleBdioDocument(codeLocationName, projectName, projectVersionName, projectExternalId, dependencyGraph);

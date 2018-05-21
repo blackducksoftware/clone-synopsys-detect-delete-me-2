@@ -17,6 +17,7 @@ public class BomDetectCodeLocation extends DetectCodeLocation {
         this.relativePath = relativePath;
     }
 
+    @Override
     public String getName(final String projectName, final String projectVersionName, final String prefix, final String suffix) {
         final List<String> pieces = Arrays.asList(getExternalId().getExternalIdPieces());
         final String externalIdName = pieces.stream().collect(Collectors.joining("/"));
@@ -27,5 +28,9 @@ public class BomDetectCodeLocation extends DetectCodeLocation {
 
     public String getRelativePath() {
         return relativePath;
+    }
+
+    public BomToolType getBomToolType() {
+        return bomToolType;
     }
 }
