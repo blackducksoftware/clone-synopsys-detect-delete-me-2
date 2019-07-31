@@ -27,15 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.boot.context.properties.bind.BindResult;
-import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
-import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
-
 import com.synopsys.integration.blackduck.api.enumeration.PolicySeverityType;
 import com.synopsys.integration.blackduck.codelocation.signaturescanner.command.SnippetMatching;
 import com.synopsys.integration.detect.exception.DetectUserFriendlyException;
-import com.synopsys.integration.detect.exitcode.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.tool.detector.impl.DetectDetectorFileFilter;
 import com.synopsys.integration.detect.tool.detector.impl.DetectDetectorFilter;
@@ -45,7 +39,6 @@ import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.bdio.BdioOptions;
 import com.synopsys.integration.detect.workflow.blackduck.BlackDuckPostOptions;
 import com.synopsys.integration.detect.workflow.blackduck.CustomFieldDocument;
-import com.synopsys.integration.detect.workflow.blackduck.DetectCustomFieldService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectProjectServiceOptions;
 import com.synopsys.integration.detect.workflow.airgap.AirGapOptions;
 import com.synopsys.integration.detect.workflow.file.DirectoryOptions;
@@ -92,8 +85,9 @@ public class DetectConfigurationFactory {
         final String outputPath = detectConfiguration.getProperty(DetectProperty.DETECT_OUTPUT_PATH, PropertyAuthority.DirectoryManager);
         final String bdioPath = detectConfiguration.getProperty(DetectProperty.DETECT_BDIO_OUTPUT_PATH, PropertyAuthority.DirectoryManager);
         final String scanPath = detectConfiguration.getProperty(DetectProperty.DETECT_SCAN_OUTPUT_PATH, PropertyAuthority.DirectoryManager);
+        final String runOutputPath = detectConfiguration.getProperty(DetectProperty.DETECT_RUN_OUTPUT_PATH, PropertyAuthority.DirectoryManager);
 
-        return new DirectoryOptions(sourcePath, outputPath, bdioPath, scanPath);
+        return new DirectoryOptions(sourcePath, outputPath, bdioPath, scanPath, runOutputPath);
     }
 
     public AirGapOptions createAirGapOptions() {

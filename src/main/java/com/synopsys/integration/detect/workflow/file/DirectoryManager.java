@@ -115,12 +115,17 @@ public class DirectoryManager {
         EnumSet.allOf(OutputDirectory.class).stream()
             .forEach(it -> outputDirectories.put(it, new File(outputDirectory, it.getDirectoryName())));
 
-        File possibleRunDirectory = new File(getOutputDirectory(OutputDirectory.Runs), detectRun.getRunId());
-        if (possibleRunDirectory.exists()){
-            logger.warn("A run directory already exists with this detect run id. Will attempt to use a UUID for the run folder in addition.");
-            possibleRunDirectory = new File(getOutputDirectory(OutputDirectory.Runs), detectRun.getRunId() + "-" + java.util.UUID.randomUUID());
+        if (StringUtils.isNotBlank(directoryOptions.getRunOutputPath())) {
+            //There is a possible complication with the 'run' directory not being underneath 'runs' but so far it looks like it only affects diagnostics as the zip is placed in output/runs - but maybe you'd expect it in the run folder.
+            runDirectory = new File(directoryOptions.getRunOutputPath());
+        } else {
+            File possibleRunDirectory = new File(getOutputDirectory(OutputDirectory.Runs), detectRun.getRunId());
+            if (possibleRunDirectory.exists()) {
+                logger.warn("A run directory already exists with this detect run id. Will attempt to use a UUID for the run folder in addition.");
+                possibleRunDirectory = new File(getOutputDirectory(OutputDirectory.Runs), detectRun.getRunId() + "-" + java.util.UUID.randomUUID());
+            }
+            runDirectory = possibleRunDirectory;
         }
-        runDirectory = possibleRunDirectory;
 
         logger.info("Run directory: " + runDirectory.getAbsolutePath());
 
