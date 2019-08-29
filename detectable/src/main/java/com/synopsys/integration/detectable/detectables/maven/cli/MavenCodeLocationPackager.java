@@ -40,6 +40,8 @@ import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocationId;
+import com.synopsys.integration.detectable.detectable.codelocation.GAVCodeLocationId;
 import com.synopsys.integration.util.ExcludedIncludedFilter;
 
 public class MavenCodeLocationPackager {
@@ -205,7 +207,8 @@ public class MavenCodeLocationPackager {
             if (!sourcePath.endsWith(dependency.name)) {
                 codeLocationSourcePath += "/" + dependency.name;
             }
-            final CodeLocation codeLocation = new CodeLocation(graph, dependency.externalId, new File(codeLocationSourcePath));
+            final CodeLocationId codeLocationId = new GAVCodeLocationId(dependency.externalId.group, dependency.externalId.name, dependency.externalId.version);
+            final CodeLocation codeLocation = new CodeLocation(graph, codeLocationId, new File(codeLocationSourcePath));
             return new MavenParseResult(dependency.name, dependency.version, codeLocation);
         }
         return null;

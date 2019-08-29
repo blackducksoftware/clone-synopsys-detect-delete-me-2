@@ -33,11 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.bdio.graph.DependencyGraph;
-import com.synopsys.integration.bdio.model.Forge;
-import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.Extraction;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocationId;
+import com.synopsys.integration.detectable.detectable.codelocation.NameVersionCodeLocationId;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableOutput;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableRunner;
 import com.synopsys.integration.detectable.detectables.pear.model.PackageDependency;
@@ -83,8 +83,8 @@ public class PearCliExtractor {
             try (final InputStream packageXmlInputStream = new FileInputStream(packageXmlFile)) {
                 final NameVersion projectNameVersion = pearPackageXmlParser.parse(packageXmlInputStream);
 
-                final ExternalId externalId = externalIdFactory.createNameVersionExternalId(Forge.PEAR, projectNameVersion.getName(), projectNameVersion.getVersion());
-                final CodeLocation detectCodeLocation = new CodeLocation(dependencyGraph, externalId);
+                final CodeLocationId codeLocationId = new NameVersionCodeLocationId(projectNameVersion.getName(), projectNameVersion.getVersion());
+                final CodeLocation detectCodeLocation = new CodeLocation(dependencyGraph, codeLocationId);
 
                 return new Extraction.Builder()
                            .success(detectCodeLocation)

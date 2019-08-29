@@ -123,7 +123,7 @@ public class DetectableTool {
             eventSystem.publishEvent(Event.StatusSummary, new Status(name, StatusType.SUCCESS));
         }
 
-        final Map<CodeLocation, DetectCodeLocation> detectCodeLocationMap = codeLocationConverter.toDetectCodeLocation(sourcePath, extraction, sourcePath, name);
+        final Map<CodeLocation, DetectCodeLocation> detectCodeLocationMap = codeLocationConverter.toDetectCodeLocation(extraction, sourcePath, name);
         final List<DetectCodeLocation> detectCodeLocations = new ArrayList<>(detectCodeLocationMap.values());
 
         Optional<DetectToolProjectInfo> detectToolProjectInfo = Optional.empty();
