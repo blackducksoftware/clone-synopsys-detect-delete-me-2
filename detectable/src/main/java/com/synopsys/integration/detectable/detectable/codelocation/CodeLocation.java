@@ -26,12 +26,11 @@ import java.io.File;
 import java.util.Optional;
 
 import com.synopsys.integration.bdio.graph.DependencyGraph;
-import com.synopsys.integration.bdio.model.externalid.ExternalId;
 
 public class CodeLocation {
-    private final File sourcePath;
-    private final ExternalId externalId;
-    private final DependencyGraph dependencyGraph;
+    protected final File sourcePath;
+    protected final CodeLocationId codeLocationId;
+    protected final DependencyGraph dependencyGraph;
 
     public CodeLocation(final DependencyGraph dependencyGraph) {
         this(dependencyGraph, null, null);
@@ -41,13 +40,13 @@ public class CodeLocation {
         this(dependencyGraph, null, sourcePath);
     }
 
-    public CodeLocation(final DependencyGraph dependencyGraph, final ExternalId externalId) {
-        this(dependencyGraph, externalId, null);
+    public CodeLocation(final DependencyGraph dependencyGraph, final CodeLocationId codeLocationId) {
+        this(dependencyGraph, codeLocationId, null);
     }
 
-    public CodeLocation(final DependencyGraph dependencyGraph, final ExternalId externalId, final File sourcePath) {
+    public CodeLocation(final DependencyGraph dependencyGraph, final CodeLocationId codeLocationId, final File sourcePath) {
         this.sourcePath = sourcePath;
-        this.externalId = externalId;
+        this.codeLocationId = codeLocationId;
         this.dependencyGraph = dependencyGraph;
     }
 
@@ -55,8 +54,8 @@ public class CodeLocation {
         return Optional.ofNullable(sourcePath);
     }
 
-    public Optional<ExternalId> getExternalId() {
-        return Optional.ofNullable(externalId);
+    public Optional<CodeLocationId> getCodeLocationId() {
+        return Optional.ofNullable(codeLocationId);
     }
 
     public DependencyGraph getDependencyGraph() {

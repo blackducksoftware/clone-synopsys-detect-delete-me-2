@@ -184,7 +184,7 @@ public class DockerExtractor {
                 final String externalIdPath = simpleBdioDocument.project.bdioExternalIdentifier.externalId;
                 final ExternalId projectExternalId = externalIdFactory.createPathExternalId(dockerForge, externalIdPath);
 
-                final CodeLocation detectCodeLocation = new CodeLocation(dependencyGraph, projectExternalId);
+                final CodeLocation detectCodeLocation = new CodeLocation(dependencyGraph, new DockerCodeLocationIdContainer(projectExternalId));
 
                 return new Extraction.Builder().success(detectCodeLocation).projectName(projectName).projectVersion(projectVersionName);
             }

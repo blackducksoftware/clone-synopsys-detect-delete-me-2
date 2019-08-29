@@ -28,7 +28,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.synopsys.integration.bdio.graph.DependencyGraph;
 import com.synopsys.integration.bdio.graph.MutableDependencyGraph;
 import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.Forge;
@@ -36,6 +35,8 @@ import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocationId;
+import com.synopsys.integration.detectable.detectable.codelocation.NameVersionCodeLocationId;
 import com.synopsys.integration.detectable.detectable.util.DependencyHistory;
 import com.synopsys.integration.detectable.detectables.hex.model.RebarParseResult;
 import com.synopsys.integration.util.NameVersion;
@@ -57,7 +58,7 @@ public class Rebar3TreeParser {
         this.externalIdFactory = externalIdFactory;
     }
 
-    public RebarParseResult parseRebarTreeOutput(final List<String> dependencyTreeOutput, final String sourcePath) {
+    public RebarParseResult parseRebarTreeOutput(final List<String> dependencyTreeOutput) {
         final MutableDependencyGraph graph = new MutableMapDependencyGraph();
         final DependencyHistory history = new DependencyHistory();
         Dependency project = null;
@@ -89,10 +90,11 @@ public class Rebar3TreeParser {
         }
 
         if (project == null) {
-            CodeLocation codeLocation = new CodeLocation(graph);
+            final CodeLocation codeLocation = new CodeLocation(graph);
             return new RebarParseResult(codeLocation);
         } else {
-            CodeLocation codeLocation = new CodeLocation(graph, project.externalId);
+            final CodeLocationId codeLocationId = new NameVersionCodeLocationId(project.name, project.version);
+            final CodeLocation codeLocation = new CodeLocation(graph, codeLocationId);
             return new RebarParseResult(new NameVersion(project.name, project.version), codeLocation);
         }
     }

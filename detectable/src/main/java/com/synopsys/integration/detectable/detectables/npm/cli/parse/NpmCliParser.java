@@ -40,6 +40,8 @@ import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocationId;
+import com.synopsys.integration.detectable.detectable.codelocation.NameVersionCodeLocationId;
 import com.synopsys.integration.detectable.detectables.npm.lockfile.model.NpmParseResult;
 
 public class NpmCliParser {
@@ -68,7 +70,7 @@ public class NpmCliParser {
 
     public NpmParseResult convertNpmJsonFileToCodeLocation(final String sourcePath, final String npmLsOutput) {
         final JsonObject npmJson = new JsonParser().parse(npmLsOutput).getAsJsonObject();
-        final MutableDependencyGraph graph = new MutableMapDependencyGraph();
+        final MutableDependencyGraph dependencyGraph = new MutableMapDependencyGraph();
 
         final JsonElement projectNameElement = npmJson.getAsJsonPrimitive(JSON_NAME);
         final JsonElement projectVersionElement = npmJson.getAsJsonPrimitive(JSON_VERSION);
@@ -81,11 +83,10 @@ public class NpmCliParser {
             projectVersion = projectVersionElement.getAsString();
         }
 
-        populateChildren(graph, null, npmJson.getAsJsonObject(JSON_DEPENDENCIES), true);
+        populateChildren(dependencyGraph, null, npmJson.getAsJsonObject(JSON_DEPENDENCIES), true);
 
-        final ExternalId externalId = externalIdFactory.createNameVersionExternalId(Forge.NPMJS, projectName, projectVersion);
-
-        final CodeLocation codeLocation = new CodeLocation(graph, externalId);
+        final CodeLocationId codeLocationId = new NameVersionCodeLocationId(projectName, projectVersion);
+        final CodeLocation codeLocation = new CodeLocation(dependencyGraph, codeLocationId);
 
         return new NpmParseResult(projectName, projectVersion, codeLocation);
 
@@ -98,7 +99,7 @@ public class NpmCliParser {
         final Set<Entry<String, JsonElement>> elements = parentNodeChildren.entrySet();
         elements.forEach(it -> {
             if (it.getValue() != null && it.getValue().isJsonObject()) {
-
+                //TODO: Fix this!!!
             }
             final JsonObject element = it.getValue().getAsJsonObject();
             final String name = it.getKey();

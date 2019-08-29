@@ -24,7 +24,6 @@ package com.synopsys.integration.detect.tool.detector;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,8 +60,6 @@ import com.synopsys.integration.detector.finder.DetectorFinderOptions;
 import com.synopsys.integration.detector.rule.DetectorRule;
 import com.synopsys.integration.detector.rule.DetectorRuleSet;
 
-import freemarker.template.utility.StringUtil;
-
 public class DetectorTool {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final DetectorFinder detectorFinder;
@@ -77,7 +74,7 @@ public class DetectorTool {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    public DetectorToolResult performDetectors(final File directory, DetectorRuleSet detectorRuleSet, final DetectorFinderOptions detectorFinderOptions, DetectorEvaluationOptions evaluationOptions, final String projectDetector,
+    public DetectorToolResult performDetectors(final File directory, final DetectorRuleSet detectorRuleSet, final DetectorFinderOptions detectorFinderOptions, final DetectorEvaluationOptions evaluationOptions, final String projectDetector,
         final String requiredDetectors)
         throws DetectUserFriendlyException {
         logger.info("Initializing detector system.");
@@ -108,7 +105,7 @@ public class DetectorTool {
         logger.info("Starting detector evaluations.");
         detectorEvaluator.searchAndApplicableEvaluation(rootEvaluation, new HashSet<>());
 
-        Set<DetectorType> applicable = detectorEvaluations.stream()
+        final Set<DetectorType> applicable = detectorEvaluations.stream()
                                            .filter(DetectorEvaluation::isApplicable)
                                            .map(DetectorEvaluation::getDetectorRule)
                                            .map(DetectorRule::getDetectorType)
@@ -139,7 +136,7 @@ public class DetectorTool {
             preferredProjectDetector = preferredDetectorTypeFromString(projectDetector);
         }
 
-        DetectorNameVersionHandler detectorNameVersionHandler;
+        final DetectorNameVersionHandler detectorNameVersionHandler;
         if (preferredProjectDetector.isPresent()) {
             detectorNameVersionHandler = new PreferredDetectorNameVersionHandler(preferredProjectDetector.get());
         } else {
@@ -168,22 +165,22 @@ public class DetectorTool {
 
         detectorToolResult.codeLocationMap = detectorEvaluations.stream()
                                                  .filter(DetectorEvaluation::wasExtractionSuccessful)
-                                                 .map(it -> codeLocationConverter.toDetectCodeLocation(directory, it))
+                                                 .map(it -> codeLocationConverter.toDetectCodeLocation(it))
                                                  .map(Map::entrySet)
                                                  .flatMap(Collection::stream)
                                                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         detectorToolResult.bomToolCodeLocations = new ArrayList<>(detectorToolResult.codeLocationMap.values());
 
-        NameVersionDecision nameVersionDecision = detectorNameVersionHandler.finalDecision();
+        final NameVersionDecision nameVersionDecision = detectorNameVersionHandler.finalDecision();
         nameVersionDecision.printDescription(logger);
         detectorToolResult.bomToolProjectNameVersion = nameVersionDecision.getChosenNameVersion();
 
         //Check required detector types
-        RequiredDetectorChecker requiredDetectorChecker = new RequiredDetectorChecker();
-        RequiredDetectorChecker.RequiredDetectorResult requiredDetectorResult = requiredDetectorChecker.checkForMissingDetectors(requiredDetectors, applicable);
+        final RequiredDetectorChecker requiredDetectorChecker = new RequiredDetectorChecker();
+        final RequiredDetectorChecker.RequiredDetectorResult requiredDetectorResult = requiredDetectorChecker.checkForMissingDetectors(requiredDetectors, applicable);
         if (requiredDetectorResult.wereDetectorsMissing()) {
-            String missingDetectors = requiredDetectorResult.getMissingDetectors().stream().map(it -> it.toString()).collect(Collectors.joining(","));
+            final String missingDetectors = requiredDetectorResult.getMissingDetectors().stream().map(it -> it.toString()).collect(Collectors.joining(","));
             logger.error("One or more required detector types were not found: " + missingDetectors);
             eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR_REQUIRED));
         }
@@ -225,7 +222,7 @@ public class DetectorTool {
         return statusMap;
     }
 
-    private Optional<DetectorType> preferredDetectorTypeFromString(String detectorType) {
+    private Optional<DetectorType> preferredDetectorTypeFromString(final String detectorType) {
         if (detectorType != null && StringUtils.isNotBlank(detectorType)) {
             if (DetectorType.POSSIBLE_NAMES.contains(detectorType)) {
                 return Optional.of(DetectorType.valueOf(detectorType));

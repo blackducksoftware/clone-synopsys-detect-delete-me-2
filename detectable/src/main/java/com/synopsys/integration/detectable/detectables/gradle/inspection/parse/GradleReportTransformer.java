@@ -35,6 +35,8 @@ import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocationId;
+import com.synopsys.integration.detectable.detectable.codelocation.GAVCodeLocationId;
 import com.synopsys.integration.detectable.detectable.util.DependencyHistory;
 import com.synopsys.integration.detectable.detectables.gradle.inspection.model.GradleConfiguration;
 import com.synopsys.integration.detectable.detectables.gradle.inspection.model.GradleGav;
@@ -58,11 +60,11 @@ public class GradleReportTransformer {
             addConfigurationToGraph(graph, configuration);
         }
 
-        final ExternalId projectId = externalIdFactory.createMavenExternalId(gradleReport.projectGroup, gradleReport.projectName, gradleReport.projectVersionName);
+        final CodeLocationId codeLocationId = new GAVCodeLocationId(gradleReport.projectGroup, gradleReport.projectName, gradleReport.projectVersionName);
         if (StringUtils.isNotBlank(gradleReport.projectSourcePath)) {
-            return new CodeLocation(graph, projectId, new File(gradleReport.projectSourcePath));
+            return new CodeLocation(graph, codeLocationId, new File(gradleReport.projectSourcePath));
         } else {
-            return new CodeLocation(graph, projectId);
+            return new CodeLocation(graph, codeLocationId);
         }
     }
 
@@ -84,6 +86,7 @@ public class GradleReportTransformer {
                 continue;
             }
 
+            // TODO: Preform an isPresent() check
             final GradleGav gav = currentNode.getGav().get();
             final ExternalId externalId = externalIdFactory.createMavenExternalId(gav.getName(), gav.getArtifact(), gav.getVersion());
             final Dependency currentDependency = new Dependency(gav.getArtifact(), gav.getVersion(), externalId);
