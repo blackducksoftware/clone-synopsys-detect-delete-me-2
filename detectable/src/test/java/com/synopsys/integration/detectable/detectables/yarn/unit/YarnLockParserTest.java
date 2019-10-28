@@ -1,6 +1,6 @@
 package com.synopsys.integration.detectable.detectables.yarn.unit;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +31,8 @@ public class YarnLockParserTest {
         final YarnLockParser yarnLockParser = new YarnLockParser(new YarnLineLevelParser());
         final YarnLock yarnLock = yarnLockParser.parseYarnLock(yarnLockText);
 
-        assertEquals("0.9.0", yarnLock.versionForFuzzyId("async@0.9.0").get());
-        assertEquals("1.0.3", yarnLock.versionForFuzzyId("colors@1.0.3").get());
+        assertEquals("0.9.0", yarnLock.entryForFuzzyId("async@0.9.0").get().getResolvedVersion());
+        assertEquals("1.0.3", yarnLock.entryForFuzzyId("colors@1.0.3").get().getResolvedVersion());
     }
 
     @Test
@@ -51,8 +51,8 @@ public class YarnLockParserTest {
         final YarnLockParser yarnLockParser = new YarnLockParser(new YarnLineLevelParser());
         final YarnLock yarnLock = yarnLockParser.parseYarnLock(yarnLockText);
 
-        assertEquals("1.16.2", yarnLock.versionForFuzzyId("http-proxy@^1.8.1").get());
-        assertEquals("0.9.0", yarnLock.versionForFuzzyId("http-server@^0.9.0").get());
+        assertEquals("1.16.2", yarnLock.entryForFuzzyId("http-proxy@^1.8.1").get().getResolvedVersion());
+        assertEquals("0.9.0", yarnLock.entryForFuzzyId("http-server@^0.9.0").get().getResolvedVersion());
     }
 
     @Test
@@ -67,12 +67,12 @@ public class YarnLockParserTest {
         final YarnLockParser yarnLockParser = new YarnLockParser(new YarnLineLevelParser());
         final YarnLock yarnLock = yarnLockParser.parseYarnLock(yarnLockText);
 
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@2").get());
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@2.6.9").get());
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@^2.2.0").get());
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@^2.3.3").get());
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@~2.6.4").get());
-        assertEquals("2.6.9", yarnLock.versionForFuzzyId("debug@~2.6.6").get());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@2").get().getResolvedVersion());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@2.6.9").get().getResolvedVersion());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@^2.2.0").get().getResolvedVersion());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@^2.3.3").get().getResolvedVersion());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@~2.6.4").get().getResolvedVersion());
+        assertEquals("2.6.9", yarnLock.entryForFuzzyId("debug@~2.6.6").get().getResolvedVersion());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class YarnLockParserTest {
         final YarnLockParser yarnLockParser = new YarnLockParser(new YarnLineLevelParser());
         final YarnLock yarnLock = yarnLockParser.parseYarnLock(yarnLockText);
 
-        assertEquals("0.2.37", yarnLock.versionForFuzzyId("cssstyle@>= 0.2.37 < 0.3.0").get());
+        assertEquals("0.2.37", yarnLock.entryForFuzzyId("cssstyle@>= 0.2.37 < 0.3.0").get().getResolvedVersion());
     }
 
 }

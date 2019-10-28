@@ -28,29 +28,25 @@ import com.synopsys.integration.detectable.Detectable;
 import com.synopsys.integration.detectable.DetectableEnvironment;
 import com.synopsys.integration.detectable.Extraction;
 import com.synopsys.integration.detectable.ExtractionEnvironment;
-import com.synopsys.integration.detectable.detectable.exception.DetectableException;
-import com.synopsys.integration.detectable.detectable.executable.resolver.YarnResolver;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
 import com.synopsys.integration.detectable.detectable.result.DetectableResult;
-import com.synopsys.integration.detectable.detectable.result.ExecutableNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.FileNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.PassedDetectableResult;
 
 public class YarnLockDetectable extends Detectable {
     private static final String YARN_LOCK_FILENAME = "yarn.lock";
+    public static final String PACKAGE_JSON = "package.json";
 
     private final FileFinder fileFinder;
-    private final YarnResolver yarnResolver;
     private final YarnLockExtractor yarnLockExtractor;
 
     private File yarnLock;
-    private File yarnExe;
+    private File packageJsonFile;
 
-    public YarnLockDetectable(final DetectableEnvironment environment, final FileFinder fileFinder, final YarnResolver yarnResolver, final YarnLockExtractor yarnLockExtractor) {
+    public YarnLockDetectable(final DetectableEnvironment environment, final FileFinder fileFinder, final YarnLockExtractor yarnLockExtractor) {
         super(environment, "Yarn Lock", "YARN");
         this.fileFinder = fileFinder;
         this.yarnLockExtractor = yarnLockExtractor;
-        this.yarnResolver = yarnResolver;
     }
 
     @Override
@@ -60,23 +56,22 @@ public class YarnLockDetectable extends Detectable {
             return new FileNotFoundDetectableResult(YARN_LOCK_FILENAME);
         }
 
-        return new PassedDetectableResult();
-    }
-
-    @Override
-    public DetectableResult extractable() throws DetectableException {
-        yarnExe = yarnResolver.resolveYarn();
-
-        if (yarnExe == null) {
-            return new ExecutableNotFoundDetectableResult("yarn");
+        packageJsonFile = fileFinder.findFile(environment.getDirectory(), PACKAGE_JSON);
+        if (packageJsonFile == null) {
+            return new FileNotFoundDetectableResult(PACKAGE_JSON);
         }
 
         return new PassedDetectableResult();
     }
 
     @Override
+    public DetectableResult extractable() {
+        return new PassedDetectableResult();
+    }
+
+    @Override
     public Extraction extract(final ExtractionEnvironment extractionEnvironment) {
-        return yarnLockExtractor.extract(environment.getDirectory(), yarnLock, yarnExe);
+        return yarnLockExtractor.extract(environment.getDirectory(), yarnLock, packageJsonFile);
     }
 
 }
