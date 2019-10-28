@@ -22,7 +22,7 @@
  */
 package com.synopsys.integration.detectable.detectables.yarn.parse;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -35,7 +35,6 @@ import com.synopsys.integration.bdio.model.Forge;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
-import com.synopsys.integration.detectable.detectable.util.DependencyHistory;
 
 public class YarnTransformer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -45,35 +44,40 @@ public class YarnTransformer {
         this.externalIdFactory = externalIdFactory;
     }
 
-    public DependencyGraph transform(List<YarnListNode> yarnList, YarnLock yarnLock){
+    public DependencyGraph transform(final PackageJson packageJson, final YarnLock yarnLock) {
         final MutableDependencyGraph graph = new MutableMapDependencyGraph();
-        final DependencyHistory history = new DependencyHistory();
 
-        for (YarnListNode yarnListNode : yarnList){
-            int actualDepth = yarnListNode.getDepth() - 1;//"yarn list" is the root node, so we need to shift the entire tree 1 level to the left.
-            try {
-                history.clearDependenciesDeeperThan(actualDepth);
-            } catch (final IllegalStateException e) {
-                logger.warn(String.format("Problem parsing yarn list '%s': %s", yarnListNode.getFuzzyId(), e.getMessage()));
-            }
+        for (final Map.Entry<String, String> packageJsonEntry : packageJson.dependencies.entrySet()) {
+            final String dependencyFuzzyId = packageJsonEntry.getKey() + "@" + packageJsonEntry.getValue();
+            final Optional<YarnLock.Entry> entry = yarnLock.entryForFuzzyId(dependencyFuzzyId);
 
-            String name = yarnListNode.getPackageName();
-            Optional<String> resolvedVersion = yarnLock.versionForFuzzyId(yarnListNode.getFuzzyId());
-            String version = resolvedVersion.orElse(yarnListNode.getFuzzyPackageVersion());
-
-            final ExternalId externalId = externalIdFactory.createNameVersionExternalId(Forge.NPMJS, name, version);
-            Dependency dependency = new Dependency(name, version, externalId);
-
-
-            if (history.isEmpty()) {
+            if (entry.isPresent()) {
+                final Dependency dependency = buildGraph(yarnLock, graph, entry.get());
                 graph.addChildToRoot(dependency);
             } else {
-                graph.addChildWithParents(dependency, history.getLastDependency());
+                logger.warn(String.format("Missing entry in yarn.lock for '%s'", dependencyFuzzyId));
             }
-
-            history.add(dependency);
         }
 
         return graph;
+    }
+
+    private Dependency buildGraph(final YarnLock yarnLock, final MutableDependencyGraph mutableDependencyGraph, final YarnLock.Entry yarnLockEntry) {
+        final String name = yarnLockEntry.getName();
+        final String version = yarnLockEntry.getResolvedVersion();
+        final ExternalId externalId = externalIdFactory.createNameVersionExternalId(Forge.NPMJS, name, version);
+        final Dependency dependency = new Dependency(externalId);
+
+        for (final YarnLock.Entry.Dependency yarnDependency : yarnLockEntry.getYarnDependencies()) {
+            final Optional<YarnLock.Entry> dependencyEntry = yarnLock.entryForFuzzyId(yarnDependency.getFuzzyId());
+            if (dependencyEntry.isPresent()) {
+                final Dependency transitiveDependency = buildGraph(yarnLock, mutableDependencyGraph, dependencyEntry.get());
+                mutableDependencyGraph.addParentWithChild(dependency, transitiveDependency);
+            } else {
+                logger.warn(String.format("Missing entry in yarn.lock for '%s'", yarnDependency.getFuzzyId()));
+            }
+        }
+
+        return dependency;
     }
 }
