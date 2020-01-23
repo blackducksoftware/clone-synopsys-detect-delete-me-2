@@ -811,7 +811,7 @@ public enum DetectProperty {
     LOGGING_LEVEL_DETECT("logging.level.detect", "Logging Level Shorthand", "5.5.0", PropertyType.STRING, PropertyAuthority.NONE, "INFO"),
 
     @HelpGroup(primary = GROUP_GENERAL, additional = { SEARCH_GROUP_GLOBAL })
-    @HelpDescription("If set to true, Detect will wait for Synopsys products until results are available or the blackduck.timeout is exceeded.")
+    @HelpDescription("If set to true, Detect will wait for Synopsys products until results are available or the detect.report.timeout is exceeded.")
     DETECT_WAIT_FOR_RESULTS("detect.wait.for.results", "Wait For Results", "5.5.0", PropertyType.BOOLEAN, PropertyAuthority.NONE, "false"),
     /**********************************************************************************************
      * DEPRECATED START
