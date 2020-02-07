@@ -366,7 +366,7 @@ open class DetectConfigurationFactory(private val detectConfiguration: PropertyC
         return BinaryScanOptions(singleTarget, mutlipleTargets, codeLocationPrefix, codeLocationSuffix)
     }
 
-    fun createExecutablePaths(): DetectExecutableOptions {
+    fun createDetectExecutableOptions(): DetectExecutableOptions {
         return DetectExecutableOptions(
                 bashUserPath = detectConfiguration.getValue(DetectProperties.DETECT_BASH_PATH)?.resolvePath(pathResolver),
                 bazelUserPath = detectConfiguration.getValue(DetectProperties.DETECT_BAZEL_PATH)?.resolvePath(pathResolver),

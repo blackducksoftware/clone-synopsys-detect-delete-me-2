@@ -47,18 +47,18 @@ import com.synopsys.integration.detectable.detectable.executable.resolver.Rebar3
 import com.synopsys.integration.detectable.detectable.executable.resolver.SwiftResolver;
 import com.synopsys.integration.detectable.detectable.inspector.go.GoResolver;
 
-//this will cache the find result.
+// This will cache the find result.
 public class SimpleExecutableResolver
     implements GradleResolver, BashResolver, CondaResolver, CpanmResolver, CpanResolver, PearResolver, Rebar3Resolver, PythonResolver, PipResolver, PipenvResolver, MavenResolver, NpmResolver, BazelResolver, JavaResolver, DotNetResolver,
                    DockerResolver, GitResolver, SwiftResolver, GoResolver {
 
     private final CachedExecutableResolverOptions executableResolverOptions;
-    private final SimpleLocalExecutableFinder localExecutableFinder;
-    private final SimpleSystemExecutableFinder systemExecutableFinder;
+    private final SimpleExecutableFinder localExecutableFinder;
+    private final SystemPathExecutableFinder systemExecutableFinder;
 
     private final Map<String, File> cached = new HashMap<>();
 
-    public SimpleExecutableResolver(final CachedExecutableResolverOptions executableResolverOptions, final SimpleLocalExecutableFinder localExecutableFinder, final SimpleSystemExecutableFinder systemExecutableFinder) {
+    public SimpleExecutableResolver(final CachedExecutableResolverOptions executableResolverOptions, final SimpleExecutableFinder localExecutableFinder, final SystemPathExecutableFinder systemExecutableFinder) {
         this.executableResolverOptions = executableResolverOptions;
         this.localExecutableFinder = localExecutableFinder;
         this.systemExecutableFinder = systemExecutableFinder;

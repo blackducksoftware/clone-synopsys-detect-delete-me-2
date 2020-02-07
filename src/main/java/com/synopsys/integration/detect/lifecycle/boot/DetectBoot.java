@@ -117,8 +117,8 @@ import com.synopsys.integration.detectable.detectable.executable.impl.CachedExec
 import com.synopsys.integration.detectable.detectable.executable.impl.SimpleExecutableFinder;
 import com.synopsys.integration.detectable.detectable.executable.impl.SimpleExecutableResolver;
 import com.synopsys.integration.detectable.detectable.executable.impl.SimpleExecutableRunner;
-import com.synopsys.integration.detectable.detectable.executable.impl.SimpleLocalExecutableFinder;
-import com.synopsys.integration.detectable.detectable.executable.impl.SimpleSystemExecutableFinder;
+import com.synopsys.integration.detectable.detectable.executable.impl.SystemPathExecutableFinder;
+import com.synopsys.integration.detectable.detectable.file.FileFinder;
 import com.synopsys.integration.detectable.detectable.file.impl.SimpleFileFinder;
 import com.synopsys.integration.detector.rule.DetectorRule;
 import com.synopsys.integration.detector.rule.DetectorRuleSet;
@@ -395,26 +395,23 @@ public class DetectBoot {
         }
     }
 
-    private File createAirGapZip(final DetectFilter inspectorFilter, final PropertyConfiguration detectConfiguration, final PathResolver pathResolver, final DirectoryManager directoryManager, final Gson gson,
-        final EventSystem eventSystem,
-        final Configuration configuration,
-        final String airGapSuffix)
-        throws DetectUserFriendlyException {
+    private File createAirGapZip(final DetectFilter inspectorFilter, final PropertyConfiguration detectConfiguration, final PathResolver pathResolver, final DirectoryManager directoryManager, final Gson gson, final EventSystem eventSystem,
+        final Configuration freemarkerConfiguration, final String airGapSuffix) throws DetectUserFriendlyException {
+
         final DetectConfigurationFactory detectConfigurationFactory = new DetectConfigurationFactory(detectConfiguration, pathResolver);
         final ConnectionDetails connectionDetails = detectConfigurationFactory.createConnectionDetails();
         final ConnectionFactory connectionFactory = new ConnectionFactory(connectionDetails);
         final ArtifactResolver artifactResolver = new ArtifactResolver(connectionFactory, gson);
 
         //TODO: This is awful, why is making this so convoluted.
-        final SimpleFileFinder fileFinder = new SimpleFileFinder();
+        final FileFinder fileFinder = new SimpleFileFinder();
         final SimpleExecutableFinder simpleExecutableFinder = SimpleExecutableFinder.forCurrentOperatingSystem(fileFinder);
-        final SimpleLocalExecutableFinder localExecutableFinder = new SimpleLocalExecutableFinder(simpleExecutableFinder);
-        final SimpleSystemExecutableFinder simpleSystemExecutableFinder = new SimpleSystemExecutableFinder(simpleExecutableFinder);
-        final SimpleExecutableResolver executableResolver = new SimpleExecutableResolver(new CachedExecutableResolverOptions(false), localExecutableFinder, simpleSystemExecutableFinder);
-        final DetectExecutableResolver detectExecutableResolver = new DetectExecutableResolver(executableResolver, detectConfigurationFactory.createExecutablePaths());
+        final SystemPathExecutableFinder simpleSystemExecutableFinder = new SystemPathExecutableFinder(simpleExecutableFinder);
+        final SimpleExecutableResolver executableResolver = new SimpleExecutableResolver(new CachedExecutableResolverOptions(false), simpleExecutableFinder, simpleSystemExecutableFinder);
+        final DetectExecutableResolver detectExecutableResolver = new DetectExecutableResolver(executableResolver, detectConfigurationFactory.createDetectExecutableOptions());
         final GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver);
         final SimpleExecutableRunner simpleExecutableRunner = new SimpleExecutableRunner();
-        final GradleAirGapCreator gradleAirGapCreator = new GradleAirGapCreator(detectExecutableResolver, gradleInspectorInstaller, simpleExecutableRunner, configuration);
+        final GradleAirGapCreator gradleAirGapCreator = new GradleAirGapCreator(detectExecutableResolver, gradleInspectorInstaller, simpleExecutableRunner, freemarkerConfiguration);
 
         final NugetAirGapCreator nugetAirGapCreator = new NugetAirGapCreator(new NugetInspectorInstaller(artifactResolver));
         final DockerAirGapCreator dockerAirGapCreator = new DockerAirGapCreator(new DockerInspectorInstaller(artifactResolver));

@@ -57,8 +57,7 @@ import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableRunner;
 import com.synopsys.integration.detectable.detectable.executable.impl.SimpleExecutableFinder;
 import com.synopsys.integration.detectable.detectable.executable.impl.SimpleExecutableResolver;
-import com.synopsys.integration.detectable.detectable.executable.impl.SimpleLocalExecutableFinder;
-import com.synopsys.integration.detectable.detectable.executable.impl.SimpleSystemExecutableFinder;
+import com.synopsys.integration.detectable.detectable.executable.impl.SystemPathExecutableFinder;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
 import com.synopsys.integration.detectable.detectable.file.impl.SimpleFileFinder;
 import com.synopsys.integration.detectable.detectables.docker.DockerInspectorResolver;
@@ -151,23 +150,18 @@ public class RunBeanConfiguration {
     }
 
     @Bean
-    public SimpleLocalExecutableFinder simpleLocalExecutableFinder() {
-        return new SimpleLocalExecutableFinder(simpleExecutableFinder());
-    }
-
-    @Bean
-    public SimpleSystemExecutableFinder simpleSystemExecutableFinder() {
-        return new SimpleSystemExecutableFinder(simpleExecutableFinder());
+    public SystemPathExecutableFinder simpleSystemExecutableFinder() {
+        return new SystemPathExecutableFinder(simpleExecutableFinder());
     }
 
     @Bean
     public SimpleExecutableResolver simpleExecutableResolver() {
-        return new SimpleExecutableResolver(detectableOptionFactory.createCachedExecutableResolverOptions(), simpleLocalExecutableFinder(), simpleSystemExecutableFinder());
+        return new SimpleExecutableResolver(detectableOptionFactory.createCachedExecutableResolverOptions(), simpleExecutableFinder(), simpleSystemExecutableFinder());
     }
 
     @Bean
     public DetectExecutableResolver detectExecutableResolver() {
-        return new DetectExecutableResolver(simpleExecutableResolver(), detectConfigurationFactory.createExecutablePaths());
+        return new DetectExecutableResolver(simpleExecutableResolver(), detectConfigurationFactory.createDetectExecutableOptions());
     }
 
     @Bean
