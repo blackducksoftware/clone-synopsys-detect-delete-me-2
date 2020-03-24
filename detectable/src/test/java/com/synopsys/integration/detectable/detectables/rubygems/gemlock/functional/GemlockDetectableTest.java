@@ -56,7 +56,7 @@ public class GemlockDetectableTest extends DetectableFunctionalTest {
 
     @Override
     public void assertExtraction(@NotNull final Extraction extraction) {
-        Assertions.assertNotEquals(0, extraction.getCodeLocations().size(), "A code location should have been generated.");
+        Assertions.assertEquals(1, extraction.getCodeLocations().size(), "A code location should have been generated.");
 
         NameVersionGraphAssert graphAssert = new NameVersionGraphAssert(Forge.RUBYGEMS, extraction.getCodeLocations().get(0).getDependencyGraph());
         graphAssert.hasRootSize(2);
