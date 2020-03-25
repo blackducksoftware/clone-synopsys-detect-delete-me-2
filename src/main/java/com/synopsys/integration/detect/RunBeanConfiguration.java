@@ -111,6 +111,7 @@ public class RunBeanConfiguration {
         return new ExternalIdFactory();
     }
 
+    //This full file finder will NOT filter and should not be used for searching for detectors that apply. Use for signature scanner and unadulterated file access.
     @Bean
     public FileFinder fullFileFinder() {
         return new SimpleFileFinder();
