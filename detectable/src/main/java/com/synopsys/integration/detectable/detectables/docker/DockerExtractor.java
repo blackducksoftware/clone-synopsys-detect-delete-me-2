@@ -27,11 +27,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,9 +46,7 @@ import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.Extraction;
 import com.synopsys.integration.detectable.ExtractionMetadata;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
-import com.synopsys.integration.detectable.detectable.executable.Executable;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableRunner;
-import com.synopsys.integration.detectable.detectable.executable.ExecutableRunnerException;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
 import com.synopsys.integration.detectable.detectables.docker.model.DockerImageInfo;
 
@@ -74,15 +67,16 @@ public class DockerExtractor {
     private final BdioTransformer bdioTransformer;
     private final ExternalIdFactory externalIdFactory;
     private final Gson gson;
+    private final BashDockerRunner bashDockerRunner;
 
-    private ImageIdentifierType imageIdentifierType;
-
-    public DockerExtractor(final FileFinder fileFinder, final ExecutableRunner executableRunner, final BdioTransformer bdioTransformer, final ExternalIdFactory externalIdFactory, final Gson gson) {
+    public DockerExtractor(final FileFinder fileFinder, final ExecutableRunner executableRunner, final BdioTransformer bdioTransformer, final ExternalIdFactory externalIdFactory, final Gson gson,
+        final BashDockerRunner bashDockerRunner) {
         this.fileFinder = fileFinder;
         this.executableRunner = executableRunner;
         this.bdioTransformer = bdioTransformer;
         this.externalIdFactory = externalIdFactory;
         this.gson = gson;
+        this.bashDockerRunner = bashDockerRunner;
     }
 
     public Extraction extract(final File directory, final File outputDirectory, final File bashExe, final File javaExe, final String image, final String imageId, final String tar, final DockerInspectorInfo dockerInspectorInfo,
@@ -90,6 +84,7 @@ public class DockerExtractor {
         try {
             String imageArgument = null;
             String imagePiece = null;
+            ImageIdentifierType imageIdentifierType = null;
             if (StringUtils.isNotBlank(tar)) {
                 final File dockerTarFile = new File(tar);
                 imageArgument = String.format("--docker.tar=%s", dockerTarFile.getCanonicalPath());
@@ -108,72 +103,38 @@ public class DockerExtractor {
             if (StringUtils.isBlank(imageArgument) || StringUtils.isBlank(imagePiece)) {
                 return new Extraction.Builder().failure("No docker image found.").build();
             } else {
-                return executeDocker(outputDirectory, imageArgument, imagePiece, tar, directory, javaExe, bashExe, dockerInspectorInfo, dockerProperties);
+                bashDockerRunner.executeDocker(outputDirectory, imageArgument, javaExe, bashExe, dockerInspectorInfo, dockerProperties);
+                File scanFile = findScanFile(outputDirectory, tar);
+                final Extraction.Builder extractionBuilder = findCodeLocations(outputDirectory, directory);
+                final String imageIdentifier = getImageIdentifierFromOutputDirectoryIfImageIdPresent(outputDirectory, imagePiece, imageIdentifierType);
+                extractionBuilder.metaData(DOCKER_TAR_META_DATA, scanFile).metaData(DOCKER_IMAGE_NAME_META_DATA, imageIdentifier);
+                return extractionBuilder.build();
             }
         } catch (final Exception e) {
             return new Extraction.Builder().exception(e).build();
         }
     }
 
-    private void importTars(final List<File> importTars, final File directory, final Map<String, String> environmentVariables, final File bashExe) {
-        try {
-            for (final File imageToImport : importTars) {
-                // The -c is a bash option, the following String is the command we want to run
-                final List<String> dockerImportArguments = Arrays.asList(
-                    "-c",
-                    "docker load -i \"" + imageToImport.getCanonicalPath() + "\"");
-
-                final Executable dockerImportImageExecutable = new Executable(directory, environmentVariables, bashExe.toString(), dockerImportArguments);
-                executableRunner.execute(dockerImportImageExecutable);
-            }
-        } catch (final Exception e) {
-            logger.debug("Exception encountered when resolving paths for docker air gap, running in online mode instead");
-            logger.debug(e.getMessage());
-        }
-    }
-
-    private Extraction executeDocker(final File outputDirectory, final String imageArgument, final String suppliedImagePiece, final String dockerTarFilePath, final File directory, final File javaExe, final File bashExe,
-        final DockerInspectorInfo dockerInspectorInfo, DockerProperties dockerProperties)
-        throws IOException, ExecutableRunnerException {
-
-        final File dockerPropertiesFile = new File(outputDirectory, "application.properties");
-        dockerProperties.populatePropertiesFile(dockerPropertiesFile, outputDirectory);
-        final Map<String, String> environmentVariables = new HashMap<>(0);
-        final List<String> dockerArguments = new ArrayList<>();
-        dockerArguments.add("-jar");
-        dockerArguments.add(dockerInspectorInfo.getDockerInspectorJar().getAbsolutePath());
-        dockerArguments.add("--spring.config.location=file:" + dockerPropertiesFile.getCanonicalPath());
-        dockerArguments.add(imageArgument);
-        if (dockerInspectorInfo.hasAirGapImageFiles()) {
-            importTars(dockerInspectorInfo.getAirGapInspectorImageTarFiles(), outputDirectory, environmentVariables, bashExe);
-        }
-        final Executable dockerExecutable = new Executable(outputDirectory, environmentVariables, javaExe.getAbsolutePath(), dockerArguments);
-        executableRunner.execute(dockerExecutable);
-
-        File scanFile = null;
+    private File findScanFile(File outputDirectory, String dockerTarFilePath) throws IOException {
         final File producedSquashedImageFile = fileFinder.findFile(outputDirectory, SQUASHED_IMAGE_FILENAME_PATTERN);
         final File producedContainerFileSystemFile = fileFinder.findFile(outputDirectory, CONTAINER_FILESYSTEM_FILENAME_PATTERN);
         if (null != producedSquashedImageFile && producedSquashedImageFile.isFile()) {
             logger.debug(String.format("Will signature scan: %s", producedSquashedImageFile.getAbsolutePath()));
-            scanFile = producedSquashedImageFile;
+            return producedSquashedImageFile;
         } else if (null != producedContainerFileSystemFile && producedContainerFileSystemFile.isFile()) {
             logger.debug(String.format("Will signature scan: %s", producedContainerFileSystemFile.getAbsolutePath()));
-            scanFile = producedContainerFileSystemFile;
+            return producedContainerFileSystemFile;
         } else {
             logger.debug(String.format("No files found matching pattern [%s]. Expected docker-inspector to produce file in %s", CONTAINER_FILESYSTEM_FILENAME_PATTERN, outputDirectory.getCanonicalPath()));
             if (StringUtils.isNotBlank(dockerTarFilePath)) {
                 final File dockerTarFile = new File(dockerTarFilePath);
                 if (dockerTarFile.isFile()) {
                     logger.debug(String.format("Will scan the provided Docker tar file %s", dockerTarFile.getCanonicalPath()));
-                    scanFile = dockerTarFile;
+                    return dockerTarFile;
                 }
             }
         }
-
-        final Extraction.Builder extractionBuilder = findCodeLocations(outputDirectory, directory);
-        final String imageIdentifier = getImageIdentifierFromOutputDirectoryIfImageIdPresent(outputDirectory, suppliedImagePiece, imageIdentifierType);
-        extractionBuilder.metaData(DOCKER_TAR_META_DATA, scanFile).metaData(DOCKER_IMAGE_NAME_META_DATA, imageIdentifier);
-        return extractionBuilder.build();
+        return null;
     }
 
     private Extraction.Builder findCodeLocations(final File directoryToSearch, final File directory) {

@@ -47,6 +47,7 @@ import com.synopsys.integration.detectable.detectable.executable.Executable;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableRunner;
 import com.synopsys.integration.detectable.detectable.executable.ExecutableRunnerException;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
+import com.synopsys.integration.detectable.detectables.docker.BashDockerRunner;
 import com.synopsys.integration.detectable.detectables.docker.DockerExtractor;
 import com.synopsys.integration.detectable.detectables.docker.DockerInspectorInfo;
 import com.synopsys.integration.detectable.detectables.docker.DockerProperties;
@@ -204,7 +205,7 @@ public class DockerExtractorTest {
         final ExternalIdFactory externalIdFactory = Mockito.mock(ExternalIdFactory.class);
         final Gson gson = new Gson();
 
-        return new DockerExtractor(fileFinder, executableRunner, bdioTransformer, externalIdFactory, gson);
+        return new DockerExtractor(fileFinder, executableRunner, bdioTransformer, externalIdFactory, gson, new BashDockerRunner(fileFinder, executableRunner));
     }
 
     private Extraction extract(final String image, final String imageId, final String tar,
