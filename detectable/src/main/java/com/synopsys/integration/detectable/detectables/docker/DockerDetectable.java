@@ -41,8 +41,6 @@ import com.synopsys.integration.detectable.detectable.result.ExecutableNotFoundD
 import com.synopsys.integration.detectable.detectable.result.InspectorNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.PassedDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.PropertyInsufficientDetectableResult;
-import com.synopsys.integration.detectable.detectable.result.WrongOperatingSystemResult;
-import com.synopsys.integration.util.OperatingSystemType;
 
 @DetectableInfo(language = "N/A", forge = "Derived from the Linux distribution", requirementsMarkdown = "Access to a Docker Engine. See <a href='https://blackducksoftware.github.io/blackduck-docker-inspector/latest/overview/'>Docker Inspector documentation</a> for details.")
 public class DockerDetectable extends Detectable {
@@ -71,9 +69,9 @@ public class DockerDetectable extends Detectable {
 
     @Override
     public DetectableResult applicable() {
-        if (OperatingSystemType.determineFromSystem() == OperatingSystemType.WINDOWS) {
-            return new WrongOperatingSystemResult(OperatingSystemType.determineFromSystem());
-        }
+        //        if (OperatingSystemType.determineFromSystem() == OperatingSystemType.WINDOWS) {
+        //            return new WrongOperatingSystemResult(OperatingSystemType.determineFromSystem());
+        //        }
 
         if (!dockerDetectableOptions.hasDockerImageOrTar()) {
             return new PropertyInsufficientDetectableResult();
@@ -87,10 +85,11 @@ public class DockerDetectable extends Detectable {
         if (javaExe == null) {
             return new ExecutableNotFoundDetectableResult("java");
         }
-        bashExe = bashResolver.resolveBash();
-        if (bashExe == null) {
-            return new ExecutableNotFoundDetectableResult("bash");
-        }
+        //TODO: Fix - jp
+        //        bashExe = bashResolver.resolveBash();
+        //        if (bashExe == null) {
+        //            return new ExecutableNotFoundDetectableResult("bash");
+        //        }
         File dockerExe;
         try {
             dockerExe = dockerResolver.resolveDocker();
