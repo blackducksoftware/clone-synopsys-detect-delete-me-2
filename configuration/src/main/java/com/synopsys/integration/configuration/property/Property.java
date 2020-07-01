@@ -26,18 +26,66 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.misc.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.synopsys.integration.configuration.util.Category;
+import com.synopsys.integration.configuration.util.Group;
+import com.synopsys.integration.configuration.util.ProductMajorVersion;
 
 /**
  * This is the most basic property.
  * It has no type information and a value cannot be retrieved for it (without a subclass).
  **/
 public abstract class Property {
-    public Property(String key) {
+    public Property(final String key) {
         this.key = key;
     }
 
     @NotNull
     private final String key;
+    @Nullable
+    private String name = null;
+    @Nullable
+    private String fromVersion = null;
+    @Nullable
+    private PropertyHelpInfo propertyHelpInfo = null;
+    @Nullable
+    private PropertyGroupInfo propertyGroupInfo = null;
+    @Nullable
+    private Category category = null;
+    @Nullable
+    private PropertyDeprecationInfo propertyDeprecationInfo = null;
+
+    public Property setInfo(String name, String fromVersion) {
+        this.name = name;
+        this.fromVersion = fromVersion;
+        return this;
+    }
+
+    public Property setHelp(@NotNull String shortText) {
+        this.propertyHelpInfo = new PropertyHelpInfo(shortText, null);
+        return this;
+    }
+
+    public Property setHelp(@NotNull String shortText, @Nullable String longText) {
+        this.propertyHelpInfo = new PropertyHelpInfo(shortText, longText);
+        return this;
+    }
+
+    public Property setGroups(Group primaryGroup, Group... additionalGroups) {
+        this.propertyGroupInfo = new PropertyGroupInfo(primaryGroup, additionalGroups);
+        return this;
+    }
+
+    public Property setCategory(Category category) {
+        this.category = category;
+        return this;
+    }
+
+    public Property setDeprecated(String description, ProductMajorVersion failInVersion, ProductMajorVersion removeInVersion) {
+        this.propertyDeprecationInfo = new PropertyDeprecationInfo(description, failInVersion, removeInVersion);
+        return this;
+    }
 
     public boolean isCaseSensitive() {
         return false;
@@ -67,4 +115,30 @@ public abstract class Property {
         return key;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getFromVersion() {
+        return fromVersion;
+    }
+
+    public PropertyHelpInfo getPropertyHelpInfo() {
+        return propertyHelpInfo;
+    }
+
+    public PropertyGroupInfo getPropertyGroupInfo() {
+        return propertyGroupInfo;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public PropertyDeprecationInfo getPropertyDeprecationInfo() {
+        return propertyDeprecationInfo;
+    }
 }
+
+
+
