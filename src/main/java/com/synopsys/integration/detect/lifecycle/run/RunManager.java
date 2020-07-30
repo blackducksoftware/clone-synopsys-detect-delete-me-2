@@ -38,12 +38,15 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.bdio.SimpleBdioFactory;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
+import com.synopsys.integration.blackduck.api.generated.component.RegistrationFeaturesView;
+import com.synopsys.integration.blackduck.api.generated.discovery.ApiDiscovery;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
 import com.synopsys.integration.blackduck.bdio2.Bdio2Factory;
 import com.synopsys.integration.blackduck.codelocation.CodeLocationCreationData;
 import com.synopsys.integration.blackduck.codelocation.Result;
 import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadBatchOutput;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
+import com.synopsys.integration.blackduck.service.BlackDuckService;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.ProjectMappingService;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
@@ -56,6 +59,8 @@ import com.synopsys.integration.detect.exception.DetectUserFriendlyException;
 import com.synopsys.integration.detect.exitcode.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.FeatureKeyToolMap;
+import com.synopsys.integration.detect.lifecycle.run.data.PolarisRunData;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeRequest;
 import com.synopsys.integration.detect.tool.DetectableTool;
@@ -124,6 +129,8 @@ public class RunManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final DetectContext detectContext;
+    private BlackDuckServicesFactory blackDuckServicesFactory;
+    private Set<DetectTool> enabledTools;
 
     public RunManager(DetectContext detectContext) {
         this.detectContext = detectContext;
@@ -139,6 +146,10 @@ public class RunManager {
         BdioCodeLocationCreator bdioCodeLocationCreator = detectContext.getBean(BdioCodeLocationCreator.class);
         DetectInfo detectInfo = detectContext.getBean(DetectInfo.class);
         DetectDetectableFactory detectDetectableFactory = detectContext.getBean(DetectDetectableFactory.class);
+        BlackDuckRunData blackDuckRunData = productRunData.getBlackDuckRunData();
+        PolarisRunData polarisRunData = productRunData.getPolarisRunData();
+        blackDuckServicesFactory = blackDuckRunData.getBlackDuckServicesFactory().orElse(null);
+        enabledTools = populateEnabledTools();
 
         RunResult runResult = new RunResult();
         RunOptions runOptions = detectConfigurationFactory.createRunOptions();
@@ -147,7 +158,7 @@ public class RunManager {
         logger.info(ReportConstants.RUN_SEPARATOR);
 
         if (productRunData.shouldUsePolarisProduct()) {
-            runPolarisProduct(productRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
+            runPolarisProduct(polarisRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
         } else {
             logger.info("Polaris tools will not be run.");
         }
@@ -157,7 +168,7 @@ public class RunManager {
 
         if (productRunData.shouldUseBlackDuckProduct()) {
             AggregateOptions aggregateOptions = determineAggregationStrategy(runOptions.getAggregateName().orElse(null), runOptions.getAggregateMode(), universalToolsResult);
-            runBlackDuckProduct(productRunData, detectConfigurationFactory, directoryManager, eventSystem, codeLocationNameManager, bdioCodeLocationCreator, detectInfo, runResult, runOptions, detectToolFilter,
+            runBlackDuckProduct(blackDuckRunData, detectConfigurationFactory, directoryManager, eventSystem, codeLocationNameManager, bdioCodeLocationCreator, detectInfo, runResult, runOptions, detectToolFilter,
                 universalToolsResult.getNameVersion(), aggregateOptions);
         } else {
             logger.info("Black Duck tools will not be run.");
@@ -167,6 +178,21 @@ public class RunManager {
         logger.info(ReportConstants.RUN_SEPARATOR);
 
         return runResult;
+    }
+
+    private Set<DetectTool> populateEnabledTools() throws IntegrationException {
+        Set<DetectTool> enabledTools = new HashSet<>();
+
+        // Get features (tools) from blackduck
+        BlackDuckService blackDuckService = blackDuckServicesFactory.createBlackDuckService();
+        List<RegistrationFeaturesView> features = blackDuckService.getResponse(ApiDiscovery.REGISTRATION_LINK_RESPONSE).getFeatures();
+
+        // For each feature, if feature.warning value and limit value are not null, put that tool
+        features.stream()
+            .filter(feature -> feature.getWarningValue() != null && feature.getLimitValue() != null)
+            .forEach(feature -> enabledTools.add(FeatureKeyToolMap.getTool(feature.getFeature().toString())));
+
+        return enabledTools;
     }
 
     private AggregateOptions determineAggregationStrategy(@Nullable String aggregateName, AggregateMode aggregateMode, UniversalToolsResult universalToolsResult) {
@@ -291,12 +317,12 @@ public class RunManager {
         }
     }
 
-    private void runPolarisProduct(ProductRunData productRunData, PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, EventSystem eventSystem,
+    private void runPolarisProduct(PolarisRunData polarisRunData, PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectToolFilter detectToolFilter) {
         logger.info(ReportConstants.RUN_SEPARATOR);
         if (detectToolFilter.shouldInclude(DetectTool.POLARIS)) {
             logger.info("Will include the Polaris tool.");
-            PolarisServerConfig polarisServerConfig = productRunData.getPolarisRunData().getPolarisServerConfig();
+            PolarisServerConfig polarisServerConfig = polarisRunData.getPolarisServerConfig();
             ExecutableRunner polarisExecutableRunner = DetectExecutableRunner.newInfo(eventSystem);
             PolarisTool polarisTool = new PolarisTool(eventSystem, directoryManager, polarisExecutableRunner, detectConfiguration, polarisServerConfig);
             polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
@@ -306,19 +332,15 @@ public class RunManager {
         }
     }
 
-    private void runBlackDuckProduct(ProductRunData productRunData, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
+    private void runBlackDuckProduct(BlackDuckRunData blackDuckRunData, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
         CodeLocationNameManager codeLocationNameManager, BdioCodeLocationCreator bdioCodeLocationCreator, DetectInfo detectInfo, RunResult runResult, RunOptions runOptions,
         DetectToolFilter detectToolFilter, NameVersion projectNameVersion, AggregateOptions aggregateOptions) throws IntegrationException, DetectUserFriendlyException {
 
         logger.debug("Black Duck tools will run.");
 
-        BlackDuckRunData blackDuckRunData = productRunData.getBlackDuckRunData();
-
         blackDuckRunData.getPhoneHomeManager().ifPresent(PhoneHomeManager::startPhoneHome);
 
         ProjectVersionWrapper projectVersionWrapper = null;
-
-        BlackDuckServicesFactory blackDuckServicesFactory = blackDuckRunData.getBlackDuckServicesFactory().orElse(null);
 
         if (blackDuckRunData.isOnline() && blackDuckServicesFactory != null) {
             logger.debug("Getting or creating project.");
@@ -376,7 +398,7 @@ public class RunManager {
         logger.debug("Completed Detect Code Location processing.");
 
         logger.info(ReportConstants.RUN_SEPARATOR);
-        if (detectToolFilter.shouldInclude(DetectTool.SIGNATURE_SCAN)) {
+        if (detectToolFilter.shouldInclude(DetectTool.SIGNATURE_SCAN) || (detectToolFilter.shouldInclude(DetectTool.DOCKER) && enabledTools.contains(DetectTool.SIGNATURE_SCAN))) {
             logger.info("Will include the signature scanner tool.");
             BlackDuckSignatureScannerOptions blackDuckSignatureScannerOptions = detectConfigurationFactory.createBlackDuckSignatureScannerOptions();
             BlackDuckSignatureScannerTool blackDuckSignatureScannerTool = new BlackDuckSignatureScannerTool(blackDuckSignatureScannerOptions, detectContext);
@@ -393,7 +415,7 @@ public class RunManager {
         }
 
         logger.info(ReportConstants.RUN_SEPARATOR);
-        if (detectToolFilter.shouldInclude(DetectTool.BINARY_SCAN)) {
+        if (detectToolFilter.shouldInclude(DetectTool.BINARY_SCAN) || (detectToolFilter.shouldInclude(DetectTool.DOCKER) && enabledTools.contains(DetectTool.BINARY_SCAN))) {
             logger.info("Will include the binary scanner tool.");
             if (null != blackDuckServicesFactory) {
                 BinaryScanOptions binaryScanOptions = detectConfigurationFactory.createBinaryScanOptions();
