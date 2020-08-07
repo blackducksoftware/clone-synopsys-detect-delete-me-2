@@ -22,35 +22,57 @@
  */
 package com.synopsys.integration.detect.tool;
 
+import com.synopsys.integration.detect.tool.detector.DetectorToolResult;
 import com.synopsys.integration.util.NameVersion;
 
 public class UniversalToolsResult {
+    private final UniversalToolsResultType resultType;
+    private final NameVersion nameVersion;
+    private final DetectorToolResult detectorToolResult;
+    private final DetectableToolResult dockerResult;
+    private final DetectableToolResult bazelResult;
+
+    public UniversalToolsResult(final UniversalToolsResultType resultType, final NameVersion nameVersion, final DetectorToolResult detectorToolResult, final DetectableToolResult dockerResult,
+        final DetectableToolResult bazelResult) {
+        this.resultType = resultType;
+        this.nameVersion = nameVersion;
+        this.detectorToolResult = detectorToolResult;
+        this.dockerResult = dockerResult;
+        this.bazelResult = bazelResult;
+    }
+
+    public static UniversalToolsResult failure(final NameVersion nameVersion, final DetectorToolResult detectorToolResult, final DetectableToolResult dockerResult,
+        final DetectableToolResult bazelResult) {
+        return new UniversalToolsResult(UniversalToolsResultType.FAILED, nameVersion, detectorToolResult, dockerResult, bazelResult);
+    }
+
+    public static UniversalToolsResult success(final NameVersion nameVersion, final DetectorToolResult detectorToolResult, final DetectableToolResult dockerResult,
+        final DetectableToolResult bazelResult) {
+        return new UniversalToolsResult(UniversalToolsResultType.SUCCESS, nameVersion, detectorToolResult, dockerResult, bazelResult);
+    }
+
+    public boolean anyFailed() {
+        return resultType == UniversalToolsResultType.FAILED;
+    }
+
     public NameVersion getNameVersion() {
         return nameVersion;
+    }
+
+    public DetectorToolResult getDetectorToolResult() {
+        return detectorToolResult;
+    }
+
+    public DetectableToolResult getDockerResult() {
+        return dockerResult;
+    }
+
+    public DetectableToolResult getBazelResult() {
+        return bazelResult;
     }
 
     private enum UniversalToolsResultType {
         FAILED,
         SUCCESS
-    }
-
-    private final UniversalToolsResultType resultType;
-    private final NameVersion nameVersion;
-
-    public UniversalToolsResult(final UniversalToolsResultType resultType, final NameVersion nameVersion) {
-        this.resultType = resultType;
-        this.nameVersion = nameVersion;
-    }
-
-    public static UniversalToolsResult failure(final NameVersion nameVersion) {
-        return new UniversalToolsResult(UniversalToolsResultType.FAILED, nameVersion);
-    }
-
-    public static UniversalToolsResult success(final NameVersion nameVersion) {
-        return new UniversalToolsResult(UniversalToolsResultType.SUCCESS, nameVersion);
-    }
-
-    public boolean anyFailed() {
-        return resultType == UniversalToolsResultType.FAILED;
     }
 }
