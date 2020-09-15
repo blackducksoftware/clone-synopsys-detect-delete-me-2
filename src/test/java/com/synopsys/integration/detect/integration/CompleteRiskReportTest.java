@@ -52,9 +52,9 @@ public class CompleteRiskReportTest extends BlackDuckIntegrationTest {
         testRiskReportIsPopulated(true);
     }
 
-    public void testRiskReportIsPopulated(final boolean includePath) throws Exception {
-        final Path tempReportDirectoryPath = Files.createTempDirectory("junit_report");
-        final File reportDirectory;
+    public void testRiskReportIsPopulated(boolean includePath) throws Exception {
+        Path tempReportDirectoryPath = Files.createTempDirectory("junit_report");
+        File reportDirectory;
         if (includePath) {
             reportDirectory = tempReportDirectoryPath.toFile();
         } else {
@@ -63,36 +63,37 @@ public class CompleteRiskReportTest extends BlackDuckIntegrationTest {
 
         final String projectName = "synopsys-detect-junit";
         final String projectVersionName = "risk-report";
-        final ProjectVersionWrapper projectVersionWrapper = assertProjectVersionReady(projectName, projectVersionName);
+        ProjectVersionWrapper projectVersionWrapper = assertProjectVersionReady(projectName, projectVersionName);
         List<File> pdfFiles = getPdfFiles(reportDirectory);
         assertEquals(0, pdfFiles.size());
         reportService.createReportPdfFile(reportDirectory, projectVersionWrapper.getProjectView(), projectVersionWrapper.getProjectVersionView());
         pdfFiles = getPdfFiles(reportDirectory);
         assertEquals(1, pdfFiles.size());
-        final long initialFileLength = pdfFiles.get(0).length();
+        long initialFileLength = pdfFiles.get(0).length();
         assertTrue(initialFileLength > 0);
         FileUtils.deleteQuietly(pdfFiles.get(0));
         pdfFiles = getPdfFiles(reportDirectory);
         assertEquals(0, pdfFiles.size());
 
-        final List<String> detectArgs = getInitialArgs(projectName, projectVersionName);
+        List<String> detectArgs = getInitialArgs(projectName, projectVersionName);
         detectArgs.add("--detect.risk.report.pdf=true");
         if (includePath) {
             detectArgs.add("--detect.risk.report.pdf.path=" + reportDirectory.toString());
         }
 
         detectArgs.add("--detect.tools=DETECTOR");
+        detectArgs.add("--blackduck.trust.cert=true");
         detectArgs.forEach(System.out::println);
         Application.main(detectArgs.toArray(new String[0]));
 
         pdfFiles = getPdfFiles(reportDirectory);
         assertEquals(1, pdfFiles.size());
-        final long postLength = pdfFiles.get(0).length();
+        long postLength = pdfFiles.get(0).length();
         assertTrue(postLength > initialFileLength);
     }
 
-    private List<File> getPdfFiles(final File directory) {
-        final File[] files = directory.listFiles();
+    private List<File> getPdfFiles(File directory) {
+        File[] files = directory.listFiles();
         if (files != null) {
             return Arrays.stream(files)
                        .filter(file -> file.getName().endsWith(".pdf"))

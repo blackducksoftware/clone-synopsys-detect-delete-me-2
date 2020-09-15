@@ -32,10 +32,10 @@ import com.synopsys.integration.detect.configuration.DetectProperties;
 public class NugetBattery {
     @Test
     void dotnetcore() {
-        final BatteryTest test = new BatteryTest("nuget-dotnetcore");
+        BatteryTest test = new BatteryTest("nuget-dotnetcore");
         test.sourceDirectoryNamed("windows-nuget4");
         test.sourceFileNamed("example.sln");
-        test.executableThatCopiesFiles(DetectProperties.DETECT_DOTNET_PATH.getProperty(), "NUGET-0")
+        test.executableThatCopiesFiles(DetectProperties.DETECT_DOTNET_PATH, "NUGET-0")
             .onWindows(5, "")
             .onLinux(3, "--output_directory=");
         test.git("https://github.com/GaProgMan/dwCheckApi.git", "master");

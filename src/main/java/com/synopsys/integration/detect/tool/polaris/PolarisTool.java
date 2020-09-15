@@ -57,7 +57,7 @@ public class PolarisTool {
     private final PropertyConfiguration detectConfiguration;
     private final PolarisServerConfig polarisServerConfig;
 
-    public PolarisTool(final EventSystem eventSystem, final DirectoryManager directoryManager, final ExecutableRunner executableRunner, final PropertyConfiguration detectConfiguration, final PolarisServerConfig polarisServerConfig) {
+    public PolarisTool(EventSystem eventSystem, DirectoryManager directoryManager, ExecutableRunner executableRunner, PropertyConfiguration detectConfiguration, PolarisServerConfig polarisServerConfig) {
         this.directoryManager = directoryManager;
         this.executableRunner = executableRunner;
         this.eventSystem = eventSystem;
@@ -65,29 +65,29 @@ public class PolarisTool {
         this.polarisServerConfig = polarisServerConfig;
     }
 
-    public void runPolaris(final IntLogger logger, final File projectDirectory) {
+    public void runPolaris(IntLogger logger, File projectDirectory) {
         logger.info("Polaris determined it should attempt to run.");
-        final String polarisUrl = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_URL.getProperty()).orElse(null);
+        String polarisUrl = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_URL).orElse(null);
         logger.info("Will use the following polaris url: " + polarisUrl);
 
-        final AccessTokenPolarisHttpClient polarisHttpClient = polarisServerConfig.createPolarisHttpClient(logger);
-        final File toolsDirectory = directoryManager.getPermanentDirectory();
+        AccessTokenPolarisHttpClient polarisHttpClient = polarisServerConfig.createPolarisHttpClient(logger);
+        File toolsDirectory = directoryManager.getPermanentDirectory();
 
-        final PolarisDownloadUtility polarisDownloadUtility = PolarisDownloadUtility.fromPolaris(logger, polarisHttpClient, toolsDirectory);
-        final Optional<String> polarisCliPath = polarisDownloadUtility.getOrDownloadPolarisCliExecutable();
+        PolarisDownloadUtility polarisDownloadUtility = PolarisDownloadUtility.fromPolaris(logger, polarisHttpClient, toolsDirectory);
+        Optional<String> polarisCliPath = polarisDownloadUtility.getOrDownloadPolarisCliExecutable();
 
         //TODO this should be revised to use PolarisCliExecutable and PolarisCliRunner
         if (polarisCliPath.isPresent()) {
-            final Map<String, String> environmentVariables = new HashMap<>();
+            Map<String, String> environmentVariables = new HashMap<>();
             environmentVariables.put("COVERITY_UNSUPPORTED", "1");
             environmentVariables.put("POLARIS_USER_INPUT_TIMEOUT_MINUTES", "1");
             polarisServerConfig.populateEnvironmentVariables(environmentVariables::put);
 
             logger.info("Found polaris cli: " + polarisCliPath.get());
 
-            final String additionalArgs = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_ARGUMENTS.getProperty()).orElse(null);
-            final String commandOverride = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_COMMAND.getProperty()).orElse(null);
-            final List<String> arguments = new ArrayList<>();
+            String additionalArgs = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_ARGUMENTS).orElse(null);
+            String commandOverride = detectConfiguration.getValueOrEmpty(DetectProperties.POLARIS_COMMAND).orElse(null);
+            List<String> arguments = new ArrayList<>();
             if (StringUtils.isNotBlank(commandOverride)) {
                 if (StringUtils.isNotBlank(additionalArgs)) {
                     logger.error("The provided polaris command will be used and the additional polaris arguments will be discarded. You should only set command or arguments, not both.");
@@ -100,9 +100,9 @@ public class PolarisTool {
                 arguments.add("analyze");
             }
 
-            final Executable swipExecutable = new Executable(projectDirectory, environmentVariables, polarisCliPath.get(), arguments);
+            Executable swipExecutable = new Executable(projectDirectory, environmentVariables, polarisCliPath.get(), arguments);
             try {
-                final ExecutableOutput output = executableRunner.execute(swipExecutable);
+                ExecutableOutput output = executableRunner.execute(swipExecutable);
                 if (output.getReturnCode() == 0) {
                     eventSystem.publishEvent(Event.StatusSummary, new Status(POLARIS_DESCRIPTION_KEY, StatusType.SUCCESS));
                 } else {
@@ -110,7 +110,7 @@ public class PolarisTool {
                     eventSystem.publishEvent(Event.StatusSummary, new Status(POLARIS_DESCRIPTION_KEY, StatusType.FAILURE));
                 }
 
-            } catch (final ExecutableRunnerException e) {
+            } catch (ExecutableRunnerException e) {
                 eventSystem.publishEvent(Event.StatusSummary, new Status(POLARIS_DESCRIPTION_KEY, StatusType.FAILURE));
                 logger.error("Couldn't run the executable: " + e.getMessage());
             }

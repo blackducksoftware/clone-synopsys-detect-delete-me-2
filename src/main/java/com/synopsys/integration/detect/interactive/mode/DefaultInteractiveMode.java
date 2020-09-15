@@ -48,50 +48,50 @@ public class DefaultInteractiveMode extends InteractiveMode {
     public void configure() {
         printWelcome();
 
-        final Boolean connectToHub = askYesOrNo("Would you like to connect to a Black Duck server?");
+        Boolean connectToHub = askYesOrNo("Would you like to connect to a Black Duck server?");
         if (connectToHub) {
             boolean connected = false;
             boolean skipConnectionTest = false;
             while (!connected && !skipConnectionTest) {
-                setPropertyFromQuestion(DetectProperties.BLACKDUCK_URL.getProperty(), "What is the Black Duck server url?");
+                setPropertyFromQuestion(DetectProperties.BLACKDUCK_URL, "What is the Black Duck server url?");
 
                 println("You can now configure Black Duck with either an API token -OR- a username and password. The API token must already exist on the Black Duck server, but it is the preferred approach to configure your connection.");
-                final Boolean useApiToken = askYesOrNo("Would you like to use an existing API token?");
+                Boolean useApiToken = askYesOrNo("Would you like to use an existing API token?");
                 if (useApiToken) {
-                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_API_TOKEN.getProperty(), "What is the API token?");
+                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_API_TOKEN, "What is the API token?");
                 } else {
-                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_USERNAME.getProperty(), "What is the username?");
+                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_USERNAME, "What is the username?");
 
-                    final Boolean setHubPassword = askYesOrNoWithMessage("Would you like to set the password?",
+                    Boolean setHubPassword = askYesOrNoWithMessage("Would you like to set the password?",
                         "WARNING: If you choose to save the settings, this password will be stored in plain text. You can set this password as an environment variable BLACKDUCK_HUB_PASSWORD.");
                     if (setHubPassword) {
-                        setPropertyFromSecretQuestion(DetectProperties.BLACKDUCK_PASSWORD.getProperty(), "What is the password?");
+                        setPropertyFromSecretQuestion(DetectProperties.BLACKDUCK_PASSWORD, "What is the password?");
                     }
                 }
 
-                final Boolean useProxy = askYesOrNo("Would you like to configure a proxy?");
+                Boolean useProxy = askYesOrNo("Would you like to configure a proxy?");
                 if (useProxy) {
-                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_HOST.getProperty(), "What is the proxy host?");
-                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_PORT.getProperty(), "What is the proxy port?");
-                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_USERNAME.getProperty(), "What is the Black Duck username?");
-                    final Boolean setHubPassword = askYesOrNoWithMessage("Would you like to set the Black Duck password?",
+                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_HOST, "What is the proxy host?");
+                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_PORT, "What is the proxy port?");
+                    setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_USERNAME, "What is the Black Duck username?");
+                    Boolean setHubPassword = askYesOrNoWithMessage("Would you like to set the Black Duck password?",
                         "WARNING: If you choose to save the settings, this password will be stored in plain text. You can set this password as an environment variable BLACKDUCK_PROXY_PASSWORD.");
                     if (setHubPassword) {
-                        setPropertyFromSecretQuestion(DetectProperties.BLACKDUCK_PROXY_PASSWORD.getProperty(), "What is the proxy password?");
+                        setPropertyFromSecretQuestion(DetectProperties.BLACKDUCK_PROXY_PASSWORD, "What is the proxy password?");
                     }
-                    final Boolean useNtlmProxy = askYesOrNo("Do you use a ntlm proxy?");
+                    Boolean useNtlmProxy = askYesOrNo("Do you use a ntlm proxy?");
                     if (useNtlmProxy) {
-                        setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_NTLM_DOMAIN.getProperty(), "What is the ntlm proxy domain?");
-                        setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_NTLM_WORKSTATION.getProperty(), "What is the ntlm proxy workstation?");
+                        setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_NTLM_DOMAIN, "What is the ntlm proxy domain?");
+                        setPropertyFromQuestion(DetectProperties.BLACKDUCK_PROXY_NTLM_WORKSTATION, "What is the ntlm proxy workstation?");
                     }
                 }
 
-                final Boolean trustCert = askYesOrNo("Would you like to automatically trust certificates?");
+                Boolean trustCert = askYesOrNo("Would you like to automatically trust certificates?");
                 if (trustCert) {
-                    setProperty(DetectProperties.BLACKDUCK_TRUST_CERT.getProperty(), "true");
+                    setProperty(DetectProperties.BLACKDUCK_TRUST_CERT, "true");
                 }
 
-                final Boolean testHub = askYesOrNo("Would you like to test the Black Duck connection now?");
+                Boolean testHub = askYesOrNo("Would you like to test the Black Duck connection now?");
                 if (testHub) {
                     ConnectionResult connectionAttempt = null;
                     try {
@@ -103,7 +103,7 @@ public class DefaultInteractiveMode extends InteractiveMode {
                         BlackDuckConfigFactory blackDuckConfigFactory = new BlackDuckConfigFactory(detectConfigurationFactory.createBlackDuckConnectionDetails());
                         BlackDuckServerConfig blackDuckServerConfig = blackDuckConfigFactory.createServerConfig(new SilentIntLogger());
                         connectionAttempt = blackDuckServerConfig.attemptConnection(new SilentIntLogger());
-                    } catch (final Exception e) {
+                    } catch (Exception e) {
                         println("Failed to test connection.");
                         println(e.toString());
                         println("");
@@ -124,33 +124,33 @@ public class DefaultInteractiveMode extends InteractiveMode {
                 }
             }
 
-            final Boolean customDetails = askYesOrNo("Would you like to provide a project name and version to use?");
+            Boolean customDetails = askYesOrNo("Would you like to provide a project name and version to use?");
             if (customDetails) {
-                setPropertyFromQuestion(DetectProperties.DETECT_PROJECT_NAME.getProperty(), "What is the project name?");
-                setPropertyFromQuestion(DetectProperties.DETECT_PROJECT_VERSION_NAME.getProperty(), "What is the project version?");
+                setPropertyFromQuestion(DetectProperties.DETECT_PROJECT_NAME, "What is the project name?");
+                setPropertyFromQuestion(DetectProperties.DETECT_PROJECT_VERSION_NAME, "What is the project version?");
             }
         } else {
-            setProperty(DetectProperties.BLACKDUCK_OFFLINE_MODE.getProperty(), "true");
+            setProperty(DetectProperties.BLACKDUCK_OFFLINE_MODE, "true");
         }
 
-        final Boolean scan = askYesOrNo("Would you like run a CLI scan?");
+        Boolean scan = askYesOrNo("Would you like run a CLI scan?");
         if (!scan) {
-            setProperty(DetectProperties.DETECT_TOOLS_EXCLUDED.getProperty(), "SIGNATURE_SCAN");
+            setProperty(DetectProperties.DETECT_TOOLS_EXCLUDED, "SIGNATURE_SCAN");
         } else if (connectToHub) {
-            final Boolean upload = askYesOrNo("Would you like to upload CLI scan results to the Black Duck server?");
+            Boolean upload = askYesOrNo("Would you like to upload CLI scan results to the Black Duck server?");
             if (!upload) {
-                setProperty(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_DRY_RUN.getProperty(), "true");
+                setProperty(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_DRY_RUN, "true");
             }
         }
 
         if (scan) {
-            final Boolean customScanner = askYesOrNo("Would you like to provide a custom scanner?");
+            Boolean customScanner = askYesOrNo("Would you like to provide a custom scanner?");
             if (customScanner) {
-                final Boolean downloadCustomScanner = askYesOrNo("Would you like to download the custom scanner?");
+                Boolean downloadCustomScanner = askYesOrNo("Would you like to download the custom scanner?");
                 if (downloadCustomScanner) {
-                    setPropertyFromQuestion(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_HOST_URL.getProperty(), "What is the scanner host url?");
+                    setPropertyFromQuestion(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_HOST_URL, "What is the scanner host url?");
                 } else {
-                    setPropertyFromQuestion(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_OFFLINE_LOCAL_PATH.getProperty(), "What is the location of your offline scanner?");
+                    setPropertyFromQuestion(DetectProperties.DETECT_BLACKDUCK_SIGNATURE_SCANNER_OFFLINE_LOCAL_PATH, "What is the location of your offline scanner?");
                 }
             }
         }
