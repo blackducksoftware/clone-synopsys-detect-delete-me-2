@@ -131,12 +131,12 @@ public class DetectableOptionFactory {
         String suppliedDockerTar = getNullableValue(DetectProperties.DETECT_DOCKER_TAR);
         LogLevel dockerInspectorLoggingLevel = getValue(DetectProperties.LOGGING_LEVEL_COM_SYNOPSYS_INTEGRATION);
         String dockerInspectorVersion = getNullableValue(DetectProperties.DETECT_DOCKER_INSPECTOR_VERSION);
-        Map<String, String> additionalDockerProperties = detectConfiguration.getRaw(DetectProperties.DOCKER_PASSTHROUGH.getProperty());
+        Map<String, String> additionalDockerProperties = detectConfiguration.getRaw(DetectProperties.DOCKER_PASSTHROUGH);
         if (diagnosticSystem != null) {
             additionalDockerProperties.putAll(diagnosticSystem.getAdditionalDockerProperties());
         }
 
-        Path dockerInspectorPath = detectConfiguration.getValue(DetectProperties.DETECT_DOCKER_INSPECTOR_PATH.getProperty()).map(path -> path.resolvePath(pathResolver)).orElse(null);
+        Path dockerInspectorPath = detectConfiguration.getValue(DetectProperties.DETECT_DOCKER_INSPECTOR_PATH).map(path -> path.resolvePath(pathResolver)).orElse(null);
         String dockerPlatformTopLayerId = getNullableValue(DetectProperties.DETECT_DOCKER_PLATFORM_TOP_LAYER_ID);
         return new DockerDetectableOptions(dockerPathRequired, suppliedDockerImage, dockerImageId, suppliedDockerTar, dockerInspectorLoggingLevel, dockerInspectorVersion, additionalDockerProperties, dockerInspectorPath,
             dockerPlatformTopLayerId);
@@ -233,7 +233,7 @@ public class DetectableOptionFactory {
         String excludedModules = getNullableValue(DetectProperties.DETECT_NUGET_EXCLUDED_MODULES);
         String includedModules = getNullableValue(DetectProperties.DETECT_NUGET_INCLUDED_MODULES);
         List<String> packagesRepoUrl = getValue(DetectProperties.DETECT_NUGET_PACKAGES_REPO_URL);
-        Path nugetConfigPath = detectConfiguration.getValue(DetectProperties.DETECT_NUGET_CONFIG_PATH.getProperty()).map(path -> path.resolvePath(pathResolver)).orElse(null);
+        Path nugetConfigPath = detectConfiguration.getValue(DetectProperties.DETECT_NUGET_CONFIG_PATH).map(path -> path.resolvePath(pathResolver)).orElse(null);
         return new NugetInspectorOptions(ignoreFailures, excludedModules, includedModules, packagesRepoUrl, nugetConfigPath);
     }
 
@@ -279,11 +279,11 @@ public class DetectableOptionFactory {
         return allWasSpecified;
     }
 
-    private <P,T extends NullableProperty<P>> P getNullableValue(DetectProperty<T> detectProperty) {
-        return detectConfiguration.getValue(detectProperty.getProperty()).orElse(null);
+    private <P, T extends NullableProperty<P>> P getNullableValue(T detectProperty) {
+        return detectConfiguration.getValue(detectProperty).orElse(null);
     }
 
-    private <P,T extends ValuedProperty<P>> P getValue(DetectProperty<T> detectProperty) {
-        return detectConfiguration.getValue(detectProperty.getProperty());
+    private <P, T extends ValuedProperty<P>> P getValue(T detectProperty) {
+        return detectConfiguration.getValue(detectProperty);
     }
 }

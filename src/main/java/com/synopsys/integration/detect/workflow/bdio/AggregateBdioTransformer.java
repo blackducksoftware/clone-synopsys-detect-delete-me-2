@@ -48,23 +48,23 @@ public class AggregateBdioTransformer {
 
     private final SimpleBdioFactory simpleBdioFactory;
 
-    public AggregateBdioTransformer(final SimpleBdioFactory simpleBdioFactory) {
+    public AggregateBdioTransformer(SimpleBdioFactory simpleBdioFactory) {
         this.simpleBdioFactory = simpleBdioFactory;
     }
 
-    public DependencyGraph aggregateCodeLocations(final File sourcePath, final List<DetectCodeLocation> codeLocations, final AggregateMode aggregateMode) throws DetectUserFriendlyException {
-        final MutableDependencyGraph aggregateDependencyGraph = simpleBdioFactory.createMutableDependencyGraph();
+    public DependencyGraph aggregateCodeLocations(File sourcePath, List<DetectCodeLocation> codeLocations, AggregateMode aggregateMode) throws DetectUserFriendlyException {
+        MutableDependencyGraph aggregateDependencyGraph = simpleBdioFactory.createMutableDependencyGraph();
 
-        for (final DetectCodeLocation detectCodeLocation : codeLocations) {
+        for (DetectCodeLocation detectCodeLocation : codeLocations) {
             if (aggregateMode.equals(AggregateMode.DIRECT)) {
                 aggregateDependencyGraph.addGraphAsChildrenToRoot(detectCodeLocation.getDependencyGraph());
             } else if (aggregateMode.equals(AggregateMode.TRANSITIVE)) {
-                final Dependency codeLocationDependency = createAggregateDependency(sourcePath, detectCodeLocation);
+                Dependency codeLocationDependency = createAggregateDependency(sourcePath, detectCodeLocation);
                 aggregateDependencyGraph.addChildrenToRoot(codeLocationDependency);
                 aggregateDependencyGraph.addGraphAsChildrenToParent(codeLocationDependency, detectCodeLocation.getDependencyGraph());
             } else {
                 throw new DetectUserFriendlyException(
-                    String.format("The %s property was set to an unsupported aggregation mode, will not aggregate at this time.", DetectProperties.DETECT_BOM_AGGREGATE_REMEDIATION_MODE.getProperty().getKey()),
+                    String.format("The %s property was set to an unsupported aggregation mode, will not aggregate at this time.", DetectProperties.DETECT_BOM_AGGREGATE_REMEDIATION_MODE.getKey()),
                     ExitCodeType.FAILURE_GENERAL_ERROR);
             }
         }
@@ -72,34 +72,34 @@ public class AggregateBdioTransformer {
         return aggregateDependencyGraph;
     }
 
-    private Dependency createAggregateDependency(final File sourcePath, final DetectCodeLocation codeLocation) {
+    private Dependency createAggregateDependency(File sourcePath, DetectCodeLocation codeLocation) {
         String name = null;
         String version = null;
         try {
             name = codeLocation.getExternalId().getName();
             version = codeLocation.getExternalId().getVersion();
-        } catch (final Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to get name or version to use in the wrapper for a code location.", e);
         }
-        final ExternalId original = codeLocation.getExternalId();
-        final String codeLocationSourcePath = codeLocation.getSourcePath().toString(); //TODO: what happens when docker is present or no source path or no external id!
-        final File codeLocationSourceDir = new File(codeLocationSourcePath);
-        final String relativePath = FileNameUtils.relativize(sourcePath.getAbsolutePath(), codeLocationSourceDir.getAbsolutePath());
+        ExternalId original = codeLocation.getExternalId();
+        String codeLocationSourcePath = codeLocation.getSourcePath().toString(); //TODO: what happens when docker is present or no source path or no external id!
+        File codeLocationSourceDir = new File(codeLocationSourcePath);
+        String relativePath = FileNameUtils.relativize(sourcePath.getAbsolutePath(), codeLocationSourceDir.getAbsolutePath());
 
-        final String bomToolType;
+        String bomToolType;
         if (codeLocation.getDockerImageName().isPresent()) {
             bomToolType = "docker"; // TODO: Should docker image name be considered here?
         } else {
             bomToolType = codeLocation.getCreatorName().orElse("unknown").toLowerCase();
         }
 
-        final List<String> externalIdPieces = new ArrayList<>();
+        List<String> externalIdPieces = new ArrayList<>();
         externalIdPieces.addAll(Arrays.asList(original.getExternalIdPieces()));
         if (StringUtils.isNotBlank(relativePath)) {
             externalIdPieces.add(relativePath);
         }
         externalIdPieces.add(bomToolType);
-        final String[] pieces = externalIdPieces.toArray(new String[externalIdPieces.size()]);
+        String[] pieces = externalIdPieces.toArray(new String[externalIdPieces.size()]);
         return new Dependency(name, version, new ExternalIdFactory().createModuleNamesExternalId(original.getForge(), pieces));
     }
 }

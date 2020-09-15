@@ -176,7 +176,7 @@ public class DetectBoot {
 
         logger.debug("Configuration processed completely.");
 
-        Boolean printFull = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_SUPPRESS_CONFIGURATION_OUTPUT.getProperty());
+        Boolean printFull = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_SUPPRESS_CONFIGURATION_OUTPUT);
         Optional<DetectBootResult> configurationResult = printConfiguration(printFull, detectConfiguration, eventSystem, detectInfo);
         if (configurationResult.isPresent()) {
             return configurationResult.get();
@@ -185,7 +185,7 @@ public class DetectBoot {
         logger.debug("Initializing Detect.");
 
         PathResolver pathResolver;
-        if (detectInfo.getCurrentOs() != OperatingSystemType.WINDOWS && detectConfiguration.getValueOrDefault(DetectProperties.DETECT_RESOLVE_TILDE_IN_PATHS.getProperty())) {
+        if (detectInfo.getCurrentOs() != OperatingSystemType.WINDOWS && detectConfiguration.getValueOrDefault(DetectProperties.DETECT_RESOLVE_TILDE_IN_PATHS)) {
             logger.info("Tilde's will be automatically resolved to USER HOME.");
             pathResolver = new TildeInPathResolver(SystemUtils.USER_HOME);
         } else {
@@ -324,7 +324,7 @@ public class DetectBoot {
 
         Map<String, String> additionalNotes = new HashMap<>();
 
-        List<Property> deprecatedProperties =  DetectProperties.allProperties()
+        List<Property> deprecatedProperties = DetectProperties.allProperties()
                                                   .stream()
                                                   .filter(property -> property.getPropertyDeprecationInfo() != null)
                                                   .collect(Collectors.toList());
@@ -356,7 +356,7 @@ public class DetectBoot {
         PropertyConfigurationHelpContext detectConfigurationReporter = new PropertyConfigurationHelpContext(detectConfiguration);
         InfoLogReportWriter infoLogReportWriter = new InfoLogReportWriter();
         if (!fullConfiguration) {
-            detectConfigurationReporter.printCurrentValues(infoLogReportWriter::writeLine,  DetectProperties.allProperties(), additionalNotes);
+            detectConfigurationReporter.printCurrentValues(infoLogReportWriter::writeLine, DetectProperties.allProperties(), additionalNotes);
         }
 
         //Next check for options that are just plain bad, ie giving an detector type we don't know about.
@@ -367,12 +367,12 @@ public class DetectBoot {
         }
 
         if (usedFailureProperties.size() > 0) {
-            detectConfigurationReporter.printPropertyErrors(infoLogReportWriter::writeLine,  DetectProperties.allProperties(), deprecationMessages);
+            detectConfigurationReporter.printPropertyErrors(infoLogReportWriter::writeLine, DetectProperties.allProperties(), deprecationMessages);
 
             logger.warn(StringUtils.repeat("=", 60));
             logger.warn("Configuration is using deprecated properties that must be updated for this major version.");
             logger.warn("You MUST fix these deprecation issues for detect to proceed.");
-            logger.warn("To ignore these messages and force detect to exit with success supply --" +  DetectProperties.DETECT_FORCE_SUCCESS.getProperty().getKey() + "=true");
+            logger.warn("To ignore these messages and force detect to exit with success supply --" + DetectProperties.DETECT_FORCE_SUCCESS.getKey() + "=true");
             logger.warn("This will not force detect to run, but it will pretend to have succeeded.");
             logger.warn(StringUtils.repeat("=", 60));
 
@@ -427,7 +427,7 @@ public class DetectBoot {
         DockerAirGapCreator dockerAirGapCreator = new DockerAirGapCreator(new DockerInspectorInstaller(artifactResolver));
 
         AirGapCreator airGapCreator = new AirGapCreator(new AirGapPathFinder(), eventSystem, gradleAirGapCreator, nugetAirGapCreator, dockerAirGapCreator);
-        String gradleInspectorVersion = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_GRADLE_INSPECTOR_VERSION.getProperty()).orElse(null);
+        String gradleInspectorVersion = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_GRADLE_INSPECTOR_VERSION).orElse(null);
         return airGapCreator.createAirGapZip(inspectorFilter, directoryManager.getRunHomeDirectory(), airGapSuffix, gradleInspectorVersion);
     }
 }

@@ -32,12 +32,12 @@ import com.synopsys.integration.detect.configuration.DetectProperties;
 public class CondaBattery {
     @Test
     void lock() {
-        final BatteryTest test = new BatteryTest("conda-list");
+        BatteryTest test = new BatteryTest("conda-list");
         test.sourceDirectoryNamed("linux-conda");
         test.sourceFileNamed("environment.yml");
         test.sourceFileNamed("setup.py");
-        test.executableFromResourceFiles(DetectProperties.DETECT_CONDA_PATH.getProperty(), "conda-list.xout", "conda-info.xout");
-        test.executableFromResourceFiles(DetectProperties.DETECT_PYTHON_PATH.getProperty(), "python-setup.xout", "python-inspector.xout");
+        test.executableFromResourceFiles(DetectProperties.DETECT_CONDA_PATH, "conda-list.xout", "conda-info.xout");
+        test.executableFromResourceFiles(DetectProperties.DETECT_PYTHON_PATH, "python-setup.xout", "python-inspector.xout");
         test.expectBdioResources();
         test.run();
     }

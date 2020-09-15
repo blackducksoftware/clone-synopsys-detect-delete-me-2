@@ -143,7 +143,7 @@ public class RunBeanConfiguration {
 
     @Bean
     public CodeLocationNameGenerator codeLocationNameService() {
-        final String codeLocationNameOverride = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_CODE_LOCATION_NAME.getProperty()).orElse(null);
+        String codeLocationNameOverride = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_CODE_LOCATION_NAME).orElse(null);
         return new CodeLocationNameGenerator(codeLocationNameOverride);
     }
 
@@ -159,7 +159,7 @@ public class RunBeanConfiguration {
 
     @Bean
     public AirGapInspectorPaths airGapManager() {
-        final AirGapOptions airGapOptions = detectConfigurationFactory.createAirGapOptions();
+        AirGapOptions airGapOptions = detectConfigurationFactory.createAirGapOptions();
         return new AirGapInspectorPaths(airGapPathFinder(), airGapOptions);
     }
 
@@ -201,32 +201,32 @@ public class RunBeanConfiguration {
     //#region Detectables
     @Bean
     public DockerInspectorResolver dockerInspectorResolver() throws DetectUserFriendlyException {
-        final DockerInspectorInstaller dockerInspectorInstaller = new DockerInspectorInstaller(artifactResolver());
+        DockerInspectorInstaller dockerInspectorInstaller = new DockerInspectorInstaller(artifactResolver());
         return new ArtifactoryDockerInspectorResolver(directoryManager, airGapManager(), fullFileFinder(), dockerInspectorInstaller, detectableOptionFactory.createDockerDetectableOptions());
     }
 
     @Bean()
     public GradleInspectorResolver gradleInspectorResolver() throws DetectUserFriendlyException {
-        final GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver());
+        GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver());
         return new ArtifactoryGradleInspectorResolver(gradleInspectorInstaller, configuration, detectableOptionFactory.createGradleInspectorOptions().getGradleInspectorScriptOptions(), airGapManager(), directoryManager);
     }
 
     @Bean()
     public NugetInspectorResolver nugetInspectorResolver() throws DetectUserFriendlyException {
-        final NugetLocatorOptions installerOptions = detectableOptionFactory.createNugetInstallerOptions();
-        final NugetInspectorLocator locator;
-        final Optional<File> nugetAirGapPath = airGapManager().getNugetInspectorAirGapFile();
+        NugetLocatorOptions installerOptions = detectableOptionFactory.createNugetInstallerOptions();
+        NugetInspectorLocator locator;
+        Optional<File> nugetAirGapPath = airGapManager().getNugetInspectorAirGapFile();
         if (nugetAirGapPath.isPresent()) {
             locator = new AirgapNugetInspectorLocator(airGapManager());
         } else {
-            final NugetInspectorInstaller installer = new NugetInspectorInstaller(artifactResolver());
+            NugetInspectorInstaller installer = new NugetInspectorInstaller(artifactResolver());
             locator = new OnlineNugetInspectorLocator(installer, directoryManager, installerOptions.getNugetInspectorVersion().orElse(null));
         }
 
-        final ExecutableRunner executableRunner = executableRunner();
-        final DetectExecutableResolver executableResolver = detectExecutableResolver();
-        final DotNetRuntimeFinder runtimeFinder = new DotNetRuntimeFinder(executableRunner, executableResolver, directoryManager.getPermanentDirectory());
-        final DotNetRuntimeManager dotNetRuntimeManager = new DotNetRuntimeManager(runtimeFinder, new DotNetRuntimeParser());
+        ExecutableRunner executableRunner = executableRunner();
+        DetectExecutableResolver executableResolver = detectExecutableResolver();
+        DotNetRuntimeFinder runtimeFinder = new DotNetRuntimeFinder(executableRunner, executableResolver, directoryManager.getPermanentDirectory());
+        DotNetRuntimeManager dotNetRuntimeManager = new DotNetRuntimeManager(runtimeFinder, new DotNetRuntimeParser());
         return new LocatorNugetInspectorResolver(executableResolver, executableRunner, detectInfo, fullFileFinder(), installerOptions.getNugetInspectorName(), installerOptions.getPackagesRepoUrl(), locator, dotNetRuntimeManager);
     }
 
@@ -254,7 +254,7 @@ public class RunBeanConfiguration {
 
     @Lazy
     @Bean()
-    public BlackDuckSignatureScanner blackDuckSignatureScanner(final BlackDuckSignatureScannerOptions blackDuckSignatureScannerOptions, final ScanBatchRunner scanBatchRunner, final BlackDuckServerConfig blackDuckServerConfig) {
+    public BlackDuckSignatureScanner blackDuckSignatureScanner(BlackDuckSignatureScannerOptions blackDuckSignatureScannerOptions, ScanBatchRunner scanBatchRunner, BlackDuckServerConfig blackDuckServerConfig) {
         return new BlackDuckSignatureScanner(directoryManager, fullFileFinder(), codeLocationNameManager(), blackDuckSignatureScannerOptions, eventSystem, scanBatchRunner, blackDuckServerConfig);
     }
 }
