@@ -52,7 +52,7 @@ public class DetectorToolTest {
         final CodeLocationConverter codeLocationConverter = Mockito.mock(CodeLocationConverter.class);
         final DetectorIssuePublisher detectorIssuePublisher = Mockito.mock(DetectorIssuePublisher.class);
 
-        final DetectorTool tool = new DetectorTool(detectorFinder, extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
+        final DetectorTool tool = new DetectorTool(detectorFinder, extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher, gson);
 
         final File directory = new File(".");
         final DetectorRuleSet detectorRuleSet = Mockito.mock(DetectorRuleSet.class);
