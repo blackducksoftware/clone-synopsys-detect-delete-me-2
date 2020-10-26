@@ -23,6 +23,8 @@
 package com.synopsys.integration.detect.tool.detector;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,22 +36,28 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeRequest;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
+import com.synopsys.integration.detect.tool.detector.search.DetectorSearchEntry;
+import com.synopsys.integration.detect.tool.detector.search.DetectorSearchResults;
 import com.synopsys.integration.detect.workflow.codelocation.DetectCodeLocation;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.nameversion.DetectorNameVersionHandler;
 import com.synopsys.integration.detect.workflow.nameversion.PreferredDetectorNameVersionHandler;
+import com.synopsys.integration.detect.workflow.report.util.DetectorEvaluationUtils;
 import com.synopsys.integration.detect.workflow.status.DetectorStatus;
 import com.synopsys.integration.detect.workflow.status.StatusType;
 import com.synopsys.integration.detect.workflow.status.UnrecognizedPaths;
+import com.synopsys.integration.detectable.SearchAndScanDetectable;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
 import com.synopsys.integration.detector.base.DetectorEvaluation;
 import com.synopsys.integration.detector.base.DetectorEvaluationTree;
@@ -69,18 +77,20 @@ public class DetectorTool {
     private final EventSystem eventSystem;
     private final CodeLocationConverter codeLocationConverter;
     private final DetectorIssuePublisher detectorIssuePublisher;
+    private final Gson gson;
 
     public DetectorTool(final DetectorFinder detectorFinder, final ExtractionEnvironmentProvider extractionEnvironmentProvider, final EventSystem eventSystem, final CodeLocationConverter codeLocationConverter,
-        final DetectorIssuePublisher detectorIssuePublisher) {
+        final DetectorIssuePublisher detectorIssuePublisher, final Gson gson) {
         this.detectorFinder = detectorFinder;
         this.extractionEnvironmentProvider = extractionEnvironmentProvider;
         this.eventSystem = eventSystem;
         this.codeLocationConverter = codeLocationConverter;
         this.detectorIssuePublisher = detectorIssuePublisher;
+        this.gson = gson;
     }
 
     public DetectorToolResult performDetectors(final File directory, final DetectorRuleSet detectorRuleSet, final DetectorFinderOptions detectorFinderOptions, final DetectorEvaluationOptions evaluationOptions, final String projectDetector,
-        final List<DetectorType> requiredDetectors)
+        final List<DetectorType> requiredDetectors, final File reportDirectory)
         throws DetectUserFriendlyException {
         logger.debug("Initializing detector system.");
         final Optional<DetectorEvaluationTree> possibleRootEvaluation;
@@ -136,6 +146,14 @@ public class DetectorTool {
         eventSystem.publishEvent(Event.DiscoveryCount, extractionCount); //right now discovery and extraction are the same. -jp 8/14/19
 
         logger.debug("Total number of detectors: " + extractionCount);
+
+        logger.info("Writing detect search file.");
+        try {
+            File result = writeSearchReport(rootEvaluation, reportDirectory);
+            logger.info("Successfully wrote search result file: " + result.getAbsolutePath());
+        } catch (IOException e) {
+            logger.debug("Failed to write search report file.", e);
+        }
 
         logger.debug("Starting detector project discovery.");
         Optional<DetectorType> preferredProjectDetector = Optional.empty();
@@ -210,6 +228,25 @@ public class DetectorTool {
         eventSystem.publishEvent(Event.DetectorsComplete, detectorToolResult);
 
         return detectorToolResult;
+    }
+
+    private File writeSearchReport(DetectorEvaluationTree rootEvaluation, File reportDirectory) throws IOException {
+        List<DetectorSearchEntry> entries = new ArrayList<>();
+        for (final DetectorEvaluationTree tree : rootEvaluation.asFlatList()) {
+            final List<DetectorEvaluation> folderApplicable = DetectorEvaluationUtils.filteredChildren(tree, DetectorEvaluation::isApplicable);
+            for (final DetectorEvaluation detectorEvaluation : folderApplicable) {
+                if (detectorEvaluation.getDetectable() instanceof SearchAndScanDetectable) {
+                    SearchAndScanDetectable searchable = (SearchAndScanDetectable) detectorEvaluation.getDetectable();
+                    DetectorSearchEntry entry = new DetectorSearchEntry(tree.getDirectory().getAbsolutePath(), detectorEvaluation.getDetectorRule().getDetectorType(), searchable.toMemento());
+                    entries.add(entry);
+                }
+            }
+        }
+        DetectorSearchResults searchResults = new DetectorSearchResults(entries);
+        File searchFile = new File(reportDirectory, "search.json");
+        String text = gson.toJson(searchResults);
+        FileUtils.writeStringToFile(searchFile, text, Charset.defaultCharset());
+        return searchFile;
     }
 
     private Map<DetectorType, StatusType> extractStatus(final List<DetectorEvaluation> detectorEvaluations) {

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.synopsys.integration.bdio.SimpleBdioFactory;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
@@ -141,6 +142,7 @@ public class RunManager {
         BdioCodeLocationCreator bdioCodeLocationCreator = detectContext.getBean(BdioCodeLocationCreator.class);
         DetectInfo detectInfo = detectContext.getBean(DetectInfo.class);
         DetectDetectableFactory detectDetectableFactory = detectContext.getBean(DetectDetectableFactory.class);
+        Gson gson = detectContext.getBean(Gson.class);
 
         RunResult runResult = new RunResult();
         RunOptions runOptions = detectConfigurationFactory.createRunOptions();
@@ -155,7 +157,7 @@ public class RunManager {
         }
 
         UniversalToolsResult universalToolsResult = runUniversalProjectTools(detectConfiguration, detectConfigurationFactory, directoryManager, eventSystem, detectDetectableFactory, runResult, runOptions, detectToolFilter,
-            codeLocationNameManager);
+            codeLocationNameManager, gson);
 
         if (productRunData.shouldUseBlackDuckProduct()) {
             AggregateOptions aggregateOptions = determineAggregationStrategy(runOptions.getAggregateName().orElse(null), runOptions.getAggregateMode(), universalToolsResult);
@@ -193,7 +195,8 @@ public class RunManager {
         RunResult runResult,
         RunOptions runOptions,
         DetectToolFilter detectToolFilter,
-        CodeLocationNameManager codeLocationNameManager
+        CodeLocationNameManager codeLocationNameManager,
+        Gson gson
     ) throws DetectUserFriendlyException {
 
         ExtractionEnvironmentProvider extractionEnvironmentProvider = new ExtractionEnvironmentProvider(directoryManager);
@@ -246,8 +249,9 @@ public class RunManager {
             DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
 
             DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();
-            DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
-            DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors);
+            DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher, gson);
+            DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors,
+                directoryManager.getReportOutputDirectory());
 
             detectorToolResult.getBomToolProjectNameVersion().ifPresent(it -> runResult.addToolNameVersion(DetectTool.DETECTOR, new NameVersion(it.getName(), it.getVersion())));
             runResult.addDetectCodeLocations(detectorToolResult.getBomToolCodeLocations());

@@ -27,10 +27,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.synopsys.integration.detectable.Detectable;
+import com.google.gson.annotations.SerializedName;
 import com.synopsys.integration.detectable.DetectableEnvironment;
-import com.synopsys.integration.detectable.extraction.Extraction;
-import com.synopsys.integration.detectable.extraction.ExtractionEnvironment;
+import com.synopsys.integration.detectable.SearchAndScanDetectable;
 import com.synopsys.integration.detectable.detectable.annotation.DetectableInfo;
 import com.synopsys.integration.detectable.detectable.exception.DetectableException;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
@@ -41,9 +40,11 @@ import com.synopsys.integration.detectable.detectable.result.DetectableResult;
 import com.synopsys.integration.detectable.detectable.result.FilesNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.InspectorNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.PassedDetectableResult;
+import com.synopsys.integration.detectable.extraction.Extraction;
+import com.synopsys.integration.detectable.extraction.ExtractionEnvironment;
 
 @DetectableInfo(language = "C#", forge = "NuGet.org", requirementsMarkdown = "File: a solution file with a .sln extension.")
-public class NugetSolutionDetectable extends Detectable {
+public class NugetSolutionDetectable extends SearchAndScanDetectable<NugetSolutionDetectable.NugetSolutionMemento> {
     private static final List<String> SUPPORTED_SOLUTION_PATTERNS = Collections.singletonList("*.sln");
 
     private final FileFinder fileFinder;
@@ -67,11 +68,35 @@ public class NugetSolutionDetectable extends Detectable {
     public DetectableResult applicable() {
         solutionFiles = fileFinder.findFiles(environment.getDirectory(), SUPPORTED_SOLUTION_PATTERNS);
 
+        return applicableInternal();
+    }
+
+    private DetectableResult applicableInternal() {
         if (solutionFiles != null && solutionFiles.size() > 0) {
             return new PassedDetectableResult();
         } else {
             return new FilesNotFoundDetectableResult(SUPPORTED_SOLUTION_PATTERNS);
         }
+    }
+
+    public class NugetSolutionMemento {
+        public NugetSolutionMemento(final List<File> targetFiles) {
+            this.targetFiles = targetFiles;
+        }
+
+        @SerializedName("TargetFiles")
+        public List<File> targetFiles;
+    }
+
+    @Override
+    public NugetSolutionMemento toMemento() {
+        return new NugetSolutionMemento(solutionFiles);
+    }
+
+    @Override
+    public DetectableResult fromMemento(NugetSolutionMemento bucket) {
+        solutionFiles = bucket.targetFiles;
+        return applicableInternal();
     }
 
     @Override

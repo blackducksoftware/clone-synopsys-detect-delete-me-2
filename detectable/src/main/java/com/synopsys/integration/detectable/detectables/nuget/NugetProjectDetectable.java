@@ -27,10 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.synopsys.integration.detectable.Detectable;
+import com.google.gson.annotations.SerializedName;
 import com.synopsys.integration.detectable.DetectableEnvironment;
-import com.synopsys.integration.detectable.extraction.Extraction;
-import com.synopsys.integration.detectable.extraction.ExtractionEnvironment;
+import com.synopsys.integration.detectable.SearchAndScanDetectable;
 import com.synopsys.integration.detectable.detectable.annotation.DetectableInfo;
 import com.synopsys.integration.detectable.detectable.exception.DetectableException;
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
@@ -41,12 +40,14 @@ import com.synopsys.integration.detectable.detectable.result.DetectableResult;
 import com.synopsys.integration.detectable.detectable.result.FilesNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.InspectorNotFoundDetectableResult;
 import com.synopsys.integration.detectable.detectable.result.PassedDetectableResult;
+import com.synopsys.integration.detectable.extraction.Extraction;
+import com.synopsys.integration.detectable.extraction.ExtractionEnvironment;
 
 @DetectableInfo(language = "C#", forge = "NuGet.org",
     requirementsMarkdown = "File: a project file with one of the following extensions: .csproj, .fsproj, .vbproj, .asaproj, .dcproj, .shproj, .ccproj, " +
                                ".sfproj, .njsproj, .vcxproj, .vcproj, .xproj, .pyproj, .hiveproj, .pigproj, .jsproj, .usqlproj, .deployproj, " +
                                ".msbuildproj, .sqlproj, .dbproj, .rproj")
-public class NugetProjectDetectable extends Detectable {
+public class NugetProjectDetectable extends SearchAndScanDetectable<NugetProjectDetectable.NugetMemento> {
     static final List<String> SUPPORTED_PROJECT_PATTERNS = Arrays.asList(
         // C#
         "*.csproj",
@@ -114,12 +115,35 @@ public class NugetProjectDetectable extends Detectable {
     @Override
     public DetectableResult applicable() {
         projectFiles = fileFinder.findFiles(environment.getDirectory(), SUPPORTED_PROJECT_PATTERNS);
+        return applicableInternal();
+    }
 
+    private DetectableResult applicableInternal() {
         if (projectFiles != null && projectFiles.size() > 0) {
             return new PassedDetectableResult();
         } else {
             return new FilesNotFoundDetectableResult(SUPPORTED_PROJECT_PATTERNS);
         }
+    }
+
+    public class NugetMemento {
+        public NugetMemento(final List<File> targetFiles) {
+            this.targetFiles = targetFiles;
+        }
+
+        @SerializedName("TargetFiles")
+        public List<File> targetFiles;
+    }
+
+    @Override
+    public NugetMemento toMemento() {
+        return new NugetMemento(projectFiles);
+    }
+
+    @Override
+    public DetectableResult fromMemento(NugetMemento bucket) {
+        projectFiles = bucket.targetFiles;
+        return applicableInternal();
     }
 
     @Override
