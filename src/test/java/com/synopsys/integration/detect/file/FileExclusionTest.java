@@ -88,4 +88,5 @@ public class FileExclusionTest {
         FileFinder finder = fileFinderFromProperty(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION_FILES.getProperty(), firstFileDotTxt);
         Assert.assertEquals(3, finder.findFiles(sourceFile, "*", 2).size());
     }
+    
 }

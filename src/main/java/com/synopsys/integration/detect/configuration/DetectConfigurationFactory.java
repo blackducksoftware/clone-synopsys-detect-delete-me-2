@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +99,7 @@ public class DetectConfigurationFactory {
     private PropertyConfiguration detectConfiguration;
     private PathResolver pathResolver;
 
-    public DetectConfigurationFactory(final PropertyConfiguration detectConfiguration, final PathResolver pathResolver) {
+    public DetectConfigurationFactory(PropertyConfiguration detectConfiguration, PathResolver pathResolver) {
         this.detectConfiguration = detectConfiguration;
         this.pathResolver = pathResolver;
     }
@@ -309,21 +308,21 @@ public class DetectConfigurationFactory {
         //Normal settings
         Integer maxDepth = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH);
 
+        // TODO: Remove all but DetectIgnored in 8.0.0
         //File Filter
         List<String> userProvidedExcludedDirectories = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION);
         List<String> excludedDirectoryPatterns = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION_PATTERNS);
         List<String> excludedDirectoryPaths = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION_PATHS);
 
         List<String> excludedDirectories = new ArrayList<>();
+        List<String> detectIgnored;
         excludedDirectories.addAll(userProvidedExcludedDirectories);
         if (detectConfiguration.getValueOrDefault(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION_DEFAULTS.getProperty())) {
-            List<String> defaultExcluded = Arrays.stream(DefaultDetectorExcludedDirectories.values())
-                                               .map(DefaultDetectorExcludedDirectories::getDirectoryName)
-                                               .collect(Collectors.toList());
-            excludedDirectories.addAll(defaultExcluded);
+            excludedDirectories.addAll(DefaultDetectorExcludedDirectories.directoryNamesAsList());
         }
-
-        DetectDetectorFileFilter fileFilter = new DetectDetectorFileFilter(sourcePath, excludedDirectories, excludedDirectoryPaths, excludedDirectoryPatterns);
+        
+        detectIgnored = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_IGNORE.getProperty());
+        DetectDetectorFileFilter fileFilter = new DetectDetectorFileFilter(sourcePath, detectIgnored, excludedDirectories, excludedDirectoryPaths, excludedDirectoryPatterns);
 
         return new DetectorFinderOptions(fileFilter, maxDepth);
     }
