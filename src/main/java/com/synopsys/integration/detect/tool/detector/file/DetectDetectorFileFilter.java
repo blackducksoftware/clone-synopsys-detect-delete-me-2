@@ -32,32 +32,41 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 public class DetectDetectorFileFilter implements Predicate<File> {
     private final Path sourcePath;
+    private final List<String> detectIgnore;
     private final List<String> excludedDirectories;
     private final List<String> excludedDirectoryPaths;
     private final WildcardFileFilter fileFilter;
 
-    public DetectDetectorFileFilter(final Path sourcePath, final List<String> excludedDirectories, final List<String> excludedDirectoryPaths, final List<String> excludedDirectoryNamePatterns) {
+    public DetectDetectorFileFilter(Path sourcePath, List<String> detectIgnore, List<String> excludedDirectories, List<String> excludedDirectoryPaths, List<String> excludedDirectoryNamePatterns) {
         this.sourcePath = sourcePath;
+        this.detectIgnore = detectIgnore;
         this.excludedDirectories = excludedDirectories;
         this.excludedDirectoryPaths = excludedDirectoryPaths;
         fileFilter = new WildcardFileFilter(excludedDirectoryNamePatterns);
     }
 
     @Override
-    public boolean test(final File file) {
+    public boolean test(File file) {
         return !isExcluded(file);
     }
 
-    public boolean isExcluded(final File file) {
-        for (final String excludedDirectory : excludedDirectories) {
+    public boolean isExcluded(File file) {
+        for (String ignored : detectIgnore) {
+            if (FilenameUtils.wildcardMatchOnSystem(file.getAbsolutePath(), ignored)) {
+                return true;
+            }
+        }
+
+        // TODO: Remove in 8.0.0
+        for (String excludedDirectory : excludedDirectories) {
             if (FilenameUtils.wildcardMatchOnSystem(file.getName(), excludedDirectory)) {
                 return true;
             }
         }
 
-        for (final String excludedDirectory : excludedDirectoryPaths) {
-            final Path excludedDirectoryPath = new File(excludedDirectory).toPath();
-            final Path relativeDirectoryPath = sourcePath.relativize(file.toPath());
+        for (String excludedDirectory : excludedDirectoryPaths) {
+            Path excludedDirectoryPath = new File(excludedDirectory).toPath();
+            Path relativeDirectoryPath = sourcePath.relativize(file.toPath());
             if (relativeDirectoryPath.endsWith(excludedDirectoryPath)) {
                 return true;
             }

@@ -22,6 +22,10 @@
  */
 package com.synopsys.integration.detect.configuration.enumeration;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public enum DefaultDetectorExcludedDirectories {
     BIN("bin"),
     BUILD("build"),
@@ -34,8 +38,14 @@ public enum DefaultDetectorExcludedDirectories {
 
     private final String directoryName;
 
-    DefaultDetectorExcludedDirectories(final String directoryName) {
+    DefaultDetectorExcludedDirectories(String directoryName) {
         this.directoryName = directoryName;
+    }
+
+    public static List<String> directoryNamesAsList() {
+        return Arrays.stream(DefaultDetectorExcludedDirectories.values())
+                   .map(DefaultDetectorExcludedDirectories::getDirectoryName)
+                   .collect(Collectors.toList());
     }
 
     public String getDirectoryName() {

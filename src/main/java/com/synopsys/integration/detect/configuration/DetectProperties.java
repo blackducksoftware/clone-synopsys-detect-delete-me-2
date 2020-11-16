@@ -470,6 +470,7 @@ public class DetectProperties {
             .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
+    @Deprecated
     public static final DetectProperty<StringListProperty> DETECT_DETECTOR_SEARCH_EXCLUSION =
         new DetectProperty<>(new StringListProperty("detect.detector.search.exclusion", emptyList()))
             .setInfo("Detector Directory Exclusions", DetectPropertyFromVersion.VERSION_3_2_0)
@@ -479,6 +480,7 @@ public class DetectProperties {
             .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
+    @Deprecated
     public static final DetectProperty<StringListProperty> DETECT_DETECTOR_SEARCH_EXCLUSION_PATTERNS =
         new DetectProperty<>(new StringListProperty("detect.detector.search.exclusion.patterns", emptyList()))
             .setInfo("Detector Directory Patterns Exclusions", DetectPropertyFromVersion.VERSION_3_2_0)
@@ -487,6 +489,7 @@ public class DetectProperties {
             .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
+    @Deprecated
     public static final DetectProperty<StringListProperty> DETECT_DETECTOR_SEARCH_EXCLUSION_PATHS =
         new DetectProperty<>(new StringListProperty("detect.detector.search.exclusion.paths", emptyList()))
             .setInfo("Detector Directory Path Exclusions", DetectPropertyFromVersion.VERSION_5_5_0)
@@ -497,6 +500,7 @@ public class DetectProperties {
             .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
+    @Deprecated
     public static final DetectProperty<StringListProperty> DETECT_DETECTOR_SEARCH_EXCLUSION_FILES =
         new DetectProperty<>(new StringListProperty("detect.detector.search.exclusion.files", emptyList()))
             .setInfo("Detector File Exclusions", DetectPropertyFromVersion.VERSION_6_0_0)
@@ -504,6 +508,7 @@ public class DetectProperties {
             .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
+    @Deprecated
     public static final DetectProperty<BooleanProperty> DETECT_DETECTOR_SEARCH_EXCLUSION_DEFAULTS =
         new DetectProperty<>(new BooleanProperty("detect.detector.search.exclusion.defaults", true))
             .setInfo("Detector Exclude Default Directories", DetectPropertyFromVersion.VERSION_3_2_0)
@@ -686,6 +691,14 @@ public class DetectProperties {
             .setHelp("A comma-separated list of Gradle sub-projects to include.",
                 "As Detect examines the Gradle project for dependencies, if this property is set, Detect will include only those sub-projects specified via this property that are not excluded. Leaving this unset implies 'include all'. Exclusion rules always win. This property accepts filename globbing-style wildcards. Refer to the <i>Advanced</i> > <i>Property wildcard support</i> page for more details.")
             .setGroups(DetectGroup.GRADLE, DetectGroup.SOURCE_SCAN)
+            .setCategory(DetectCategory.Advanced);
+
+    public static final DetectProperty<StringListProperty> DETECT_IGNORE =
+        new DetectProperty<>(new StringListProperty("detect.ignore", emptyList() /* TODO: Swap to DefaultDetectorExcludedDirectories.directoryNamesAsList() in 8.0.0 */))
+            .setInfo("Ignored Files and Folders", DetectPropertyFromVersion.VERSION_6_8_0)
+            .setHelp("A comma-separated list of ignored files and folders.",
+                "These patterns are file system glob patterns ('?' is a wildcard for a single character, '*' is a wildcard for zero or more characters). If you are using the Black Duck scan CLI, each pattern provided as a value for the --exclude option. The Black Duck scan CLI requires that these exclusion patterns start and end with a forward slash (/), and may not contain double asterisks (**).")
+            .setGroups(DetectGroup.PATHS, DetectGroup.DETECTOR, DetectGroup.GLOBAL, DetectGroup.SOURCE_SCAN)
             .setCategory(DetectCategory.Advanced);
 
     public static final DetectProperty<NullablePathProperty> DETECT_GRADLE_INSPECTOR_AIR_GAP_PATH =
