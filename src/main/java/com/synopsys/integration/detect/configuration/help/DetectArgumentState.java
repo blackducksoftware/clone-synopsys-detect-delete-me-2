@@ -25,51 +25,30 @@ package com.synopsys.integration.detect.configuration.help;
 import org.jetbrains.annotations.Nullable;
 
 public class DetectArgumentState {
-    private final boolean isHelp;
-    private final boolean isHelpJsonDocument;
+    private final DetectHelpArgumentState helpArgumentState;
     private final boolean isInteractive;
-
-    private final boolean isVerboseHelp;
-    private final boolean isDeprecatedHelp;
-    @Nullable
-    private final String parsedValue;
 
     private final boolean isDiagnostic;
     private final boolean isDiagnosticExtended;
 
     private final boolean isGenerateAirGapZip;
+    private final boolean isAnalyze;
+    @Nullable
+    private final String parsedValue;
 
-    public DetectArgumentState(boolean isHelp, boolean isHelpJsonDocument, boolean isInteractive, boolean isVerboseHelp, boolean isDeprecatedHelp, @Nullable String parsedValue, boolean isDiagnostic, boolean isDiagnosticExtended,
-        boolean isGenerateAirGapZip) {
-        this.isHelp = isHelp;
-        this.isHelpJsonDocument = isHelpJsonDocument;
+    public DetectArgumentState(DetectHelpArgumentState helpArgumentState, boolean isInteractive, boolean isDiagnostic, boolean isDiagnosticExtended,
+        boolean isGenerateAirGapZip, boolean isAnalyze, @Nullable final String parsedValue) {
         this.isInteractive = isInteractive;
-        this.isVerboseHelp = isVerboseHelp;
-        this.isDeprecatedHelp = isDeprecatedHelp;
-        this.parsedValue = parsedValue;
         this.isDiagnostic = isDiagnostic;
         this.isDiagnosticExtended = isDiagnosticExtended;
         this.isGenerateAirGapZip = isGenerateAirGapZip;
-    }
-
-    public boolean isHelp() {
-        return isHelp;
-    }
-
-    public boolean isHelpJsonDocument() {
-        return isHelpJsonDocument;
+        this.helpArgumentState = helpArgumentState;
+        this.isAnalyze = isAnalyze;
+        this.parsedValue = parsedValue;
     }
 
     public boolean isInteractive() {
         return isInteractive;
-    }
-
-    public boolean isVerboseHelp() {
-        return isVerboseHelp;
-    }
-
-    public boolean isDeprecatedHelp() {
-        return isDeprecatedHelp;
     }
 
     public boolean isDiagnostic() {
@@ -80,12 +59,19 @@ public class DetectArgumentState {
         return isDiagnosticExtended;
     }
 
-    @Nullable
-    public String getParsedValue() {
-        return parsedValue;
-    }
-
     public boolean isGenerateAirGapZip() {
         return isGenerateAirGapZip;
+    }
+
+    public boolean isAnalyze() {
+        return isAnalyze;
+    }
+
+    public DetectHelpArgumentState getHelpArgumentState() {
+        return helpArgumentState;
+    }
+
+    public String getParsedValue() {
+        return parsedValue;
     }
 }

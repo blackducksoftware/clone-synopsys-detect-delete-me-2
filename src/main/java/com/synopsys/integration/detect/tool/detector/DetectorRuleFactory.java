@@ -71,12 +71,12 @@ public class DetectorRuleFactory {
         if (buildless) {
             return createBuildlessRules(detectableFactory);
         } else {
-            return createRules(detectableFactory);
+            return createBuildRules(detectableFactory);
         }
     }
 
     //TODO: It would just be nice not to have to call 'build' after each of the addDetectors.
-    private DetectorRuleSet createRules(DetectDetectableFactory detectableFactory) {
+    public DetectorRuleSet createBuildRules(DetectDetectableFactory detectableFactory) {
         DetectorRuleSetBuilder ruleSet = new DetectorRuleSetBuilder();
 
         //TODO: Verify we still need to pass detector name here. We may now be able to get it from the detectable class - before we could not as it was not instantiated.
@@ -153,7 +153,7 @@ public class DetectorRuleFactory {
         return ruleSet.build();
     }
 
-    private DetectorRuleSet createBuildlessRules(DetectDetectableFactory detectableFactory) {
+    public DetectorRuleSet createBuildlessRules(DetectDetectableFactory detectableFactory) {
         DetectorRuleSetBuilder ruleSet = new DetectorRuleSetBuilder();
 
         ruleSet.addDetector(DetectorType.CARGO, "Cargo", CargoDetectable.class, detectableFactory::createCargoDetectable).defaults().build();
