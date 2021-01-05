@@ -22,7 +22,7 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.runnables;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -46,9 +46,6 @@ public class UniversalProjectToolsRunnable implements DetectRunnable {
     private DetectConfigurationFactory detectConfigurationFactory;
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
-    private DockerToolRunnable dockerToolRunnable;
-    private BazelToolRunnable bazelToolRunnable;
-    private DetectorToolRunnable detectorToolRunnable;
     private final List<DetectRunnable> toolRunnables;
 
     public UniversalProjectToolsRunnable(DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
@@ -56,10 +53,7 @@ public class UniversalProjectToolsRunnable implements DetectRunnable {
         this.detectConfigurationFactory = detectConfigurationFactory;
         this.directoryManager = directoryManager;
         this.eventSystem = eventSystem;
-        this.dockerToolRunnable = dockerToolRunnable;
-        this.bazelToolRunnable = bazelToolRunnable;
-        this.detectorToolRunnable = detectorToolRunnable;
-        toolRunnables = new ArrayList<>();
+        toolRunnables = new LinkedList<>();
         toolRunnables.add(dockerToolRunnable);
         toolRunnables.add(bazelToolRunnable);
         toolRunnables.add(detectorToolRunnable);
