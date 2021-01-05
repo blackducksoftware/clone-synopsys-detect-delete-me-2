@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.synopsys.integration.configuration.property.Property;
 import com.synopsys.integration.configuration.util.Group;
 import com.synopsys.integration.detect.configuration.help.DetectArgumentState;
+import com.synopsys.integration.detect.configuration.help.DetectHelpArgumentState;
 
 public class HelpPrinter {
     private static final String DIAGNOSTIC_HELP_TEXT = "\nDiagnostics mode:\n\n" +
@@ -59,9 +60,10 @@ public class HelpPrinter {
                                                      .filter(it -> it.getPropertyDeprecationInfo() != null)
                                                      .collect(Collectors.toList());
 
-        if (state.isVerboseHelp()) {
+        DetectHelpArgumentState helpState = state.getHelpArgumentState();
+        if (helpState.isVerboseHelp()) {
             printOptions(writer, currentOptions, null);
-        } else if (state.isDeprecatedHelp()) {
+        } else if (helpState.isDeprecatedHelp()) {
             printOptions(writer, deprecatedOptions, "Showing only deprecated properties.");
         } else {
             if (state.getParsedValue() != null) {

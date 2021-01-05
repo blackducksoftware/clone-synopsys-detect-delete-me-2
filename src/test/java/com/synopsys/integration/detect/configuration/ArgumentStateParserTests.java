@@ -36,7 +36,7 @@ public class ArgumentStateParserTests {
         final String[] args = new String[] { "-h", "value" };
         final DetectArgumentState state = parser.parseArgs(args);
 
-        Assertions.assertTrue(state.isHelp());
+        Assertions.assertTrue(state.getHelpArgumentState().isHelp());
         Assertions.assertEquals("value", state.getParsedValue());
     }
 
@@ -45,7 +45,7 @@ public class ArgumentStateParserTests {
         final String[] args = new String[] { "-h", "-ignoreme" };
         final DetectArgumentState state = parser.parseArgs(args);
 
-        Assertions.assertTrue(state.isHelp());
+        Assertions.assertTrue(state.getHelpArgumentState().isHelp());
         Assertions.assertNull(state.getParsedValue());
     }
 
@@ -54,7 +54,7 @@ public class ArgumentStateParserTests {
         final String[] args = new String[] { "--propert", "--property", "-h", "--property", "--property" };
         final DetectArgumentState state = parser.parseArgs(args);
 
-        Assertions.assertTrue(state.isHelp());
+        Assertions.assertTrue(state.getHelpArgumentState().isHelp());
         Assertions.assertNull(state.getParsedValue());
     }
 
@@ -63,7 +63,7 @@ public class ArgumentStateParserTests {
         final String[] args = new String[] { "--property", "--property", "-h", "value" };
         final DetectArgumentState state = parser.parseArgs(args);
 
-        Assertions.assertTrue(state.isHelp());
+        Assertions.assertTrue(state.getHelpArgumentState().isHelp());
         Assertions.assertEquals("value", state.getParsedValue());
     }
 
@@ -72,8 +72,20 @@ public class ArgumentStateParserTests {
         final String[] args = new String[] { "-h", "value", "--property", "--property", "--property" };
         final DetectArgumentState state = parser.parseArgs(args);
 
-        Assertions.assertTrue(state.isHelp());
+        Assertions.assertTrue(state.getHelpArgumentState().isHelp());
         Assertions.assertEquals("value", state.getParsedValue());
+    }
+
+    @Test
+    public void helpParsesAnalyze() {
+        Assertions.assertTrue(parser.parseArgs(new String[] { "-a" }).isAnalyze());
+        Assertions.assertTrue(parser.parseArgs(new String[] { "--analyze" }).isAnalyze());
+    }
+
+    @Test
+    public void helpDoesNotParseAnalyze() {
+        Assertions.assertFalse(parser.parseArgs(new String[] { "-b", "something" }).isAnalyze());
+        Assertions.assertFalse(parser.parseArgs(new String[] { "--anything" }).isAnalyze());
     }
 
 }

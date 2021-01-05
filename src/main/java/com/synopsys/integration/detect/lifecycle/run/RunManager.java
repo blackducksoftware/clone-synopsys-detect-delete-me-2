@@ -246,7 +246,7 @@ public class RunManager {
             DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
 
             Path sourcePath = directoryManager.getSourceDirectory().toPath();
-            DetectorFinderOptions finderOptions = detectConfigurationFactory.createSearchOptions(sourcePath);
+            DetectorFinderOptions finderOptions = new DetectorFinderOptions(detectConfigurationFactory.createSearchFilter(sourcePath), detectConfigurationFactory.findSearchDepth());
             DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
 
             DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();

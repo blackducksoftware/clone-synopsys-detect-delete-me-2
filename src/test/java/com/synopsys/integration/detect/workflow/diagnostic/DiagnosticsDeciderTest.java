@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectProperties;
 import com.synopsys.integration.detect.configuration.help.DetectArgumentState;
+import com.synopsys.integration.detect.configuration.help.DetectHelpArgumentState;
 
 class DiagnosticsDeciderTest {
     @Test
@@ -104,6 +105,6 @@ class DiagnosticsDeciderTest {
     }
 
     private DetectArgumentState createDetectArgumentState(boolean isDiagnostic, boolean isDiagnosticExtended) {
-        return new DetectArgumentState(false, false, false, false, false, null, isDiagnostic, isDiagnosticExtended, false);
+        return new DetectArgumentState(new DetectHelpArgumentState(false, false, false, false), false, isDiagnostic, isDiagnosticExtended, false, false, null);
     }
 }

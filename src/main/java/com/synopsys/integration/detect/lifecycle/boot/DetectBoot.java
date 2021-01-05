@@ -65,6 +65,7 @@ import com.synopsys.integration.detect.configuration.enumeration.DetectGroup;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.configuration.help.DetectArgumentState;
 import com.synopsys.integration.detect.configuration.help.DetectArgumentStateParser;
+import com.synopsys.integration.detect.configuration.help.DetectHelpArgumentState;
 import com.synopsys.integration.detect.configuration.help.json.HelpJsonDetector;
 import com.synopsys.integration.detect.configuration.help.json.HelpJsonWriter;
 import com.synopsys.integration.detect.configuration.help.print.DetectInfoPrinter;
@@ -153,12 +154,13 @@ public class DetectBoot {
 
         DetectArgumentState detectArgumentState = parseDetectArgumentState(sourceArgs);
 
-        if (detectArgumentState.isHelp() || detectArgumentState.isDeprecatedHelp() || detectArgumentState.isVerboseHelp()) {
+        DetectHelpArgumentState helpState = detectArgumentState.getHelpArgumentState();
+        if (helpState.isHelp() || helpState.isDeprecatedHelp() || helpState.isVerboseHelp()) {
             printAppropriateHelp(DetectProperties.allProperties(), detectArgumentState);
             return Optional.of(DetectBootResult.exit(new PropertyConfiguration(propertySources)));
         }
 
-        if (detectArgumentState.isHelpJsonDocument()) {
+        if (helpState.isHelpJsonDocument()) {
             printHelpJsonDocument(DetectProperties.allProperties(), detectInfo, gson);
             return Optional.of(DetectBootResult.exit(new PropertyConfiguration(propertySources)));
         }

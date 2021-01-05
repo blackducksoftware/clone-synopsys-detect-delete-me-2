@@ -86,7 +86,6 @@ import com.synopsys.integration.detect.workflow.project.ProjectNameVersionOption
 import com.synopsys.integration.detectable.detectable.file.FileFinder;
 import com.synopsys.integration.detector.base.DetectorType;
 import com.synopsys.integration.detector.evaluation.DetectorEvaluationOptions;
-import com.synopsys.integration.detector.finder.DetectorFinderOptions;
 import com.synopsys.integration.log.SilentIntLogger;
 import com.synopsys.integration.polaris.common.configuration.PolarisServerConfig;
 import com.synopsys.integration.polaris.common.configuration.PolarisServerConfigBuilder;
@@ -311,10 +310,18 @@ public class DetectConfigurationFactory {
         return new FilteredFileFinder(userProvidedExcludedFiles);
     }
 
-    public DetectorFinderOptions createSearchOptions(Path sourcePath) {
-        //Normal settings
-        Integer maxDepth = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH);
+    public Integer findSearchDepth() {
+        return getValue(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH);
+    }
 
+    public Optional<Integer> findSearchDepthIfProvided() {
+        if (detectConfiguration.wasPropertyProvided(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH.getProperty())) {
+            return Optional.of(findSearchDepth());
+        }
+        return Optional.empty();
+    }
+
+    public DetectDetectorFileFilter createSearchFilter(Path sourcePath) {
         //File Filter
         List<String> userProvidedExcludedDirectories = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION);
         List<String> excludedDirectoryPatterns = getValue(DetectProperties.DETECT_DETECTOR_SEARCH_EXCLUSION_PATTERNS);
@@ -329,9 +336,7 @@ public class DetectConfigurationFactory {
             excludedDirectories.addAll(defaultExcluded);
         }
 
-        DetectDetectorFileFilter fileFilter = new DetectDetectorFileFilter(sourcePath, excludedDirectories, excludedDirectoryPaths, excludedDirectoryPatterns);
-
-        return new DetectorFinderOptions(fileFilter, maxDepth);
+        return new DetectDetectorFileFilter(sourcePath, excludedDirectories, excludedDirectoryPaths, excludedDirectoryPatterns);
     }
 
     public DetectorEvaluationOptions createDetectorEvaluationOptions() {
