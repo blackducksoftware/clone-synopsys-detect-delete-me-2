@@ -55,7 +55,7 @@ import com.synopsys.integration.detector.rule.DetectorRuleSet;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DetectorRunnable implements DetectRunnable {
+public class DetectorToolRunnable implements DetectRunnable {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private PropertyConfiguration detectConfiguration;
     private DetectConfigurationFactory detectConfigurationFactory;
@@ -66,7 +66,7 @@ public class DetectorRunnable implements DetectRunnable {
     private ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private CodeLocationConverter codeLocationConverter;
 
-    public DetectorRunnable(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
+    public DetectorToolRunnable(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter, ExtractionEnvironmentProvider extractionEnvironmentProvider, CodeLocationConverter codeLocationConverter) {
         this.detectConfiguration = detectConfiguration;
         this.detectConfigurationFactory = detectConfigurationFactory;
@@ -85,32 +85,36 @@ public class DetectorRunnable implements DetectRunnable {
 
     @Override
     public RunnableState run(RunnableState previousState) throws DetectUserFriendlyException, IntegrationException {
-        RunResult runResult = previousState.getCurrentRunResult();
-        logger.info("Will include the detector tool.");
-        String projectBomTool = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_PROJECT_DETECTOR.getProperty()).orElse(null);
-        List<DetectorType> requiredDetectors = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_REQUIRED_DETECTOR_TYPES.getProperty());
-        boolean buildless = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_BUILDLESS.getProperty());
+        boolean anythingFailed = previousState.isFailure();
+        if (!isApplicable()) {
+            logger.info("Detector tool will not be run.");
+        } else {
+            RunResult runResult = previousState.getCurrentRunResult();
+            logger.info("Will include the detector tool.");
+            String projectBomTool = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_PROJECT_DETECTOR.getProperty()).orElse(null);
+            List<DetectorType> requiredDetectors = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_REQUIRED_DETECTOR_TYPES.getProperty());
+            boolean buildless = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_BUILDLESS.getProperty());
 
-        DetectorRuleFactory detectorRuleFactory = new DetectorRuleFactory();
-        DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
+            DetectorRuleFactory detectorRuleFactory = new DetectorRuleFactory();
+            DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
 
-        Path sourcePath = directoryManager.getSourceDirectory().toPath();
-        DetectorFinderOptions finderOptions = detectConfigurationFactory.createSearchOptions(sourcePath);
-        DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
+            Path sourcePath = directoryManager.getSourceDirectory().toPath();
+            DetectorFinderOptions finderOptions = detectConfigurationFactory.createSearchOptions(sourcePath);
+            DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
 
-        DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();
-        DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
-        DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors);
+            DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();
+            DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
+            DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors);
 
-        detectorToolResult.getBomToolProjectNameVersion().ifPresent(it -> runResult.addToolNameVersion(DetectTool.DETECTOR, new NameVersion(it.getName(), it.getVersion())));
-        runResult.addDetectCodeLocations(detectorToolResult.getBomToolCodeLocations());
-        boolean anythingFailed = false;
+            detectorToolResult.getBomToolProjectNameVersion().ifPresent(it -> runResult.addToolNameVersion(DetectTool.DETECTOR, new NameVersion(it.getName(), it.getVersion())));
+            runResult.addDetectCodeLocations(detectorToolResult.getBomToolCodeLocations());
 
-        if (!detectorToolResult.getFailedDetectorTypes().isEmpty()) {
-            eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR, "A detector failed."));
-            anythingFailed = true;
+            if (!detectorToolResult.getFailedDetectorTypes().isEmpty()) {
+                eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR, "A detector failed."));
+                anythingFailed = true;
+            }
+            logger.info("Detector actions finished.");
         }
-        logger.info("Detector actions finished.");
         if (anythingFailed) {
             return RunnableState.fail(previousState);
         } else {
