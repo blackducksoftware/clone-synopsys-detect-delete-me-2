@@ -71,7 +71,7 @@ public class UniversalProjectToolsRunnable implements DetectRunnable {
     private DetectToolFilter detectToolFilter;
 
     public UniversalProjectToolsRunnable(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager,
-        EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, RunResult runResult, RunOptions runOptions, DetectToolFilter detectToolFilter) {
+        EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter) {
         this.detectConfiguration = detectConfiguration;
         this.detectConfigurationFactory = detectConfigurationFactory;
         this.directoryManager = directoryManager;

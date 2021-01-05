@@ -60,12 +60,16 @@ public class PolarisRunnable implements DetectRunnable {
 
     @Override
     public RunnableState run(RunnableState previousState) {
-        logger.info("Will include the Polaris tool.");
-        PolarisServerConfig polarisServerConfig = productRunData.getPolarisRunData().getPolarisServerConfig();
-        DetectableExecutableRunner polarisExecutableRunner = DetectExecutableRunner.newInfo(eventSystem);
-        PolarisTool polarisTool = new PolarisTool(eventSystem, directoryManager, polarisExecutableRunner, detectConfiguration, polarisServerConfig);
-        polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
-        logger.info("Polaris actions finished.");
+        if (!isApplicable()) {
+            logger.info("Polaris tools will not be run.");
+        } else {
+            logger.info("Will include the Polaris tool.");
+            PolarisServerConfig polarisServerConfig = productRunData.getPolarisRunData().getPolarisServerConfig();
+            DetectableExecutableRunner polarisExecutableRunner = DetectExecutableRunner.newInfo(eventSystem);
+            PolarisTool polarisTool = new PolarisTool(eventSystem, directoryManager, polarisExecutableRunner, detectConfiguration, polarisServerConfig);
+            polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
+            logger.info("Polaris actions finished.");
+        }
         return previousState;
     }
 }
