@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunState;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunState;
+import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunStep;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
