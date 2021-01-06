@@ -22,9 +22,6 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.runnables;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,22 +38,16 @@ import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class UniversalProjectToolsRunnable implements DetectRunnable {
+public class ProjectInfoRunStep implements DetectRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DetectConfigurationFactory detectConfigurationFactory;
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
-    private final List<DetectRunnable> toolRunnables;
 
-    public UniversalProjectToolsRunnable(DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
-        DockerToolRunnable dockerToolRunnable, BazelToolRunnable bazelToolRunnable, DetectorToolRunnable detectorToolRunnable) {
+    public ProjectInfoRunStep(DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem) {
         this.detectConfigurationFactory = detectConfigurationFactory;
         this.directoryManager = directoryManager;
         this.eventSystem = eventSystem;
-        toolRunnables = new LinkedList<>();
-        toolRunnables.add(dockerToolRunnable);
-        toolRunnables.add(bazelToolRunnable);
-        toolRunnables.add(detectorToolRunnable);
     }
 
     @Override
@@ -65,16 +56,10 @@ public class UniversalProjectToolsRunnable implements DetectRunnable {
     }
 
     @Override
-    public RunnableState run(RunnableState previousState) throws DetectUserFriendlyException, IntegrationException {
-        RunOptions runOptions = previousState.getRunOptions();
+    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         RunResult runResult = previousState.getCurrentRunResult();
-
-        RunnableState runState = previousState;
-        for (DetectRunnable toolRunnable : toolRunnables) {
-            logger.info(ReportConstants.RUN_SEPARATOR);
-            runState = toolRunnable.run(runState);
-        }
-
+        RunOptions runOptions = previousState.getRunOptions();
+        
         logger.info(ReportConstants.RUN_SEPARATOR);
         logger.debug("Completed code location tools.");
 
@@ -89,10 +74,6 @@ public class UniversalProjectToolsRunnable implements DetectRunnable {
 
         eventSystem.publishEvent(Event.ProjectNameVersionChosen, projectNameVersion);
 
-        if (runState.isFailure()) {
-            return RunnableState.fail(runResult, runOptions, projectNameVersion);
-        } else {
-            return RunnableState.success(runResult, runOptions, projectNameVersion);
-        }
+        return previousState;
     }
 }

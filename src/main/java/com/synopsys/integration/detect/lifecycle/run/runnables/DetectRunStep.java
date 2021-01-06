@@ -25,8 +25,8 @@ package com.synopsys.integration.detect.lifecycle.run.runnables;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.exception.IntegrationException;
 
-public interface DetectRunnable {
+public interface DetectRunStep {
     boolean isApplicable();
 
-    RunnableState run(RunnableState previousState) throws DetectUserFriendlyException, IntegrationException;
+    DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException;
 }

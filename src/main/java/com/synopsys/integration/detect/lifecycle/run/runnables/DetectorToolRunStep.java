@@ -55,7 +55,7 @@ import com.synopsys.integration.detector.rule.DetectorRuleSet;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DetectorToolRunnable implements DetectRunnable {
+public class DetectorToolRunStep implements DetectRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private PropertyConfiguration detectConfiguration;
     private DetectConfigurationFactory detectConfigurationFactory;
@@ -66,7 +66,7 @@ public class DetectorToolRunnable implements DetectRunnable {
     private ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private CodeLocationConverter codeLocationConverter;
 
-    public DetectorToolRunnable(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
+    public DetectorToolRunStep(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter, ExtractionEnvironmentProvider extractionEnvironmentProvider, CodeLocationConverter codeLocationConverter) {
         this.detectConfiguration = detectConfiguration;
         this.detectConfigurationFactory = detectConfigurationFactory;
@@ -84,7 +84,7 @@ public class DetectorToolRunnable implements DetectRunnable {
     }
 
     @Override
-    public RunnableState run(RunnableState previousState) throws DetectUserFriendlyException, IntegrationException {
+    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         boolean anythingFailed = previousState.isFailure();
         if (!isApplicable()) {
             logger.info("Detector tool will not be run.");
@@ -116,9 +116,9 @@ public class DetectorToolRunnable implements DetectRunnable {
             logger.info("Detector actions finished.");
         }
         if (anythingFailed) {
-            return RunnableState.fail(previousState);
+            return DetectRunState.fail(previousState);
         } else {
-            return RunnableState.success(previousState);
+            return DetectRunState.success(previousState);
         }
     }
 }
