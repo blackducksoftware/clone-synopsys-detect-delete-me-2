@@ -31,14 +31,13 @@ import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.runnables.BazelToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.BlackDuckRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectorToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DockerToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.PolarisRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.ProjectInfoRunStep;
-import com.synopsys.integration.detect.lifecycle.run.runnables.UniversalProjectToolsRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.BlackDuckRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
 import com.synopsys.integration.detect.tool.detector.CodeLocationConverter;
 import com.synopsys.integration.detect.tool.detector.DetectDetectableFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
@@ -86,13 +85,6 @@ public class RunContext {
 
     private PolarisRunStep createPolarisRunnable(DetectToolFilter detectToolFilter) {
         return new PolarisRunStep(productRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
-    }
-
-    private UniversalProjectToolsRunStep createUniversalProjectToolRunnable(DetectToolFilter detectToolFilter) {
-        DockerToolRunStep dockerToolRunnable = createDockerToolRunnable(detectToolFilter);
-        BazelToolRunStep bazelToolRunnable = createBazelToolRunnable(detectToolFilter);
-        DetectorToolRunStep detectorToolRunnable = createDetectorToolRunnable(detectToolFilter);
-        return new UniversalProjectToolsRunStep(detectConfigurationFactory, directoryManager, eventSystem, dockerToolRunnable, bazelToolRunnable, detectorToolRunnable);
     }
 
     private DockerToolRunStep createDockerToolRunnable(DetectToolFilter detectToolFilter) {

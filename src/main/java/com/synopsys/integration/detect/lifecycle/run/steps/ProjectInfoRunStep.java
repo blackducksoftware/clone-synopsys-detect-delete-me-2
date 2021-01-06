@@ -20,7 +20,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.runnables;
+package com.synopsys.integration.detect.lifecycle.run.steps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

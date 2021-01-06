@@ -20,7 +20,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.runnables;
+package com.synopsys.integration.detect.lifecycle.run.steps;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +41,7 @@ import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
+//TODO Delete this class as it is obsolete
 public class UniversalProjectToolsRunStep implements DetectRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DetectConfigurationFactory detectConfigurationFactory;

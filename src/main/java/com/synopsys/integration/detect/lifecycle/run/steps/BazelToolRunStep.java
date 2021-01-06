@@ -20,7 +20,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.runnables;
+package com.synopsys.integration.detect.lifecycle.run.steps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class DockerToolRunStep implements DetectRunStep {
+public class BazelToolRunStep implements DetectRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
@@ -46,7 +46,7 @@ public class DockerToolRunStep implements DetectRunStep {
     private ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private CodeLocationConverter codeLocationConverter;
 
-    public DockerToolRunStep(DirectoryManager directoryManager, EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter,
+    public BazelToolRunStep(DirectoryManager directoryManager, EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter,
         ExtractionEnvironmentProvider extractionEnvironmentProvider, CodeLocationConverter codeLocationConverter) {
         this.directoryManager = directoryManager;
         this.eventSystem = eventSystem;
@@ -58,25 +58,23 @@ public class DockerToolRunStep implements DetectRunStep {
 
     @Override
     public boolean isApplicable() {
-        return detectToolFilter.shouldInclude(DetectTool.DOCKER);
+        return detectToolFilter.shouldInclude(DetectTool.BAZEL);
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         boolean anythingFailed = previousState.isFailure();
         if (!isApplicable()) {
-            logger.info("Docker tool will not be run.");
+            logger.info("Bazel tool will not be run.");
         } else {
-            logger.info("Will include the Docker tool.");
-            DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createDockerDetectable,
-                extractionEnvironmentProvider, codeLocationConverter, "DOCKER", DetectTool.DOCKER,
+            logger.info("Will include the Bazel tool.");
+            DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createBazelDetectable,
+                extractionEnvironmentProvider, codeLocationConverter, "BAZEL", DetectTool.BAZEL,
                 eventSystem);
-
             DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
-
             previousState.getCurrentRunResult().addDetectableToolResult(detectableToolResult);
             anythingFailed = anythingFailed || detectableToolResult.isFailure();
-            logger.info("Docker actions finished.");
+            logger.info("Bazel actions finished.");
         }
         if (anythingFailed) {
             return DetectRunState.fail(previousState);
