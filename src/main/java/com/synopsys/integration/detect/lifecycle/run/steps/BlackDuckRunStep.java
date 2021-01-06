@@ -120,13 +120,13 @@ public class BlackDuckRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return productRunData.shouldUseBlackDuckProduct();
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
-        if (!isApplicable()) {
+        if (!shouldRun()) {
             logger.info("Black Duck tools will not be run.");
         } else {
             logger.debug("Black Duck tools will run.");

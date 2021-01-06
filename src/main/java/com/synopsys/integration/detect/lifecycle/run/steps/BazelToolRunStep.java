@@ -57,14 +57,14 @@ public class BazelToolRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return detectToolFilter.shouldInclude(DetectTool.BAZEL);
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         boolean anythingFailed = previousState.isFailure();
-        if (!isApplicable()) {
+        if (!shouldRun()) {
             logger.info("Bazel tool will not be run.");
         } else {
             logger.info("Will include the Bazel tool.");

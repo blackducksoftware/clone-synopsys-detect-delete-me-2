@@ -57,14 +57,14 @@ public class DockerToolRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return detectToolFilter.shouldInclude(DetectTool.DOCKER);
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         boolean anythingFailed = previousState.isFailure();
-        if (!isApplicable()) {
+        if (!shouldRun()) {
             logger.info("Docker tool will not be run.");
         } else {
             logger.info("Will include the Docker tool.");

@@ -79,14 +79,14 @@ public class DetectorToolRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return detectToolFilter.shouldInclude(DetectTool.DETECTOR);
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         boolean anythingFailed = previousState.isFailure();
-        if (!isApplicable()) {
+        if (!shouldRun()) {
             logger.info("Detector tool will not be run.");
         } else {
             RunResult runResult = previousState.getCurrentRunResult();

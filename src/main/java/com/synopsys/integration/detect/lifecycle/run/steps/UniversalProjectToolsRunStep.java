@@ -61,7 +61,7 @@ public class UniversalProjectToolsRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return true;
     }
 
