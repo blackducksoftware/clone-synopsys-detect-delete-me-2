@@ -54,13 +54,13 @@ public class PolarisRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return productRunData.shouldUsePolarisProduct() && detectToolFilter.shouldInclude(DetectTool.POLARIS);
     }
 
     @Override
     public DetectRunState run(DetectRunState previousState) {
-        if (!isApplicable()) {
+        if (!shouldRun()) {
             logger.info("Polaris tools will not be run.");
         } else {
             logger.info("Will include the Polaris tool.");

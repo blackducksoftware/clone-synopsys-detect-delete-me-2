@@ -51,7 +51,7 @@ public class ProjectInfoRunStep implements DetectRunStep {
     }
 
     @Override
-    public boolean isApplicable() {
+    public boolean shouldRun() {
         return true;
     }
 

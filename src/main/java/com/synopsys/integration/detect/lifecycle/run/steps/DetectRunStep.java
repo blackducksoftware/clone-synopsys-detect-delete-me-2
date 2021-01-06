@@ -26,7 +26,7 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.exception.IntegrationException;
 
 public interface DetectRunStep {
-    boolean isApplicable();
+    boolean shouldRun();
 
     DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException;
 }
