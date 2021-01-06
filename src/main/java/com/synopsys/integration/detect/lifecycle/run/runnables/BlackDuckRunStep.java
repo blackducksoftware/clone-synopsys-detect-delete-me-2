@@ -92,7 +92,7 @@ import com.synopsys.integration.rest.HttpUrl;
 import com.synopsys.integration.util.IntegrationEscapeUtil;
 import com.synopsys.integration.util.NameVersion;
 
-public class BlackDuckRunnable implements DetectRunnable {
+public class BlackDuckRunStep implements DetectRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private final DetectContext detectContext;
     private ProductRunData productRunData;
@@ -105,7 +105,7 @@ public class BlackDuckRunnable implements DetectRunnable {
     private DetectToolFilter detectToolFilter;
     private ImpactAnalysisOptions impactAnalysisOptions;
 
-    public BlackDuckRunnable(DetectContext detectContext, ProductRunData productRunData, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager,
+    public BlackDuckRunStep(DetectContext detectContext, ProductRunData productRunData, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager,
         EventSystem eventSystem, CodeLocationNameManager codeLocationNameManager, BdioCodeLocationCreator bdioCodeLocationCreator, DetectInfo detectInfo, DetectToolFilter detectToolFilter, ImpactAnalysisOptions impactAnalysisOptions) {
         this.detectContext = detectContext;
         this.productRunData = productRunData;
@@ -125,7 +125,7 @@ public class BlackDuckRunnable implements DetectRunnable {
     }
 
     @Override
-    public RunnableState run(RunnableState previousState) throws DetectUserFriendlyException, IntegrationException {
+    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         if (!isApplicable()) {
             logger.info("Black Duck tools will not be run.");
         } else {
@@ -279,7 +279,7 @@ public class BlackDuckRunnable implements DetectRunnable {
         return previousState;
     }
 
-    private AggregateOptions determineAggregationStrategy(RunnableState currentRunState) {
+    private AggregateOptions determineAggregationStrategy(DetectRunState currentRunState) {
         String aggregateName = currentRunState.getRunOptions().getAggregateName().orElse(null);
         AggregateMode aggregateMode = currentRunState.getRunOptions().getAggregateMode();
         if (StringUtils.isNotBlank(aggregateName)) {

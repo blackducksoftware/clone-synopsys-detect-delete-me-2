@@ -31,13 +31,14 @@ import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.runnables.BazelToolRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.BlackDuckRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectorToolRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DockerToolRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.PolarisRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.UniversalProjectToolsRunnable;
+import com.synopsys.integration.detect.lifecycle.run.runnables.BazelToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.BlackDuckRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.DetectorToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.DockerToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.PolarisRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.ProjectInfoRunStep;
+import com.synopsys.integration.detect.lifecycle.run.runnables.UniversalProjectToolsRunStep;
 import com.synopsys.integration.detect.tool.detector.CodeLocationConverter;
 import com.synopsys.integration.detect.tool.detector.DetectDetectableFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
@@ -83,49 +84,58 @@ public class RunContext {
         codeLocationConverter = new CodeLocationConverter(new ExternalIdFactory());
     }
 
-    private PolarisRunnable createPolarisRunnable(DetectToolFilter detectToolFilter) {
-        return new PolarisRunnable(productRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
+    private PolarisRunStep createPolarisRunnable(DetectToolFilter detectToolFilter) {
+        return new PolarisRunStep(productRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
     }
 
-    private UniversalProjectToolsRunnable createUniversalProjectToolRunnable(DetectToolFilter detectToolFilter) {
-        DockerToolRunnable dockerToolRunnable = createDockerToolRunnable(detectToolFilter);
-        BazelToolRunnable bazelToolRunnable = createBazelToolRunnable(detectToolFilter);
-        DetectorToolRunnable detectorToolRunnable = createDetectorToolRunnable(detectToolFilter);
-        return new UniversalProjectToolsRunnable(detectConfigurationFactory, directoryManager, eventSystem, dockerToolRunnable, bazelToolRunnable, detectorToolRunnable);
+    private UniversalProjectToolsRunStep createUniversalProjectToolRunnable(DetectToolFilter detectToolFilter) {
+        DockerToolRunStep dockerToolRunnable = createDockerToolRunnable(detectToolFilter);
+        BazelToolRunStep bazelToolRunnable = createBazelToolRunnable(detectToolFilter);
+        DetectorToolRunStep detectorToolRunnable = createDetectorToolRunnable(detectToolFilter);
+        return new UniversalProjectToolsRunStep(detectConfigurationFactory, directoryManager, eventSystem, dockerToolRunnable, bazelToolRunnable, detectorToolRunnable);
     }
 
-    private DockerToolRunnable createDockerToolRunnable(DetectToolFilter detectToolFilter) {
-        return new DockerToolRunnable(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
+    private DockerToolRunStep createDockerToolRunnable(DetectToolFilter detectToolFilter) {
+        return new DockerToolRunStep(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
     }
 
-    private BazelToolRunnable createBazelToolRunnable(DetectToolFilter detectToolFilter) {
-        return new BazelToolRunnable(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
+    private BazelToolRunStep createBazelToolRunnable(DetectToolFilter detectToolFilter) {
+        return new BazelToolRunStep(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
     }
 
-    private DetectorToolRunnable createDetectorToolRunnable(DetectToolFilter detectToolFilter) {
-        return new DetectorToolRunnable(detectConfiguration, detectConfigurationFactory, directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider,
+    private DetectorToolRunStep createDetectorToolRunnable(DetectToolFilter detectToolFilter) {
+        return new DetectorToolRunStep(detectConfiguration, detectConfigurationFactory, directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider,
             codeLocationConverter);
     }
 
-    private BlackDuckRunnable createBlackDuckRunnable(DetectToolFilter detectToolFilter) {
+    private ProjectInfoRunStep createProjectInfoRunnable() {
+        return new ProjectInfoRunStep(detectConfigurationFactory, directoryManager, eventSystem);
+    }
+
+    private BlackDuckRunStep createBlackDuckRunnable(DetectToolFilter detectToolFilter) {
         ImpactAnalysisOptions impactAnalysisOptions = detectConfigurationFactory.createImpactAnalysisOptions();
-        return new BlackDuckRunnable(detectContext, productRunData, detectConfigurationFactory, directoryManager, eventSystem, codeLocationNameManager, bdioCodeLocationCreator, detectInfo, detectToolFilter,
+        return new BlackDuckRunStep(detectContext, productRunData, detectConfigurationFactory, directoryManager, eventSystem, codeLocationNameManager, bdioCodeLocationCreator, detectInfo, detectToolFilter,
             impactAnalysisOptions);
     }
 
-    public List<DetectRunnable> createRunnables() {
+    public List<DetectRunStep> createRunSequence() {
         RunOptions runOptions = detectConfigurationFactory.createRunOptions();
         DetectToolFilter detectToolFilter = runOptions.getDetectToolFilter();
 
-        PolarisRunnable polarisRunnable = createPolarisRunnable(detectToolFilter);
-        UniversalProjectToolsRunnable universalProjectToolsRunnable = createUniversalProjectToolRunnable(detectToolFilter);
-        BlackDuckRunnable blackDuckRunnable = createBlackDuckRunnable(detectToolFilter);
+        PolarisRunStep polarisRunnable = createPolarisRunnable(detectToolFilter);
+        DockerToolRunStep dockerToolRunnable = createDockerToolRunnable(detectToolFilter);
+        BazelToolRunStep bazelToolRunnable = createBazelToolRunnable(detectToolFilter);
+        DetectorToolRunStep detectorToolRunnable = createDetectorToolRunnable(detectToolFilter);
+        BlackDuckRunStep blackDuckRunnable = createBlackDuckRunnable(detectToolFilter);
 
-        List<DetectRunnable> runnables = new LinkedList<>();
+        List<DetectRunStep> runnables = new LinkedList<>();
         // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
         runnables.add(polarisRunnable);
+        runnables.add(dockerToolRunnable);
+        runnables.add(bazelToolRunnable);
+        runnables.add(detectorToolRunnable);
         // this will set the projectNameVersion in the RunnableState object for BlackDuckRunnable to use.  It must execute before BlackDuck.
-        runnables.add(universalProjectToolsRunnable);
+        runnables.add(createProjectInfoRunnable());
         runnables.add(blackDuckRunnable);
 
         return runnables;

@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunnable;
-import com.synopsys.integration.detect.lifecycle.run.runnables.RunnableState;
+import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunState;
+import com.synopsys.integration.detect.lifecycle.run.runnables.DetectRunStep;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
@@ -54,11 +54,11 @@ public class RunManager {
             logger.debug("Detect run begin: {}", detectRun.getRunId());
             DetectConfigurationFactory detectConfigurationFactory = detectContext.getBean(DetectConfigurationFactory.class);
             RunOptions runOptions = detectConfigurationFactory.createRunOptions();
-            List<DetectRunnable> runnables = runContext.createRunnables();
+            List<DetectRunStep> runSequence = runContext.createRunSequence();
 
-            RunnableState runState = RunnableState.success(runResult, runOptions, null);
+            DetectRunState runState = DetectRunState.success(runResult, runOptions, null);
             logger.info(ReportConstants.RUN_SEPARATOR);
-            for (DetectRunnable runnable : runnables) {
+            for (DetectRunStep runnable : runSequence) {
                 runState = runnable.run(runState);
             }
 

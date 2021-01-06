@@ -29,33 +29,33 @@ import com.synopsys.integration.detect.lifecycle.run.RunResult;
 import com.synopsys.integration.util.NameVersion;
 import com.synopsys.integration.util.Stringable;
 
-public class RunnableState extends Stringable {
+public class DetectRunState extends Stringable {
     private final RunResult currentRunResult;
     private final RunOptions runOptions;
     private final NameVersion projectNameVersion;
     private final boolean failure;
 
-    public static final RunnableState success(RunResult currentRunResult, RunOptions runOptions, @Nullable NameVersion projectNameVersion) {
-        return new RunnableState(currentRunResult, runOptions, projectNameVersion, false);
+    public static DetectRunState success(RunResult currentRunResult, RunOptions runOptions, @Nullable NameVersion projectNameVersion) {
+        return new DetectRunState(currentRunResult, runOptions, projectNameVersion, false);
     }
 
-    public static final RunnableState fail(RunResult currentRunResult, RunOptions runOptions, @Nullable NameVersion projectNameVersion) {
-        return new RunnableState(currentRunResult, runOptions, projectNameVersion, true);
+    public static DetectRunState fail(RunResult currentRunResult, RunOptions runOptions, @Nullable NameVersion projectNameVersion) {
+        return new DetectRunState(currentRunResult, runOptions, projectNameVersion, true);
     }
 
-    public static final RunnableState success(RunnableState runnableState) {
-        return new RunnableState(runnableState.getCurrentRunResult(), runnableState.getRunOptions(), runnableState.getProjectNameVersion(), false);
+    public static DetectRunState success(DetectRunState detectRunState) {
+        return new DetectRunState(detectRunState.getCurrentRunResult(), detectRunState.getRunOptions(), detectRunState.getProjectNameVersion(), false);
     }
 
-    public static final RunnableState fail(RunnableState runnableState) {
-        return new RunnableState(runnableState.getCurrentRunResult(), runnableState.getRunOptions(), runnableState.getProjectNameVersion(), true);
+    public static DetectRunState fail(DetectRunState detectRunState) {
+        return new DetectRunState(detectRunState.getCurrentRunResult(), detectRunState.getRunOptions(), detectRunState.getProjectNameVersion(), true);
     }
 
-    public static final RunnableState of(RunnableState runnableState) {
-        return new RunnableState(runnableState.getCurrentRunResult(), runnableState.getRunOptions(), runnableState.getProjectNameVersion(), runnableState.isFailure());
+    public static DetectRunState of(DetectRunState detectRunState) {
+        return new DetectRunState(detectRunState.getCurrentRunResult(), detectRunState.getRunOptions(), detectRunState.getProjectNameVersion(), detectRunState.isFailure());
     }
 
-    private RunnableState(RunResult currentRunResult, RunOptions runOptions, NameVersion projectNameVersion, boolean failure) {
+    private DetectRunState(RunResult currentRunResult, RunOptions runOptions, NameVersion projectNameVersion, boolean failure) {
         this.currentRunResult = currentRunResult;
         this.runOptions = runOptions;
         this.projectNameVersion = projectNameVersion;
