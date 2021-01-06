@@ -59,7 +59,7 @@ public class ProjectInfoRunStep implements DetectRunStep {
     public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
         RunResult runResult = previousState.getCurrentRunResult();
         RunOptions runOptions = previousState.getRunOptions();
-        
+
         logger.info(ReportConstants.RUN_SEPARATOR);
         logger.debug("Completed code location tools.");
 
@@ -74,6 +74,10 @@ public class ProjectInfoRunStep implements DetectRunStep {
 
         eventSystem.publishEvent(Event.ProjectNameVersionChosen, projectNameVersion);
 
-        return previousState;
+        if (previousState.isFailure()) {
+            return DetectRunState.fail(previousState.getCurrentRunResult(), previousState.getRunOptions(), projectNameVersion);
+        } else {
+            return DetectRunState.success(previousState.getCurrentRunResult(), previousState.getRunOptions(), projectNameVersion);
+        }
     }
 }
