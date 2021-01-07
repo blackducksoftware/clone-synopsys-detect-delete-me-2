@@ -38,7 +38,7 @@ import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class ProjectInfoRunStep implements DetectRunStep {
+public class ProjectInfoRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DetectConfigurationFactory detectConfigurationFactory;
     private DirectoryManager directoryManager;
@@ -50,16 +50,7 @@ public class ProjectInfoRunStep implements DetectRunStep {
         this.eventSystem = eventSystem;
     }
 
-    @Override
-    public boolean shouldRun() {
-        return true;
-    }
-
-    @Override
-    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
-        RunResult runResult = previousState.getCurrentRunResult();
-        RunOptions runOptions = previousState.getRunOptions();
-
+    public NameVersion run(RunResult runResult, RunOptions runOptions) throws DetectUserFriendlyException, IntegrationException {
         logger.info(ReportConstants.RUN_SEPARATOR);
         logger.debug("Completed code location tools.");
 
@@ -74,10 +65,6 @@ public class ProjectInfoRunStep implements DetectRunStep {
 
         eventSystem.publishEvent(Event.ProjectNameVersionChosen, projectNameVersion);
 
-        if (previousState.isFailure()) {
-            return DetectRunState.fail(previousState.getCurrentRunResult(), previousState.getRunOptions(), projectNameVersion);
-        } else {
-            return DetectRunState.success(previousState.getCurrentRunResult(), previousState.getRunOptions(), projectNameVersion);
-        }
+        return projectNameVersion;
     }
 }

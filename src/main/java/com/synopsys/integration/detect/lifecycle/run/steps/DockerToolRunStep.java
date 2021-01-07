@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
+import com.synopsys.integration.detect.lifecycle.run.RunResult;
 import com.synopsys.integration.detect.tool.DetectableTool;
 import com.synopsys.integration.detect.tool.DetectableToolResult;
 import com.synopsys.integration.detect.tool.detector.CodeLocationConverter;
@@ -37,7 +38,7 @@ import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class DockerToolRunStep implements DetectRunStep {
+public class DockerToolRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
@@ -56,15 +57,9 @@ public class DockerToolRunStep implements DetectRunStep {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    @Override
-    public boolean shouldRun() {
-        return detectToolFilter.shouldInclude(DetectTool.DOCKER);
-    }
-
-    @Override
-    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
-        boolean anythingFailed = previousState.isFailure();
-        if (!shouldRun()) {
+    public boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
+        boolean success = true;
+        if (!detectToolFilter.shouldInclude(DetectTool.DOCKER)) {
             logger.info("Docker tool will not be run.");
         } else {
             logger.info("Will include the Docker tool.");
@@ -74,14 +69,10 @@ public class DockerToolRunStep implements DetectRunStep {
 
             DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
 
-            previousState.getCurrentRunResult().addDetectableToolResult(detectableToolResult);
-            anythingFailed = anythingFailed || detectableToolResult.isFailure();
+            runResult.addDetectableToolResult(detectableToolResult);
+            success = !detectableToolResult.isFailure();
             logger.info("Docker actions finished.");
         }
-        if (anythingFailed) {
-            return DetectRunState.fail(previousState);
-        } else {
-            return DetectRunState.success(previousState);
-        }
+        return success;
     }
 }

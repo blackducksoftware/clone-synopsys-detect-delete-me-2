@@ -22,27 +22,15 @@
  */
 package com.synopsys.integration.detect.lifecycle.run;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.BlackDuckRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
 import com.synopsys.integration.detect.tool.detector.CodeLocationConverter;
 import com.synopsys.integration.detect.tool.detector.DetectDetectableFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
-import com.synopsys.integration.detect.tool.impactanalysis.ImpactAnalysisOptions;
-import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.codelocation.BdioCodeLocationCreator;
 import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameGenerator;
 import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameManager;
@@ -83,53 +71,63 @@ public class RunContext {
         codeLocationConverter = new CodeLocationConverter(new ExternalIdFactory());
     }
 
-    private PolarisRunStep createPolarisRunnable(DetectToolFilter detectToolFilter) {
-        return new PolarisRunStep(productRunData, detectConfiguration, directoryManager, eventSystem, detectToolFilter);
+    public DetectContext getDetectContext() {
+        return detectContext;
     }
 
-    private DockerToolRunStep createDockerToolRunnable(DetectToolFilter detectToolFilter) {
-        return new DockerToolRunStep(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
+    public ProductRunData getProductRunData() {
+        return productRunData;
     }
 
-    private BazelToolRunStep createBazelToolRunnable(DetectToolFilter detectToolFilter) {
-        return new BazelToolRunStep(directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider, codeLocationConverter);
+    public PropertyConfiguration getDetectConfiguration() {
+        return detectConfiguration;
     }
 
-    private DetectorToolRunStep createDetectorToolRunnable(DetectToolFilter detectToolFilter) {
-        return new DetectorToolRunStep(detectConfiguration, detectConfigurationFactory, directoryManager, eventSystem, detectDetectableFactory, detectToolFilter, extractionEnvironmentProvider,
-            codeLocationConverter);
+    public DetectConfigurationFactory getDetectConfigurationFactory() {
+        return detectConfigurationFactory;
     }
 
-    private ProjectInfoRunStep createProjectInfoRunnable() {
-        return new ProjectInfoRunStep(detectConfigurationFactory, directoryManager, eventSystem);
+    public DirectoryManager getDirectoryManager() {
+        return directoryManager;
     }
 
-    private BlackDuckRunStep createBlackDuckRunnable(DetectToolFilter detectToolFilter) {
-        ImpactAnalysisOptions impactAnalysisOptions = detectConfigurationFactory.createImpactAnalysisOptions();
-        return new BlackDuckRunStep(detectContext, productRunData, detectConfigurationFactory, directoryManager, eventSystem, codeLocationNameManager, bdioCodeLocationCreator, detectInfo, detectToolFilter,
-            impactAnalysisOptions);
+    public EventSystem getEventSystem() {
+        return eventSystem;
     }
 
-    public List<DetectRunStep> createRunSequence() {
-        RunOptions runOptions = detectConfigurationFactory.createRunOptions();
-        DetectToolFilter detectToolFilter = runOptions.getDetectToolFilter();
+    public CodeLocationNameGenerator getCodeLocationNameService() {
+        return codeLocationNameService;
+    }
 
-        PolarisRunStep polarisRunnable = createPolarisRunnable(detectToolFilter);
-        DockerToolRunStep dockerToolRunnable = createDockerToolRunnable(detectToolFilter);
-        BazelToolRunStep bazelToolRunnable = createBazelToolRunnable(detectToolFilter);
-        DetectorToolRunStep detectorToolRunnable = createDetectorToolRunnable(detectToolFilter);
-        BlackDuckRunStep blackDuckRunnable = createBlackDuckRunnable(detectToolFilter);
+    public CodeLocationNameManager getCodeLocationNameManager() {
+        return codeLocationNameManager;
+    }
 
-        List<DetectRunStep> runnables = new LinkedList<>();
-        // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
-        runnables.add(polarisRunnable);
-        runnables.add(dockerToolRunnable);
-        runnables.add(bazelToolRunnable);
-        runnables.add(detectorToolRunnable);
-        // this will set the projectNameVersion in the RunnableState object for BlackDuckRunnable to use.  It must execute before BlackDuck.
-        runnables.add(createProjectInfoRunnable());
-        runnables.add(blackDuckRunnable);
+    public BdioCodeLocationCreator getBdioCodeLocationCreator() {
+        return bdioCodeLocationCreator;
+    }
 
-        return runnables;
+    public DetectInfo getDetectInfo() {
+        return detectInfo;
+    }
+
+    public NugetInspectorResolver getNugetInspectorResolver() {
+        return nugetInspectorResolver;
+    }
+
+    public DetectDetectableFactory getDetectDetectableFactory() {
+        return detectDetectableFactory;
+    }
+
+    public ExtractionEnvironmentProvider getExtractionEnvironmentProvider() {
+        return extractionEnvironmentProvider;
+    }
+
+    public CodeLocationConverter getCodeLocationConverter() {
+        return codeLocationConverter;
+    }
+
+    public RunOptions createRunOptions() {
+        return detectConfigurationFactory.createRunOptions();
     }
 }

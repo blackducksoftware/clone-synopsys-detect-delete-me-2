@@ -20,18 +20,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.steps;
+package com.synopsys.integration.detect.lifecycle.run.workflow;
 
-public class DetectRunnableResult {
-    private boolean failure;
-    private Object content;
+import com.synopsys.integration.detect.lifecycle.run.RunContext;
 
-    public boolean isFailure() {
-        return failure;
+public class WorkFlowFactory {
+    public static Workflow createWorkflow(RunContext runContext) {
+        WorkflowStepFactory workflowStepFactory = new WorkflowStepFactory(runContext);
+        return new DefaultWorkflow(workflowStepFactory);
     }
-
-    public <T> T getContent() {
-        return (T) content;
-    }
-
 }

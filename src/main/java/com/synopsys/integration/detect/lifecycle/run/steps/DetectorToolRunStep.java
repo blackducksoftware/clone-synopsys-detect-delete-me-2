@@ -55,7 +55,7 @@ import com.synopsys.integration.detector.rule.DetectorRuleSet;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DetectorToolRunStep implements DetectRunStep {
+public class DetectorToolRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private PropertyConfiguration detectConfiguration;
     private DetectConfigurationFactory detectConfigurationFactory;
@@ -78,18 +78,11 @@ public class DetectorToolRunStep implements DetectRunStep {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    @Override
-    public boolean shouldRun() {
-        return detectToolFilter.shouldInclude(DetectTool.DETECTOR);
-    }
-
-    @Override
-    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
-        boolean anythingFailed = previousState.isFailure();
-        if (!shouldRun()) {
+    public boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
+        boolean success = true;
+        if (!detectToolFilter.shouldInclude(DetectTool.DETECTOR)) {
             logger.info("Detector tool will not be run.");
         } else {
-            RunResult runResult = previousState.getCurrentRunResult();
             logger.info("Will include the detector tool.");
             String projectBomTool = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_PROJECT_DETECTOR.getProperty()).orElse(null);
             List<DetectorType> requiredDetectors = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_REQUIRED_DETECTOR_TYPES.getProperty());
@@ -111,14 +104,11 @@ public class DetectorToolRunStep implements DetectRunStep {
 
             if (!detectorToolResult.getFailedDetectorTypes().isEmpty()) {
                 eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR, "A detector failed."));
-                anythingFailed = true;
+                success = false;
             }
             logger.info("Detector actions finished.");
         }
-        if (anythingFailed) {
-            return DetectRunState.fail(previousState);
-        } else {
-            return DetectRunState.success(previousState);
-        }
+
+        return success;
     }
 }
