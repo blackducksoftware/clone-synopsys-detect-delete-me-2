@@ -22,15 +22,12 @@
  */
 package com.synopsys.integration.detect.lifecycle.run;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunState;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectRunStep;
+import com.synopsys.integration.detect.lifecycle.run.workflow.WorkFlowFactory;
+import com.synopsys.integration.detect.lifecycle.run.workflow.Workflow;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
@@ -52,20 +49,13 @@ public class RunManager {
         RunResult runResult = new RunResult();
         try {
             logger.debug("Detect run begin: {}", detectRun.getRunId());
-            DetectConfigurationFactory detectConfigurationFactory = detectContext.getBean(DetectConfigurationFactory.class);
-            RunOptions runOptions = detectConfigurationFactory.createRunOptions();
-            List<DetectRunStep> runSequence = runContext.createRunSequence();
+            RunOptions runOptions = runContext.createRunOptions();
+            Workflow workflow = WorkFlowFactory.createWorkflow(runContext);
 
-            DetectRunState runState = DetectRunState.success(runResult, runOptions, null);
-            logger.info(ReportConstants.RUN_SEPARATOR);
-            for (DetectRunStep runnable : runSequence) {
-                runState = runnable.run(runState);
-            }
+            runResult = workflow.execute();
 
             logger.info("All tools have finished.");
             logger.info(ReportConstants.RUN_SEPARATOR);
-
-            runResult = runState.getCurrentRunResult();
             logger.debug("Detect run completed.");
         } catch (Exception e) {
             if (e.getMessage() != null) {

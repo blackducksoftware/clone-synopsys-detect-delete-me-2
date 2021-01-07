@@ -20,13 +20,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.steps;
+package com.synopsys.integration.detect.lifecycle.run.workflow;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
+import com.synopsys.integration.detect.lifecycle.run.RunResult;
 import com.synopsys.integration.exception.IntegrationException;
 
-public interface DetectRunStep {
-    boolean shouldRun();
+public interface Workflow {
 
-    DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException;
+    RunResult execute() throws DetectUserFriendlyException, IntegrationException;
 }

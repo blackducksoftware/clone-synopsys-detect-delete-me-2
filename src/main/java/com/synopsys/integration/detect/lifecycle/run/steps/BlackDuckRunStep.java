@@ -92,7 +92,7 @@ import com.synopsys.integration.rest.HttpUrl;
 import com.synopsys.integration.util.IntegrationEscapeUtil;
 import com.synopsys.integration.util.NameVersion;
 
-public class BlackDuckRunStep implements DetectRunStep {
+public class BlackDuckRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private final DetectContext detectContext;
     private ProductRunData productRunData;
@@ -119,21 +119,12 @@ public class BlackDuckRunStep implements DetectRunStep {
         this.impactAnalysisOptions = impactAnalysisOptions;
     }
 
-    @Override
-    public boolean shouldRun() {
-        return productRunData.shouldUseBlackDuckProduct();
-    }
-
-    @Override
-    public DetectRunState run(DetectRunState previousState) throws DetectUserFriendlyException, IntegrationException {
-        if (!shouldRun()) {
+    public void run(RunResult runResult, RunOptions runOptions, NameVersion projectNameVersion, boolean priorStepsSucceeded) throws DetectUserFriendlyException, IntegrationException {
+        if (!productRunData.shouldUseBlackDuckProduct()) {
             logger.info("Black Duck tools will not be run.");
         } else {
             logger.debug("Black Duck tools will run.");
-            RunOptions runOptions = previousState.getRunOptions();
-            RunResult runResult = previousState.getCurrentRunResult();
-            NameVersion projectNameVersion = previousState.getProjectNameVersion();
-            AggregateOptions aggregateOptions = determineAggregationStrategy(previousState);
+            AggregateOptions aggregateOptions = determineAggregationStrategy(runOptions, !priorStepsSucceeded);
             BlackDuckRunData blackDuckRunData = productRunData.getBlackDuckRunData();
 
             blackDuckRunData.getPhoneHomeManager().ifPresent(PhoneHomeManager::startPhoneHome);
@@ -275,15 +266,13 @@ public class BlackDuckRunStep implements DetectRunStep {
                 logger.debug("Will not perform Black Duck post actions: Detect is not online.");
             }
         }
-
-        return previousState;
     }
 
-    private AggregateOptions determineAggregationStrategy(DetectRunState currentRunState) {
-        String aggregateName = currentRunState.getRunOptions().getAggregateName().orElse(null);
-        AggregateMode aggregateMode = currentRunState.getRunOptions().getAggregateMode();
+    private AggregateOptions determineAggregationStrategy(RunOptions runOptions, boolean anythingFailed) {
+        String aggregateName = runOptions.getAggregateName().orElse(null);
+        AggregateMode aggregateMode = runOptions.getAggregateMode();
         if (StringUtils.isNotBlank(aggregateName)) {
-            if (currentRunState.isFailure()) {
+            if (anythingFailed) {
                 return AggregateOptions.aggregateButSkipEmpty(aggregateName, aggregateMode);
             } else {
                 return AggregateOptions.aggregateAndAlwaysUpload(aggregateName, aggregateMode);

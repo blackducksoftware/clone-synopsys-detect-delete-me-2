@@ -37,7 +37,7 @@ import com.synopsys.integration.detectable.detectable.executable.DetectableExecu
 import com.synopsys.integration.log.Slf4jIntLogger;
 import com.synopsys.integration.polaris.common.configuration.PolarisServerConfig;
 
-public class PolarisRunStep implements DetectRunStep {
+public class PolarisRunStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private ProductRunData productRunData;
     private PropertyConfiguration detectConfiguration;
@@ -53,13 +53,7 @@ public class PolarisRunStep implements DetectRunStep {
         this.detectToolFilter = detectToolFilter;
     }
 
-    @Override
-    public boolean shouldRun() {
-        return productRunData.shouldUsePolarisProduct() && detectToolFilter.shouldInclude(DetectTool.POLARIS);
-    }
-
-    @Override
-    public DetectRunState run(DetectRunState previousState) {
+    public void run() {
         if (!shouldRun()) {
             logger.info("Polaris tools will not be run.");
         } else {
@@ -70,6 +64,9 @@ public class PolarisRunStep implements DetectRunStep {
             polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
             logger.info("Polaris actions finished.");
         }
-        return previousState;
+    }
+
+    private boolean shouldRun() {
+        return productRunData.shouldUsePolarisProduct() && detectToolFilter.shouldInclude(DetectTool.POLARIS);
     }
 }
