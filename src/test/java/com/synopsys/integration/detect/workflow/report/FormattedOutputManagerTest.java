@@ -2,6 +2,7 @@ package com.synopsys.integration.detect.workflow.report;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.Assertions;
@@ -51,8 +52,8 @@ public class FormattedOutputManagerTest {
             null,
             new HashSet<>(),
             new DetectorEvaluationTree(null, 0, null, Collections.singletonList(detectorEvaluation), new HashSet<>()),
-            null
-        );
+            null,
+            new HashMap<>(), new HashMap<>());
         eventSystem.publishEvent(Event.DetectorsComplete, detectorToolResult);
 
         DetectInfo detectInfo = new DetectInfo("", 0, null);

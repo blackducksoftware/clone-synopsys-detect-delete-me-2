@@ -33,8 +33,11 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.synopsys.integration.detect.tool.detector.status.DetectorEvaluationStatus;
 import com.synopsys.integration.detect.workflow.codelocation.DetectCodeLocation;
+import com.synopsys.integration.detect.workflow.status.StatusType;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
+import com.synopsys.integration.detector.base.DetectorEvaluation;
 import com.synopsys.integration.detector.base.DetectorEvaluationTree;
 import com.synopsys.integration.detector.base.DetectorType;
 import com.synopsys.integration.util.NameVersion;
@@ -50,25 +53,32 @@ public class DetectorToolResult {
     @Nullable
     private final DetectorEvaluationTree rootDetectorEvaluationTree;
     private final Map<CodeLocation, DetectCodeLocation> codeLocationMap;
+    private final Map<DetectorType, StatusType> statusByDetectorType;
+    private final Map<DetectorEvaluation, DetectorEvaluationStatus> statusMap;
 
     public DetectorToolResult(@Nullable final NameVersion bomToolProjectNameVersion, final List<DetectCodeLocation> bomToolCodeLocations, final Set<DetectorType> applicableDetectorTypes,
         final Set<DetectorType> failedDetectorTypes, @Nullable final DetectorEvaluationTree rootDetectorEvaluationTree,
-        final Map<CodeLocation, DetectCodeLocation> codeLocationMap) {
+        final Map<CodeLocation, DetectCodeLocation> codeLocationMap, final Map<DetectorType, StatusType> statusByDetectorType,
+        final Map<DetectorEvaluation, DetectorEvaluationStatus> statusMap) {
         this.bomToolProjectNameVersion = bomToolProjectNameVersion;
         this.bomToolCodeLocations = bomToolCodeLocations;
         this.applicableDetectorTypes = applicableDetectorTypes;
         this.failedDetectorTypes = failedDetectorTypes;
         this.rootDetectorEvaluationTree = rootDetectorEvaluationTree;
         this.codeLocationMap = codeLocationMap;
+        this.statusByDetectorType = statusByDetectorType;
+        this.statusMap = statusMap;
     }
 
-    public DetectorToolResult() {
+    public DetectorToolResult() { //TODO: This doesn't seem right, an empty result should be handled by those who care.
         this.bomToolProjectNameVersion = new NameVersion();
         this.bomToolCodeLocations = new ArrayList<>();
         this.applicableDetectorTypes = new HashSet<>();
         this.failedDetectorTypes = new HashSet<>();
         this.rootDetectorEvaluationTree = new DetectorEvaluationTree(new File(""), 0, null, new ArrayList<>(), new HashSet<>());
         this.codeLocationMap = new HashMap<>();
+        this.statusMap = new HashMap<>();
+        this.statusByDetectorType = new HashMap<>();
     }
 
     public Optional<NameVersion> getBomToolProjectNameVersion() {
@@ -91,8 +101,15 @@ public class DetectorToolResult {
         return Optional.ofNullable(rootDetectorEvaluationTree);
     }
 
+    public Map<DetectorEvaluation, DetectorEvaluationStatus> getDetectorStatus() {
+        return statusMap;
+    }
+
     public Map<CodeLocation, DetectCodeLocation> getCodeLocationMap() {
         return codeLocationMap;
     }
 
+    public Map<DetectorType, StatusType> getStatusByDetectorType() {
+        return statusByDetectorType;
+    }
 }

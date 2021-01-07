@@ -26,13 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.synopsys.integration.detectable.Detectable;
 import com.synopsys.integration.detectable.DetectableEnvironment;
 import com.synopsys.integration.detectable.Discovery;
-import com.synopsys.integration.detectable.detectable.executable.ExecutableFailedException;
 import com.synopsys.integration.detectable.extraction.Extraction;
 import com.synopsys.integration.detectable.extraction.ExtractionEnvironment;
 import com.synopsys.integration.detector.evaluation.SearchEnvironment;
@@ -76,14 +72,6 @@ public class DetectorEvaluation {
         return extraction;
     }
 
-    public void setExtractionEnvironment(ExtractionEnvironment extractionEnvironment) {
-        this.extractionEnvironment = extractionEnvironment;
-    }
-
-    public ExtractionEnvironment getExtractionEnvironment() {
-        return extractionEnvironment;
-    }
-
     public boolean wasExtractionSuccessful() {
         return isExtractable() && this.extraction != null && this.extraction.getResult() == Extraction.ExtractionResultType.SUCCESS;
     }
@@ -108,8 +96,20 @@ public class DetectorEvaluation {
         return isExtractable() && this.discovery != null && this.discovery.getResult() == Discovery.DiscoveryResultType.EXCEPTION;
     }
 
+    public void setExtractionEnvironment(ExtractionEnvironment extractionEnvironment) {
+        this.extractionEnvironment = extractionEnvironment;
+    }
+
+    public ExtractionEnvironment getExtractionEnvironment() {
+        return extractionEnvironment;
+    }
+
     public void setSearchable(DetectorResult searchable) {
         this.searchable = searchable;
+    }
+
+    public DetectorResult getSearchable() {
+        return this.searchable;
     }
 
     public boolean isSearchable() {
@@ -126,6 +126,10 @@ public class DetectorEvaluation {
 
     public boolean isApplicable() {
         return isSearchable() && this.applicable != null && this.applicable.getPassed();
+    }
+
+    public DetectorResult getApplicable() {
+        return this.applicable;
     }
 
     public void setDiscovery(Discovery discovery) {
@@ -152,72 +156,16 @@ public class DetectorEvaluation {
         return fallbackTo != null && (fallbackTo.isExtractable() || fallbackTo.isFallbackExtractable());
     }
 
+    public DetectorResult getExtractable() {
+        return this.extractable;
+    }
+
     public boolean isPreviousExtractable() {
         return fallbackFrom != null && (fallbackFrom.isExtractable() || fallbackFrom.isPreviousExtractable());
     }
 
     public String getExtractabilityMessage() {
         return getDetectorResultDescription(extractable).orElse(NO_MESSAGE);
-    }
-
-    public DetectorStatusType getStatus() {
-        if (getExtraction() != null && getExtraction().getResult().equals(Extraction.ExtractionResultType.SUCCESS)) {
-            return DetectorStatusType.SUCCESS;
-        } else if (fallbackFrom != null && fallbackFrom.isExtractable()) {
-            return DetectorStatusType.DEFERRED;
-        }
-        return DetectorStatusType.FAILURE;
-    }
-
-    @Nullable
-    public DetectorStatusCode getStatusCode() {
-        Class resultClass = null;
-        if (!isSearchable()) {
-            resultClass = searchable.getResultClass();
-        } else if (!isApplicable()) {
-            resultClass = applicable.getResultClass();
-        } else if (!isExtractable()) {
-            resultClass = extractable.getResultClass();
-        }
-        if (resultClass != null) {
-            return DetectorResultStatusCodeLookup.standardLookup.getStatusCode(resultClass);
-        } else if (!extraction.isSuccess()) {
-            if (extraction.getError() instanceof ExecutableFailedException) {
-                return DetectorStatusCode.EXECUTABLE_FAILED;
-            } else {
-                return DetectorStatusCode.EXTRACTION_FAILED;
-            }
-        } else {
-            return DetectorStatusCode.PASSED;
-        }
-    }
-
-    @NotNull
-    public String getStatusReason() {
-        if (!isSearchable()) {
-            return searchable.getDescription();
-        }
-        if (!isApplicable()) {
-            return applicable.getDescription();
-        }
-        if (!isExtractable()) {
-            return extractable.getDescription();
-        }
-        if (extraction.getResult() != Extraction.ExtractionResultType.SUCCESS) {
-            if (extraction.getError() instanceof ExecutableFailedException) {
-                ExecutableFailedException failedException = (ExecutableFailedException) extraction.getError();
-                if (failedException.hasReturnCode()) {
-                    return "Failed to execute command, returned non-zero: " + failedException.getExecutableDescription();
-                } else if (failedException.getExecutableException() != null) {
-                    return "Failed to execute command, " + failedException.getExecutableException().getMessage() + " : " + failedException.getExecutableDescription();
-                } else {
-                    return "Failed to execute command, unknown reason: " + failedException.getExecutableDescription();
-                }
-            } else {
-                return "See logs for further explanation";
-            }
-        }
-        return "Passed";
     }
 
     public Optional<DetectorEvaluation> getSuccessfullFallback() {
