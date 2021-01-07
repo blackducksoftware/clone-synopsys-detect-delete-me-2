@@ -49,11 +49,8 @@ public class RunManager {
         RunResult runResult = new RunResult();
         try {
             logger.debug("Detect run begin: {}", detectRun.getRunId());
-            RunOptions runOptions = runContext.createRunOptions();
             Workflow workflow = WorkFlowFactory.createWorkflow(runContext);
-
             runResult = workflow.execute();
-
             logger.info("All tools have finished.");
             logger.info(ReportConstants.RUN_SEPARATOR);
             logger.debug("Detect run completed.");
