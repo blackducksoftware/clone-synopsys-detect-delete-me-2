@@ -23,10 +23,11 @@
 package com.synopsys.integration.detect.lifecycle.run.workflow;
 
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
+import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 
 public class WorkFlowFactory {
     public static Workflow createWorkflow(RunContext runContext) {
-        WorkflowStepFactory workflowStepFactory = new WorkflowStepFactory(runContext);
-        return new DefaultWorkflow(workflowStepFactory);
+        StepFactory stepFactory = new StepFactory(runContext);
+        return new DefaultWorkflow(stepFactory);
     }
 }

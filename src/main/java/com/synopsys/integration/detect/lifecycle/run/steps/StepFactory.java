@@ -20,23 +20,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.workflow;
+package com.synopsys.integration.detect.lifecycle.run.steps;
 
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
-import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.BlackDuckRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
 import com.synopsys.integration.detect.tool.impactanalysis.ImpactAnalysisOptions;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 
-public class WorkflowStepFactory {
+public class StepFactory {
     private final RunContext runContext;
 
-    public WorkflowStepFactory(RunContext runContext) {
+    public StepFactory(RunContext runContext) {
         this.runContext = runContext;
     }
 
@@ -44,31 +38,31 @@ public class WorkflowStepFactory {
         return runContext;
     }
 
-    public final PolarisRunStep createPolarisRunnable(DetectToolFilter detectToolFilter) {
+    public final PolarisRunStep createPolarisStep(DetectToolFilter detectToolFilter) {
         return new PolarisRunStep(runContext.getProductRunData(), runContext.getDetectConfiguration(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectToolFilter);
     }
 
-    public final DockerToolRunStep createDockerToolRunnable(DetectToolFilter detectToolFilter) {
+    public final DockerToolRunStep createDockerToolStep(DetectToolFilter detectToolFilter) {
         return new DockerToolRunStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
             runContext.getCodeLocationConverter());
     }
 
-    public final BazelToolRunStep createBazelToolRunnable(DetectToolFilter detectToolFilter) {
+    public final BazelToolRunStep createBazelToolStep(DetectToolFilter detectToolFilter) {
         return new BazelToolRunStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
             runContext.getCodeLocationConverter());
     }
 
-    public final DetectorToolRunStep createDetectorToolRunnable(DetectToolFilter detectToolFilter) {
+    public final DetectorToolRunStep createDetectorToolStep(DetectToolFilter detectToolFilter) {
         return new DetectorToolRunStep(runContext.getDetectConfiguration(), runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(),
             detectToolFilter,
             runContext.getExtractionEnvironmentProvider(), runContext.getCodeLocationConverter());
     }
 
-    public final ProjectInfoRunStep createProjectInfoRunnable() {
+    public final ProjectInfoRunStep createProjectInfoStep() {
         return new ProjectInfoRunStep(runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem());
     }
 
-    public final BlackDuckRunStep createBlackDuckRunnable(DetectToolFilter detectToolFilter) {
+    public final BlackDuckRunStep createBlackDuckStep(DetectToolFilter detectToolFilter) {
         DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
         ImpactAnalysisOptions impactAnalysisOptions = detectConfigurationFactory.createImpactAnalysisOptions();
         return new BlackDuckRunStep(runContext.getDetectContext(), runContext.getProductRunData(), detectConfigurationFactory, runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getCodeLocationNameManager(),

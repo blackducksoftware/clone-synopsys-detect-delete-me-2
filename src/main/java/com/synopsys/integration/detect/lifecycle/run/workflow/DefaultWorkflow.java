@@ -31,39 +31,40 @@ import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class DefaultWorkflow implements Workflow {
-    private WorkflowStepFactory workflowStepFactory;
+    private StepFactory stepFactory;
 
-    public DefaultWorkflow(WorkflowStepFactory workflowStepFactory) {
-        this.workflowStepFactory = workflowStepFactory;
+    public DefaultWorkflow(StepFactory stepFactory) {
+        this.stepFactory = stepFactory;
     }
 
     @Override
     public RunResult execute() throws DetectUserFriendlyException, IntegrationException {
         RunResult runResult = new RunResult();
-        RunOptions runOptions = workflowStepFactory.getRunContext().createRunOptions();
+        RunOptions runOptions = stepFactory.getRunContext().createRunOptions();
         DetectToolFilter detectToolFilter = runOptions.getDetectToolFilter();
 
-        PolarisRunStep polarisRunnable = workflowStepFactory.createPolarisRunnable(detectToolFilter);
-        DockerToolRunStep dockerToolRunnable = workflowStepFactory.createDockerToolRunnable(detectToolFilter);
-        BazelToolRunStep bazelToolRunnable = workflowStepFactory.createBazelToolRunnable(detectToolFilter);
-        DetectorToolRunStep detectorToolRunnable = workflowStepFactory.createDetectorToolRunnable(detectToolFilter);
-        BlackDuckRunStep blackDuckRunnable = workflowStepFactory.createBlackDuckRunnable(detectToolFilter);
-        ProjectInfoRunStep projectInfoRunStep = workflowStepFactory.createProjectInfoRunnable();
+        PolarisRunStep polarisStep = stepFactory.createPolarisStep(detectToolFilter);
+        DockerToolRunStep dockerToolStep = stepFactory.createDockerToolStep(detectToolFilter);
+        BazelToolRunStep bazelToolStep = stepFactory.createBazelToolStep(detectToolFilter);
+        DetectorToolRunStep detectorToolStep = stepFactory.createDetectorToolStep(detectToolFilter);
+        BlackDuckRunStep blackDuckStep = stepFactory.createBlackDuckStep(detectToolFilter);
+        ProjectInfoRunStep projectInfoStep = stepFactory.createProjectInfoStep();
 
         // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
         boolean success = true;
-        polarisRunnable.run();
-        success = success && dockerToolRunnable.run(runResult);
-        success = success && bazelToolRunnable.run(runResult);
-        success = success && detectorToolRunnable.run(runResult);
+        polarisStep.run();
+        success = success && dockerToolStep.run(runResult);
+        success = success && bazelToolStep.run(runResult);
+        success = success && detectorToolStep.run(runResult);
         // this will set the projectNameVersion in the RunnableState object for BlackDuckRunnable to use.  It must execute before BlackDuck.
-        NameVersion projectNameVersion = projectInfoRunStep.run(runResult, runOptions);
-        blackDuckRunnable.run(runResult, runOptions, projectNameVersion, success);
+        NameVersion projectNameVersion = projectInfoStep.run(runResult, runOptions);
+        blackDuckStep.run(runResult, runOptions, projectNameVersion, success);
 
         return runResult;
     }
