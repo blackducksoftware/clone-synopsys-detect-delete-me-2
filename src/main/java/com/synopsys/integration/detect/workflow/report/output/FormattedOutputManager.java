@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import com.synopsys.integration.common.util.Bds;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.tool.detector.DetectorToolResult;
+import com.synopsys.integration.detect.tool.detector.status.DetectorEvaluationStatus;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.result.DetectResult;
@@ -42,7 +43,6 @@ import com.synopsys.integration.detect.workflow.status.DetectIssue;
 import com.synopsys.integration.detect.workflow.status.Status;
 import com.synopsys.integration.detect.workflow.status.UnrecognizedPaths;
 import com.synopsys.integration.detector.base.DetectorEvaluation;
-import com.synopsys.integration.detector.base.DetectorEvaluationTree;
 import com.synopsys.integration.util.NameVersion;
 
 public class FormattedOutputManager {
@@ -82,10 +82,9 @@ public class FormattedOutputManager {
                                      .toList();
 
         if (detectorToolResult != null) {
-            formattedOutput.detectors = Bds.of(detectorToolResult.getRootDetectorEvaluationTree())
-                                            .flatMap(DetectorEvaluationTree::allDescendentEvaluations)
-                                            .filter(DetectorEvaluation::isApplicable)
-                                            .map(this::convertDetector)
+            formattedOutput.detectors = Bds.of(detectorToolResult.getDetectorStatus().entrySet())
+                                            .filter(it -> it.getKey().isApplicable())
+                                            .map(entry -> convertDetector(entry.getKey(), entry.getValue()))
                                             .toList();
         }
         if (projectNameVersion != null) {
@@ -105,7 +104,7 @@ public class FormattedOutputManager {
         return formattedOutput;
     }
 
-    private FormattedDetectorOutput convertDetector(DetectorEvaluation evaluation) {
+    private FormattedDetectorOutput convertDetector(DetectorEvaluation evaluation, DetectorEvaluationStatus status) {
         FormattedDetectorOutput detectorOutput = new FormattedDetectorOutput();
         detectorOutput.folder = evaluation.getDetectableEnvironment().getDirectory().toString();
         detectorOutput.descriptiveName = evaluation.getDetectorRule().getDescriptiveName();
@@ -114,9 +113,9 @@ public class FormattedOutputManager {
 
         detectorOutput.extracted = evaluation.wasExtractionSuccessful();
         detectorOutput.discoverable = evaluation.wasDiscoverySuccessful();
-        detectorOutput.status = evaluation.getStatus().name();
-        detectorOutput.statusCode = evaluation.getStatusCode();
-        detectorOutput.statusReason = evaluation.getStatusReason();
+        detectorOutput.status = status.getStatusType() != null ? status.getStatusType().name() : "FAILURE";
+        detectorOutput.statusCode = status.getStatusCode();
+        detectorOutput.statusReason = status.getStatusReason();
 
         if (evaluation.getDiscovery() != null) {
             detectorOutput.discoveryReason = evaluation.getDiscovery().getDescription();

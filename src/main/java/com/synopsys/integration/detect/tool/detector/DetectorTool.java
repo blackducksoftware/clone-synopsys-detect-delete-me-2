@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,8 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeRequest;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
+import com.synopsys.integration.detect.tool.detector.status.DetectorEvaluationStatus;
+import com.synopsys.integration.detect.tool.detector.status.DetectorEvaluationStatusCreator;
 import com.synopsys.integration.detect.workflow.codelocation.DetectCodeLocation;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
@@ -70,14 +73,16 @@ public class DetectorTool {
     private final EventSystem eventSystem;
     private final CodeLocationConverter codeLocationConverter;
     private final DetectorIssuePublisher detectorIssuePublisher;
+    private final DetectorEvaluationStatusCreator detectorEvaluationStatusCreator;
 
     public DetectorTool(DetectorFinder detectorFinder, ExtractionEnvironmentProvider extractionEnvironmentProvider, EventSystem eventSystem, CodeLocationConverter codeLocationConverter,
-        DetectorIssuePublisher detectorIssuePublisher) {
+        DetectorIssuePublisher detectorIssuePublisher, final DetectorEvaluationStatusCreator detectorEvaluationStatusCreator) {
         this.detectorFinder = detectorFinder;
         this.extractionEnvironmentProvider = extractionEnvironmentProvider;
         this.eventSystem = eventSystem;
         this.codeLocationConverter = codeLocationConverter;
         this.detectorIssuePublisher = detectorIssuePublisher;
+        this.detectorEvaluationStatusCreator = detectorEvaluationStatusCreator;
     }
 
     public DetectorToolResult performDetectors(File directory, DetectorRuleSet detectorRuleSet, DetectorFinderOptions detectorFinderOptions, DetectorEvaluationOptions evaluationOptions, String projectDetector,
@@ -139,8 +144,9 @@ public class DetectorTool {
         DetectorAggregateEvaluationResult evaluationResult = detectorEvaluator.evaluate(rootEvaluation);
 
         logger.debug("Finished detectors.");
-        Map<DetectorType, StatusType> statusMap = extractStatus(detectorEvaluations);
-        publishStatusEvents(statusMap);
+        Map<DetectorEvaluation, DetectorEvaluationStatus> statusMap = extractStatus(detectorEvaluations);
+        Map<DetectorType, StatusType> statusByDetectorType = groupStatus(statusMap);
+        publishStatusEvents(statusByDetectorType);
         publishFileEvents(detectorEvaluations);
         detectorIssuePublisher.publishEvents(eventSystem, rootEvaluation);
         publishMissingDetectorEvents(requiredDetectors, evaluationResult.getApplicableDetectorTypes());
@@ -153,8 +159,9 @@ public class DetectorTool {
             evaluationResult.getApplicableDetectorTypes(),
             new HashSet<>(),
             rootEvaluation,
-            codeLocationMap
-        );
+            codeLocationMap,
+            statusByDetectorType,
+            statusMap);
 
         //Completed.
         logger.debug("Finished running detectors.");
@@ -192,42 +199,28 @@ public class DetectorTool {
         return Optional.empty();
     }
 
-    private Map<DetectorType, StatusType> extractStatus(List<DetectorEvaluation> detectorEvaluations) {
-        EnumMap<DetectorType, StatusType> statusMap = new EnumMap<>(DetectorType.class);
-        for (DetectorEvaluation detectorEvaluation : detectorEvaluations) {
+    private Map<DetectorType, StatusType> groupStatus(Map<DetectorEvaluation, DetectorEvaluationStatus> statusMap) {
+        EnumMap<DetectorType, StatusType> groupMap = new EnumMap<>(DetectorType.class);
+        for (DetectorEvaluation detectorEvaluation : statusMap.keySet()) {
             DetectorType detectorType = detectorEvaluation.getDetectorType();
-            Optional<StatusType> foundStatusType = determineDetectorExtractionStatus(detectorEvaluation);
-            if (foundStatusType.isPresent()) {
-                StatusType statusType = foundStatusType.get();
-                if (statusType == StatusType.FAILURE || !statusMap.containsKey(detectorType)) {
-                    statusMap.put(detectorType, statusType);
+            DetectorEvaluationStatus status = statusMap.get(detectorEvaluation);
+
+            if (status.getStatusType() != null) {
+                StatusType statusType = status.getStatusType();
+                if (statusType == StatusType.FAILURE || !groupMap.containsKey(detectorType)) {
+                    groupMap.put(detectorType, statusType);
                 }
             }
         }
-        return statusMap;
+        return groupMap;
     }
 
-    private Optional<StatusType> determineDetectorExtractionStatus(DetectorEvaluation detectorEvaluation) {
-        StatusType statusType = null;
-        if (detectorEvaluation.isApplicable()) {
-            if (detectorEvaluation.isExtractable()) {
-                if (detectorEvaluation.wasExtractionSuccessful()) {
-                    statusType = StatusType.SUCCESS;
-                } else {
-                    statusType = StatusType.FAILURE;
-
-                    boolean extractionUnknownFailure = !detectorEvaluation.wasExtractionFailure() && !detectorEvaluation.wasExtractionException();
-                    if (extractionUnknownFailure) {
-                        logger.warn("An issue occurred in the detector system, an unknown evaluation status was created. Please contact support.");
-                    }
-                }
-            } else if (detectorEvaluation.isFallbackExtractable() || detectorEvaluation.isPreviousExtractable()) {
-                statusType = StatusType.SUCCESS;
-            } else {
-                statusType = StatusType.FAILURE;
-            }
+    private Map<DetectorEvaluation, DetectorEvaluationStatus> extractStatus(List<DetectorEvaluation> detectorEvaluations) {
+        HashMap<DetectorEvaluation, DetectorEvaluationStatus> statusMap = new HashMap<>();
+        for (DetectorEvaluation detectorEvaluation : detectorEvaluations) {
+            statusMap.put(detectorEvaluation, detectorEvaluationStatusCreator.statusForEvaluation(detectorEvaluation));
         }
-        return Optional.ofNullable(statusType);
+        return statusMap;
     }
 
     private Map<CodeLocation, DetectCodeLocation> createCodeLocationMap(List<DetectorEvaluation> detectorEvaluations, File directory) {
