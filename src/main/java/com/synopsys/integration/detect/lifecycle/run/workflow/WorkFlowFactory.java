@@ -28,6 +28,7 @@ import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 public class WorkFlowFactory {
     public static Workflow createWorkflow(RunContext runContext) {
         StepFactory stepFactory = new StepFactory(runContext);
+        // In the future we use the runContext and the objects in there to determine which workflow to create.
         return new DefaultWorkflow(stepFactory);
     }
 }
