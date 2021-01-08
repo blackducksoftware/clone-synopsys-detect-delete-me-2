@@ -23,12 +23,16 @@
 package com.synopsys.integration.detect.lifecycle.run.workflow;
 
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
+import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 
 public class WorkFlowFactory {
     public static Workflow createWorkflow(RunContext runContext) {
         StepFactory stepFactory = new StepFactory(runContext);
-        // In the future we use the runContext and the objects in there to determine which workflow to create.
+        RunOptions runOptions = runContext.createRunOptions();
+        if (runOptions.shouldPerformDeveloperModeScan()) {
+            return new DeveloperModeWorkflow(stepFactory);
+        }
         return new DefaultWorkflow(stepFactory);
     }
 }

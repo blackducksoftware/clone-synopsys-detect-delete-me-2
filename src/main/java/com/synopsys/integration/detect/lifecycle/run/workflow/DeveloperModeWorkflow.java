@@ -26,8 +26,8 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
 import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.BlackDuckRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DeveloperModeRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
@@ -36,10 +36,10 @@ import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DefaultWorkflow implements Workflow {
+public class DeveloperModeWorkflow implements Workflow {
     private StepFactory stepFactory;
 
-    public DefaultWorkflow(StepFactory stepFactory) {
+    public DeveloperModeWorkflow(StepFactory stepFactory) {
         this.stepFactory = stepFactory;
     }
 
@@ -54,7 +54,7 @@ public class DefaultWorkflow implements Workflow {
         BazelToolRunStep bazelToolStep = stepFactory.createBazelToolStep(detectToolFilter);
         DetectorToolRunStep detectorToolStep = stepFactory.createDetectorToolStep(detectToolFilter);
         ProjectInfoRunStep projectInfoStep = stepFactory.createProjectInfoStep();
-        BlackDuckRunStep blackDuckStep = stepFactory.createBlackDuckStep(detectToolFilter);
+        DeveloperModeRunStep blackDuckStep = stepFactory.createDeveloperModeStep();
 
         // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
         boolean success = true;
