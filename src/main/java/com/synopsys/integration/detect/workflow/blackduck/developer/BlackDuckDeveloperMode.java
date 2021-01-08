@@ -39,6 +39,7 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
 import com.synopsys.integration.detect.workflow.bdio.BdioResult;
+import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.rest.exception.IntegrationRestException;
 
 public class BlackDuckDeveloperMode {
@@ -54,6 +55,7 @@ public class BlackDuckDeveloperMode {
     }
 
     public List<DeveloperScanComponentResultView> run(BdioResult bdioResult) throws DetectUserFriendlyException {
+        logger.info(ReportConstants.RUN_SEPARATOR);
         logger.info("Begin Developer Mode Scan");
         if (!blackDuckRunData.isOnline()) {
             logger.warn("Black Duck isn't online skipping developer mode scan.");

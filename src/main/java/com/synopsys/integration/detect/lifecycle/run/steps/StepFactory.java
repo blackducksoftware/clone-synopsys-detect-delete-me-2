@@ -68,4 +68,10 @@ public class StepFactory {
         return new BlackDuckRunStep(runContext.getDetectContext(), runContext.getProductRunData(), detectConfigurationFactory, runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getCodeLocationNameManager(),
             runContext.getBdioCodeLocationCreator(), runContext.getDetectInfo(), detectToolFilter, impactAnalysisOptions);
     }
+
+    public final DeveloperModeRunStep createDeveloperModeStep() {
+        DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
+        return new DeveloperModeRunStep(runContext.getProductRunData(), detectConfigurationFactory, runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getCodeLocationNameManager(),
+            runContext.getBdioCodeLocationCreator(), runContext.getDetectInfo());
+    }
 }

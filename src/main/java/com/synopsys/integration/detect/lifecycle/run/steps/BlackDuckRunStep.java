@@ -166,7 +166,6 @@ public class BlackDuckRunStep {
             eventSystem.publishEvent(Event.DetectCodeLocationNamesCalculated, bdioResult.getCodeLocationNamesResult());
 
             if (runOptions.shouldPerformDeveloperModeScan()) {
-                logger.info(ReportConstants.RUN_SEPARATOR);
                 BlackDuckDeveloperMode developerMode = new BlackDuckDeveloperMode(blackDuckRunData, blackDuckServicesFactory, detectConfigurationFactory);
                 List<DeveloperScanComponentResultView> results = developerMode.run(bdioResult);
                 BlackDuckDeveloperPostActions postActions = new BlackDuckDeveloperPostActions(eventSystem);
