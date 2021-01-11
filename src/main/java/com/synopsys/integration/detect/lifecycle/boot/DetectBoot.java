@@ -218,6 +218,8 @@ public class DetectBoot {
                 return Optional.of(DetectBootResult.exception(e, detectConfiguration, directoryManager, diagnosticSystem));
             }
             return Optional.of(DetectBootResult.exit(detectConfiguration, airGapZip, directoryManager, diagnosticSystem));
+        } else if (detectArgumentState.isAnalyze()) {
+            return Optional.of(DetectBootResult.analyze(detectConfiguration, directoryManager, diagnosticSystem));
         }
 
         RunOptions runOptions = detectConfigurationFactory.createRunOptions();
