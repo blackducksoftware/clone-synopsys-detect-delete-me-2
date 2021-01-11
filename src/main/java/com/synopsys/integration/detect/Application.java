@@ -56,6 +56,7 @@ import com.synopsys.integration.detect.lifecycle.shutdown.ShutdownDecider;
 import com.synopsys.integration.detect.lifecycle.shutdown.ShutdownDecision;
 import com.synopsys.integration.detect.lifecycle.shutdown.ShutdownManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
+import com.synopsys.integration.detect.workflow.analyze.AnalyzeManager;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detect.workflow.report.ReportListener;
@@ -176,6 +177,8 @@ public class Application implements ApplicationRunner {
                 logger.debug("An exception was thrown during the detect run.", e);
                 exitCodeManager.requestExitCode(e);
             }
+        } else if (detectBootResult.getBootType() == DetectBootResult.BootType.ANALYZE) {
+            AnalyzeManager analyzeManager = new AnalyzeManager()
         } else {
             logger.debug("Detect will NOT attempt to run.");
             detectBootResult.getException().ifPresent(exitCodeManager::requestExitCode);

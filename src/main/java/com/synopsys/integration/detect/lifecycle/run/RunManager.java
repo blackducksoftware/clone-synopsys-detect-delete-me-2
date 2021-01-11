@@ -134,6 +134,11 @@ public class RunManager {
         this.detectContext = detectContext;
     }
 
+    //
+    public void analyzeRun() {
+
+    }
+
     public RunResult run(ProductRunData productRunData) throws DetectUserFriendlyException, IntegrationException {
         //TODO: Better way for run manager to get dependencies so he can be tested. (And better ways of creating his objects)
         PropertyConfiguration detectConfiguration = detectContext.getBean(PropertyConfiguration.class);

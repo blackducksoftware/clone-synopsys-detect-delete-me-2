@@ -116,6 +116,7 @@ public class DetectBootResult {
     public enum BootType {
         EXIT,
         RUN,
+        ANALYZE,
         EXCEPTION
     }
 
@@ -129,6 +130,10 @@ public class DetectBootResult {
 
     public static DetectBootResult exit(PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, @Nullable DiagnosticSystem diagnosticSystem) {
         return new DetectBootResult(BootType.EXIT, detectConfiguration, directoryManager, null, diagnosticSystem, null, null);
+    }
+
+    public static DetectBootResult analyze(PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, @Nullable DiagnosticSystem diagnosticSystem) {
+        return new DetectBootResult(BootType.ANALYZE, detectConfiguration, directoryManager, null, diagnosticSystem, null, null);
     }
 
     public static DetectBootResult exit(PropertyConfiguration detectConfiguration, File airGapZip, DirectoryManager directoryManager, @Nullable DiagnosticSystem diagnosticSystem) {
