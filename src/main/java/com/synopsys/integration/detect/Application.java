@@ -153,7 +153,7 @@ public class Application implements ApplicationRunner {
             logger.debug("Detect boot completed.");
         } catch (Exception e) {
             logger.error("Detect boot failed.");
-            exitCodeManager.requestExitCode(e);
+            exitCodeManager.addExitCodeRequest(e);
         }
         return bootResult;
     }
@@ -168,7 +168,7 @@ public class Application implements ApplicationRunner {
             runManager.run(runContext);
         } else {
             logger.debug("Detect will NOT attempt to run.");
-            detectBootResult.getException().ifPresent(exitCodeManager::requestExitCode);
+            detectBootResult.getException().ifPresent(exitCodeManager::addExitCodeRequest);
             detectBootResult.getException().ifPresent(e -> DetectIssue.publish(eventSystem, DetectIssueType.EXCEPTION, e.getMessage()));
         }
     }
@@ -197,7 +197,7 @@ public class Application implements ApplicationRunner {
             logger.debug("Detect shutdown completed.");
         } catch (Exception e) {
             logger.error("Detect shutdown failed.");
-            exitCodeManager.requestExitCode(e);
+            exitCodeManager.addExitCodeRequest(e);
         }
     }
 

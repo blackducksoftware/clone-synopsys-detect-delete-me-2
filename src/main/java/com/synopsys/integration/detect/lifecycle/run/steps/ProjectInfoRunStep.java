@@ -29,12 +29,10 @@ import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
-import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detect.workflow.project.ProjectNameVersionDecider;
 import com.synopsys.integration.detect.workflow.project.ProjectNameVersionOptions;
-import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
@@ -51,20 +49,9 @@ public class ProjectInfoRunStep {
     }
 
     public NameVersion run(RunResult runResult, RunOptions runOptions) throws DetectUserFriendlyException, IntegrationException {
-        logger.info(ReportConstants.RUN_SEPARATOR);
-        logger.debug("Completed code location tools.");
-
-        logger.debug("Determining project info.");
-
         ProjectNameVersionOptions projectNameVersionOptions = detectConfigurationFactory.createProjectNameVersionOptions(directoryManager.getSourceDirectory().getName());
-        ProjectNameVersionDecider projectNameVersionDecider = new ProjectNameVersionDecider(projectNameVersionOptions);
+        ProjectNameVersionDecider projectNameVersionDecider = new ProjectNameVersionDecider(projectNameVersionOptions, eventSystem);
         NameVersion projectNameVersion = projectNameVersionDecider.decideProjectNameVersion(runOptions.getPreferredTools(), runResult.getDetectToolProjectInfo());
-
-        logger.info(String.format("Project name: %s", projectNameVersion.getName()));
-        logger.info(String.format("Project version: %s", projectNameVersion.getVersion()));
-
-        eventSystem.publishEvent(Event.ProjectNameVersionChosen, projectNameVersion);
-
         return projectNameVersion;
     }
 }

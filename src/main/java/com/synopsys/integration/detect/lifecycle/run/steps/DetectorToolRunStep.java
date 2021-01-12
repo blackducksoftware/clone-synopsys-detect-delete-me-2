@@ -55,7 +55,7 @@ import com.synopsys.integration.detector.rule.DetectorRuleSet;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DetectorToolRunStep {
+public class DetectorToolRunStep extends AbstractStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private PropertyConfiguration detectConfiguration;
     private DetectConfigurationFactory detectConfigurationFactory;
@@ -78,35 +78,40 @@ public class DetectorToolRunStep {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    public boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
+    @Override
+    protected boolean shouldRun() {
+        return detectToolFilter.shouldInclude(DetectTool.DETECTOR);
+    }
+
+    @Override
+    public String getStepName() {
+        return "Detector";
+    }
+
+    @Override
+    protected boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
         boolean success = true;
-        if (!detectToolFilter.shouldInclude(DetectTool.DETECTOR)) {
-            logger.info("Detector tool will not be run.");
-        } else {
-            logger.info("Will include the detector tool.");
-            String projectBomTool = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_PROJECT_DETECTOR.getProperty()).orElse(null);
-            List<DetectorType> requiredDetectors = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_REQUIRED_DETECTOR_TYPES.getProperty());
-            boolean buildless = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_BUILDLESS.getProperty());
+        String projectBomTool = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_PROJECT_DETECTOR.getProperty()).orElse(null);
+        List<DetectorType> requiredDetectors = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_REQUIRED_DETECTOR_TYPES.getProperty());
+        boolean buildless = detectConfiguration.getValueOrDefault(DetectProperties.DETECT_BUILDLESS.getProperty());
 
-            DetectorRuleFactory detectorRuleFactory = new DetectorRuleFactory();
-            DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
+        DetectorRuleFactory detectorRuleFactory = new DetectorRuleFactory();
+        DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
 
-            Path sourcePath = directoryManager.getSourceDirectory().toPath();
-            DetectorFinderOptions finderOptions = detectConfigurationFactory.createSearchOptions(sourcePath);
-            DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
+        Path sourcePath = directoryManager.getSourceDirectory().toPath();
+        DetectorFinderOptions finderOptions = detectConfigurationFactory.createSearchOptions(sourcePath);
+        DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
 
-            DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();
-            DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
-            DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors);
+        DetectorIssuePublisher detectorIssuePublisher = new DetectorIssuePublisher();
+        DetectorTool detectorTool = new DetectorTool(new DetectorFinder(), extractionEnvironmentProvider, eventSystem, codeLocationConverter, detectorIssuePublisher);
+        DetectorToolResult detectorToolResult = detectorTool.performDetectors(directoryManager.getSourceDirectory(), detectRuleSet, finderOptions, detectorEvaluationOptions, projectBomTool, requiredDetectors);
 
-            detectorToolResult.getBomToolProjectNameVersion().ifPresent(it -> runResult.addToolNameVersion(DetectTool.DETECTOR, new NameVersion(it.getName(), it.getVersion())));
-            runResult.addDetectCodeLocations(detectorToolResult.getBomToolCodeLocations());
+        detectorToolResult.getBomToolProjectNameVersion().ifPresent(it -> runResult.addToolNameVersion(DetectTool.DETECTOR, new NameVersion(it.getName(), it.getVersion())));
+        runResult.addDetectCodeLocations(detectorToolResult.getBomToolCodeLocations());
 
-            if (!detectorToolResult.getFailedDetectorTypes().isEmpty()) {
-                eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR, "A detector failed."));
-                success = false;
-            }
-            logger.info("Detector actions finished.");
+        if (!detectorToolResult.getFailedDetectorTypes().isEmpty()) {
+            eventSystem.publishEvent(Event.ExitCode, new ExitCodeRequest(ExitCodeType.FAILURE_DETECTOR, "A detector failed."));
+            success = false;
         }
 
         return success;

@@ -38,7 +38,7 @@ import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class BazelToolRunStep {
+public class BazelToolRunStep extends AbstractStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
@@ -57,20 +57,23 @@ public class BazelToolRunStep {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    public boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
-        boolean success = true;
-        if (!detectToolFilter.shouldInclude(DetectTool.BAZEL)) {
-            logger.info("Bazel tool will not be run.");
-        } else {
-            logger.info("Will include the Bazel tool.");
-            DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createBazelDetectable,
-                extractionEnvironmentProvider, codeLocationConverter, "BAZEL", DetectTool.BAZEL,
-                eventSystem);
-            DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
-            runResult.addDetectableToolResult(detectableToolResult);
-            success = !detectableToolResult.isFailure();
-            logger.info("Bazel actions finished.");
-        }
-        return success;
+    @Override
+    protected boolean shouldRun() {
+        return detectToolFilter.shouldInclude(DetectTool.BAZEL);
+    }
+
+    @Override
+    public String getStepName() {
+        return "Bazel";
+    }
+
+    @Override
+    protected boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
+        DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createBazelDetectable,
+            extractionEnvironmentProvider, codeLocationConverter, "BAZEL", DetectTool.BAZEL,
+            eventSystem);
+        DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
+        runResult.addDetectableToolResult(detectableToolResult);
+        return !detectableToolResult.isFailure();
     }
 }
