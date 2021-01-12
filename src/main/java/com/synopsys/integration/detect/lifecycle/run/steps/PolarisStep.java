@@ -40,7 +40,7 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.log.Slf4jIntLogger;
 import com.synopsys.integration.polaris.common.configuration.PolarisServerConfig;
 
-public class PolarisRunStep extends AbstractStep {
+public class PolarisStep extends AbstractStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private ProductRunData productRunData;
     private PropertyConfiguration detectConfiguration;
@@ -48,7 +48,7 @@ public class PolarisRunStep extends AbstractStep {
     private EventSystem eventSystem;
     private DetectToolFilter detectToolFilter;
 
-    public PolarisRunStep(ProductRunData productRunData, PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, EventSystem eventSystem, DetectToolFilter detectToolFilter) {
+    public PolarisStep(ProductRunData productRunData, PropertyConfiguration detectConfiguration, DirectoryManager directoryManager, EventSystem eventSystem, DetectToolFilter detectToolFilter) {
         this.productRunData = productRunData;
         this.detectConfiguration = detectConfiguration;
         this.directoryManager = directoryManager;

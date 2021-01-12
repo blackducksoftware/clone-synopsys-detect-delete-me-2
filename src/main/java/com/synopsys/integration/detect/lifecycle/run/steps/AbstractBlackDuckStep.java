@@ -58,7 +58,7 @@ public abstract class AbstractBlackDuckStep extends AbstractStep {
     private final RunOptions runOptions;
     private final boolean priorStepsSucceeded;
 
-    public AbstractBlackDuckStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem,
+    protected AbstractBlackDuckStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectConfigurationFactory detectConfigurationFactory, CodeLocationNameManager codeLocationNameManager, BdioCodeLocationCreator bdioCodeLocationCreator, RunOptions runOptions, boolean priorStepsSucceeded) {
         this.detectInfo = detectInfo;
         this.productRunData = productRunData;
@@ -99,8 +99,7 @@ public abstract class AbstractBlackDuckStep extends AbstractStep {
         BdioOptions bdioOptions = detectConfigurationFactory.createBdioOptions();
         BdioManager bdioManager = new BdioManager(detectInfo, new SimpleBdioFactory(), new ExternalIdFactory(), new Bdio2Factory(), new IntegrationEscapeUtil(), codeLocationNameManager, bdioCodeLocationCreator, directoryManager,
             eventSystem);
-        BdioResult bdioResult = bdioManager.createBdioFiles(bdioOptions, aggregateOptions, projectNameVersion, runResult.getDetectCodeLocations(), runOptions.shouldUseBdio2());
-        return bdioResult;
+        return bdioManager.createBdioFiles(bdioOptions, aggregateOptions, projectNameVersion, runResult.getDetectCodeLocations(), runOptions.shouldUseBdio2());
     }
 
     protected NameVersion getProjectInfo(RunResult runResult, RunOptions runOptions) {

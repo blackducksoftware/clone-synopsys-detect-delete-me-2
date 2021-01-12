@@ -45,8 +45,8 @@ import com.synopsys.integration.detect.workflow.phonehome.PhoneHomeManager;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DeveloperModeRunStep extends AbstractBlackDuckStep {
-    public DeveloperModeRunStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem,
+public class DeveloperModeStep extends AbstractBlackDuckStep {
+    public DeveloperModeStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectConfigurationFactory detectConfigurationFactory, CodeLocationNameManager codeLocationNameManager, BdioCodeLocationCreator bdioCodeLocationCreator, RunOptions runOptions,
         boolean priorStepsSucceeded) {
         super(detectInfo, productRunData, directoryManager, eventSystem, detectConfigurationFactory, codeLocationNameManager, bdioCodeLocationCreator, runOptions, priorStepsSucceeded);

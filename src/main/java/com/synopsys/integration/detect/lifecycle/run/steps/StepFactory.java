@@ -39,40 +39,36 @@ public class StepFactory {
         return runContext;
     }
 
-    public final PolarisRunStep createPolarisStep(DetectToolFilter detectToolFilter) {
-        return new PolarisRunStep(runContext.getProductRunData(), runContext.getDetectConfiguration(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectToolFilter);
+    public final PolarisStep createPolarisStep(DetectToolFilter detectToolFilter) {
+        return new PolarisStep(runContext.getProductRunData(), runContext.getDetectConfiguration(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectToolFilter);
     }
 
-    public final DockerToolRunStep createDockerToolStep(DetectToolFilter detectToolFilter) {
-        return new DockerToolRunStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
+    public final DockerToolStep createDockerToolStep(DetectToolFilter detectToolFilter) {
+        return new DockerToolStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
             runContext.getCodeLocationConverter());
     }
 
-    public final BazelToolRunStep createBazelToolStep(DetectToolFilter detectToolFilter) {
-        return new BazelToolRunStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
+    public final BazelToolStep createBazelToolStep(DetectToolFilter detectToolFilter) {
+        return new BazelToolStep(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), detectToolFilter, runContext.getExtractionEnvironmentProvider(),
             runContext.getCodeLocationConverter());
     }
 
-    public final DetectorToolRunStep createDetectorToolStep(DetectToolFilter detectToolFilter) {
-        return new DetectorToolRunStep(runContext.getDetectConfiguration(), runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(),
+    public final DetectorToolStep createDetectorToolStep(DetectToolFilter detectToolFilter) {
+        return new DetectorToolStep(runContext.getDetectConfiguration(), runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(),
             detectToolFilter,
             runContext.getExtractionEnvironmentProvider(), runContext.getCodeLocationConverter());
     }
 
-    public final ProjectInfoRunStep createProjectInfoStep() {
-        return new ProjectInfoRunStep(runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem());
-    }
-
-    public final BlackDuckRunStep createBlackDuckStep(DetectToolFilter detectToolFilter, RunOptions runOptions, boolean priorStepsSucceeded) {
+    public final BlackDuckStep createBlackDuckStep(DetectToolFilter detectToolFilter, RunOptions runOptions, boolean priorStepsSucceeded) {
         DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
         ImpactAnalysisOptions impactAnalysisOptions = detectConfigurationFactory.createImpactAnalysisOptions();
-        return new BlackDuckRunStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
+        return new BlackDuckStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
             runContext.getBdioCodeLocationCreator(), runOptions, priorStepsSucceeded, runContext.getDetectContext(), detectToolFilter, impactAnalysisOptions);
     }
 
-    public final DeveloperModeRunStep createDeveloperModeStep(RunOptions runOptions, boolean priorStepsSucceeded) {
+    public final DeveloperModeStep createDeveloperModeStep(RunOptions runOptions, boolean priorStepsSucceeded) {
         DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
-        return new DeveloperModeRunStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
+        return new DeveloperModeStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
             runContext.getBdioCodeLocationCreator(), runOptions, priorStepsSucceeded);
     }
 }

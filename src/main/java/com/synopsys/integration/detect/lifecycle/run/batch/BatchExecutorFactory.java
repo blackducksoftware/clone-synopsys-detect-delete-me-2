@@ -20,19 +20,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.workflow;
+package com.synopsys.integration.detect.lifecycle.run.batch;
 
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 
-public class WorkFlowFactory {
-    public static Workflow createWorkflow(RunContext runContext) {
+public class BatchExecutorFactory {
+    private BatchExecutorFactory() {
+    }
+
+    public static BatchExecutor createBatchExecutor(RunContext runContext) {
         StepFactory stepFactory = new StepFactory(runContext);
         RunOptions runOptions = runContext.createRunOptions();
         if (runOptions.shouldPerformDeveloperModeScan()) {
-            return new DeveloperModeWorkflow(stepFactory);
+            return new DeveloperModeBatchExecutor(stepFactory);
         }
-        return new DefaultWorkflow(stepFactory);
+        return new DefaultBatchExecutor(stepFactory);
     }
 }

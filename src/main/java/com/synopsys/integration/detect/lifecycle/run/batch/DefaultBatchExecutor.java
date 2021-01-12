@@ -20,24 +20,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.workflow;
+package com.synopsys.integration.detect.lifecycle.run.batch;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
-import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DeveloperModeRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.BazelToolStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.BlackDuckStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolStep;
+import com.synopsys.integration.detect.lifecycle.run.steps.PolarisStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class DeveloperModeWorkflow implements Workflow {
+public class DefaultBatchExecutor implements BatchExecutor {
     private StepFactory stepFactory;
 
-    public DeveloperModeWorkflow(StepFactory stepFactory) {
+    public DefaultBatchExecutor(StepFactory stepFactory) {
         this.stepFactory = stepFactory;
     }
 
@@ -47,10 +47,10 @@ public class DeveloperModeWorkflow implements Workflow {
         RunOptions runOptions = stepFactory.getRunContext().createRunOptions();
         DetectToolFilter detectToolFilter = runOptions.getDetectToolFilter();
 
-        PolarisRunStep polarisStep = stepFactory.createPolarisStep(detectToolFilter);
-        DockerToolRunStep dockerToolStep = stepFactory.createDockerToolStep(detectToolFilter);
-        BazelToolRunStep bazelToolStep = stepFactory.createBazelToolStep(detectToolFilter);
-        DetectorToolRunStep detectorToolStep = stepFactory.createDetectorToolStep(detectToolFilter);
+        PolarisStep polarisStep = stepFactory.createPolarisStep(detectToolFilter);
+        DockerToolStep dockerToolStep = stepFactory.createDockerToolStep(detectToolFilter);
+        BazelToolStep bazelToolStep = stepFactory.createBazelToolStep(detectToolFilter);
+        DetectorToolStep detectorToolStep = stepFactory.createDetectorToolStep(detectToolFilter);
 
         // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
         boolean success;
@@ -58,8 +58,7 @@ public class DeveloperModeWorkflow implements Workflow {
         success = success && dockerToolStep.execute(runResult);
         success = success && bazelToolStep.execute(runResult);
         success = success && detectorToolStep.execute(runResult);
-        // this will set the projectNameVersion in the RunnableState object for BlackDuckRunnable to use.  It must execute before BlackDuck.
-        DeveloperModeRunStep blackDuckStep = stepFactory.createDeveloperModeStep(runOptions, success);
+        BlackDuckStep blackDuckStep = stepFactory.createBlackDuckStep(detectToolFilter, runOptions, success);
         blackDuckStep.execute(runResult);
 
         return runResult;

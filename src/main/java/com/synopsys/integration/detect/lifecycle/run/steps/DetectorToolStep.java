@@ -25,9 +25,6 @@ package com.synopsys.integration.detect.lifecycle.run.steps;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectProperties;
@@ -55,8 +52,7 @@ import com.synopsys.integration.detector.rule.DetectorRuleSet;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DetectorToolRunStep extends AbstractStep {
-    private Logger logger = LoggerFactory.getLogger(getClass());
+public class DetectorToolStep extends AbstractStep {
     private PropertyConfiguration detectConfiguration;
     private DetectConfigurationFactory detectConfigurationFactory;
     private DirectoryManager directoryManager;
@@ -66,7 +62,7 @@ public class DetectorToolRunStep extends AbstractStep {
     private ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private CodeLocationConverter codeLocationConverter;
 
-    public DetectorToolRunStep(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
+    public DetectorToolStep(PropertyConfiguration detectConfiguration, DetectConfigurationFactory detectConfigurationFactory, DirectoryManager directoryManager, EventSystem eventSystem,
         DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter, ExtractionEnvironmentProvider extractionEnvironmentProvider, CodeLocationConverter codeLocationConverter) {
         this.detectConfiguration = detectConfiguration;
         this.detectConfigurationFactory = detectConfigurationFactory;

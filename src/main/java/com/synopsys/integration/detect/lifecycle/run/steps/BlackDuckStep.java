@@ -86,13 +86,13 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.rest.HttpUrl;
 import com.synopsys.integration.util.NameVersion;
 
-public class BlackDuckRunStep extends AbstractBlackDuckStep {
+public class BlackDuckStep extends AbstractBlackDuckStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private final DetectContext detectContext;
     private final DetectToolFilter detectToolFilter;
     private final ImpactAnalysisOptions impactAnalysisOptions;
 
-    public BlackDuckRunStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem, DetectConfigurationFactory detectConfigurationFactory,
+    public BlackDuckStep(DetectInfo detectInfo, ProductRunData productRunData, DirectoryManager directoryManager, EventSystem eventSystem, DetectConfigurationFactory detectConfigurationFactory,
         CodeLocationNameManager codeLocationNameManager, BdioCodeLocationCreator bdioCodeLocationCreator, RunOptions runOptions, boolean priorStepsSucceeded, DetectContext detectContext,
         DetectToolFilter detectToolFilter, ImpactAnalysisOptions impactAnalysisOptions) {
         super(detectInfo, productRunData, directoryManager, eventSystem, detectConfigurationFactory, codeLocationNameManager, bdioCodeLocationCreator, runOptions, priorStepsSucceeded);
