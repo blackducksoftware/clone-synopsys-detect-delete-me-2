@@ -25,9 +25,8 @@ package com.synopsys.integration.detect.lifecycle.run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.lifecycle.run.workflow.WorkFlowFactory;
-import com.synopsys.integration.detect.lifecycle.run.workflow.Workflow;
+import com.synopsys.integration.detect.lifecycle.run.batch.BatchExecutor;
+import com.synopsys.integration.detect.lifecycle.run.batch.BatchExecutorFactory;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
@@ -35,22 +34,19 @@ import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 public class RunManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final DetectContext detectContext;
     private final DetectRun detectRun;
     private final ExitCodeManager exitCodeManager;
 
-    public RunManager(DetectContext detectContext, DetectRun detectRun, ExitCodeManager exitCodeManager) {
-        this.detectContext = detectContext;
+    public RunManager(DetectRun detectRun, ExitCodeManager exitCodeManager) {
         this.detectRun = detectRun;
         this.exitCodeManager = exitCodeManager;
     }
 
     public void run(RunContext runContext) {
-        RunResult runResult = new RunResult();
         try {
             logger.debug("Detect run begin: {}", detectRun.getRunId());
-            Workflow workflow = WorkFlowFactory.createWorkflow(runContext);
-            runResult = workflow.execute();
+            BatchExecutor batchExecutor = BatchExecutorFactory.createBatchExecutor(runContext);
+            batchExecutor.execute();
             logger.info("All tools have finished.");
             logger.info(ReportConstants.RUN_SEPARATOR);
             logger.debug("Detect run completed.");
@@ -63,6 +59,5 @@ public class RunManager {
             logger.debug("An exception was thrown during the detect run.", e);
             exitCodeManager.addExitCodeRequest(e);
         }
-        //return runResult;
     }
 }

@@ -20,13 +20,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.workflow;
+package com.synopsys.integration.detect.lifecycle.run.batch;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
 import com.synopsys.integration.exception.IntegrationException;
 
-public interface Workflow {
+public interface BatchExecutor {
 
     RunResult execute() throws DetectUserFriendlyException, IntegrationException;
 }

@@ -22,9 +22,6 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.steps;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
@@ -38,8 +35,7 @@ import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class DockerToolRunStep extends AbstractStep {
-    private Logger logger = LoggerFactory.getLogger(getClass());
+public class DockerToolStep extends AbstractStep {
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
     private DetectDetectableFactory detectDetectableFactory;
@@ -47,7 +43,7 @@ public class DockerToolRunStep extends AbstractStep {
     private ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private CodeLocationConverter codeLocationConverter;
 
-    public DockerToolRunStep(DirectoryManager directoryManager, EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter,
+    public DockerToolStep(DirectoryManager directoryManager, EventSystem eventSystem, DetectDetectableFactory detectDetectableFactory, DetectToolFilter detectToolFilter,
         ExtractionEnvironmentProvider extractionEnvironmentProvider, CodeLocationConverter codeLocationConverter) {
         this.directoryManager = directoryManager;
         this.eventSystem = eventSystem;
