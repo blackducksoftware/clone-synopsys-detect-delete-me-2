@@ -38,7 +38,7 @@ import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class DockerToolRunStep {
+public class DockerToolRunStep extends AbstractStep {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private DirectoryManager directoryManager;
     private EventSystem eventSystem;
@@ -57,22 +57,25 @@ public class DockerToolRunStep {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    public boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
-        boolean success = true;
-        if (!detectToolFilter.shouldInclude(DetectTool.DOCKER)) {
-            logger.info("Docker tool will not be run.");
-        } else {
-            logger.info("Will include the Docker tool.");
-            DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createDockerDetectable,
-                extractionEnvironmentProvider, codeLocationConverter, "DOCKER", DetectTool.DOCKER,
-                eventSystem);
+    @Override
+    protected boolean shouldRun() {
+        return detectToolFilter.shouldInclude(DetectTool.DOCKER);
+    }
 
-            DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
+    @Override
+    public String getStepName() {
+        return "Docker";
+    }
 
-            runResult.addDetectableToolResult(detectableToolResult);
-            success = !detectableToolResult.isFailure();
-            logger.info("Docker actions finished.");
-        }
-        return success;
+    @Override
+    protected boolean run(RunResult runResult) throws DetectUserFriendlyException, IntegrationException {
+        DetectableTool detectableTool = new DetectableTool(detectDetectableFactory::createDockerDetectable,
+            extractionEnvironmentProvider, codeLocationConverter, "DOCKER", DetectTool.DOCKER,
+            eventSystem);
+
+        DetectableToolResult detectableToolResult = detectableTool.execute(directoryManager.getSourceDirectory());
+
+        runResult.addDetectableToolResult(detectableToolResult);
+        return !detectableToolResult.isFailure();
     }
 }

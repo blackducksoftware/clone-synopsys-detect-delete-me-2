@@ -24,6 +24,7 @@ package com.synopsys.integration.detect.lifecycle.run.steps;
 
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
+import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.tool.impactanalysis.ImpactAnalysisOptions;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 
@@ -62,16 +63,16 @@ public class StepFactory {
         return new ProjectInfoRunStep(runContext.getDetectConfigurationFactory(), runContext.getDirectoryManager(), runContext.getEventSystem());
     }
 
-    public final BlackDuckRunStep createBlackDuckStep(DetectToolFilter detectToolFilter) {
+    public final BlackDuckRunStep createBlackDuckStep(DetectToolFilter detectToolFilter, RunOptions runOptions, boolean priorStepsSucceeded) {
         DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
         ImpactAnalysisOptions impactAnalysisOptions = detectConfigurationFactory.createImpactAnalysisOptions();
-        return new BlackDuckRunStep(runContext.getDetectContext(), runContext.getProductRunData(), detectConfigurationFactory, runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getCodeLocationNameManager(),
-            runContext.getBdioCodeLocationCreator(), runContext.getDetectInfo(), detectToolFilter, impactAnalysisOptions);
+        return new BlackDuckRunStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
+            runContext.getBdioCodeLocationCreator(), runOptions, priorStepsSucceeded, runContext.getDetectContext(), detectToolFilter, impactAnalysisOptions);
     }
 
-    public final DeveloperModeRunStep createDeveloperModeStep() {
+    public final DeveloperModeRunStep createDeveloperModeStep(RunOptions runOptions, boolean priorStepsSucceeded) {
         DetectConfigurationFactory detectConfigurationFactory = runContext.getDetectConfigurationFactory();
-        return new DeveloperModeRunStep(runContext.getProductRunData(), detectConfigurationFactory, runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getCodeLocationNameManager(),
-            runContext.getBdioCodeLocationCreator(), runContext.getDetectInfo());
+        return new DeveloperModeRunStep(runContext.getDetectInfo(), runContext.getProductRunData(), runContext.getDirectoryManager(), runContext.getEventSystem(), detectConfigurationFactory, runContext.getCodeLocationNameManager(),
+            runContext.getBdioCodeLocationCreator(), runOptions, priorStepsSucceeded);
     }
 }

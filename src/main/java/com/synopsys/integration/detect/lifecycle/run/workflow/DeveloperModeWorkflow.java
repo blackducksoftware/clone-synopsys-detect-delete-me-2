@@ -30,11 +30,9 @@ import com.synopsys.integration.detect.lifecycle.run.steps.DetectorToolRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.DeveloperModeRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.DockerToolRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.PolarisRunStep;
-import com.synopsys.integration.detect.lifecycle.run.steps.ProjectInfoRunStep;
 import com.synopsys.integration.detect.lifecycle.run.steps.StepFactory;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.exception.IntegrationException;
-import com.synopsys.integration.util.NameVersion;
 
 public class DeveloperModeWorkflow implements Workflow {
     private StepFactory stepFactory;
@@ -53,18 +51,16 @@ public class DeveloperModeWorkflow implements Workflow {
         DockerToolRunStep dockerToolStep = stepFactory.createDockerToolStep(detectToolFilter);
         BazelToolRunStep bazelToolStep = stepFactory.createBazelToolStep(detectToolFilter);
         DetectorToolRunStep detectorToolStep = stepFactory.createDetectorToolStep(detectToolFilter);
-        ProjectInfoRunStep projectInfoStep = stepFactory.createProjectInfoStep();
-        DeveloperModeRunStep blackDuckStep = stepFactory.createDeveloperModeStep();
 
         // define the order of the runnables. Polaris, projectTools i.e. detectors, BlackDuck
-        boolean success = true;
-        polarisStep.run();
-        success = success && dockerToolStep.run(runResult);
-        success = success && bazelToolStep.run(runResult);
-        success = success && detectorToolStep.run(runResult);
+        boolean success;
+        success = polarisStep.execute(runResult);
+        success = success && dockerToolStep.execute(runResult);
+        success = success && bazelToolStep.execute(runResult);
+        success = success && detectorToolStep.execute(runResult);
         // this will set the projectNameVersion in the RunnableState object for BlackDuckRunnable to use.  It must execute before BlackDuck.
-        NameVersion projectNameVersion = projectInfoStep.run(runResult, runOptions);
-        blackDuckStep.run(runResult, runOptions, projectNameVersion, success);
+        DeveloperModeRunStep blackDuckStep = stepFactory.createDeveloperModeStep(runOptions, success);
+        blackDuckStep.execute(runResult);
 
         return runResult;
     }

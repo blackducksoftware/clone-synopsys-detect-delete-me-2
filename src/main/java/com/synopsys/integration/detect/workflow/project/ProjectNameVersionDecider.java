@@ -34,18 +34,26 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.enumeration.DefaultVersionNameScheme;
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
+import com.synopsys.integration.detect.workflow.event.Event;
+import com.synopsys.integration.detect.workflow.event.EventSystem;
+import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.util.NameVersion;
 
 public class ProjectNameVersionDecider {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ProjectNameVersionOptions projectVersionOptions;
+    private EventSystem eventSystem;
 
-    public ProjectNameVersionDecider(ProjectNameVersionOptions projectVersionOptions) {
+    public ProjectNameVersionDecider(ProjectNameVersionOptions projectVersionOptions, EventSystem eventSystem) {
         this.projectVersionOptions = projectVersionOptions;
+        this.eventSystem = eventSystem;
     }
 
     public NameVersion decideProjectNameVersion(List<DetectTool> preferredDetectTools, List<DetectToolProjectInfo> detectToolProjectInfo) {
+        logger.info(ReportConstants.RUN_SEPARATOR);
+        logger.debug("Completed code location tools.");
+        logger.debug("Determining project info.");
         Optional<DetectToolProjectInfo> chosenTool = decideToolProjectInfo(preferredDetectTools, detectToolProjectInfo);
         Optional<String> chosenToolName = chosenTool.map(DetectToolProjectInfo::getSuggestedNameVersion).map(NameVersion::getName);
         Optional<String> chosenToolVersion = chosenTool.map(DetectToolProjectInfo::getSuggestedNameVersion).map(NameVersion::getVersion);
@@ -74,7 +82,11 @@ public class ProjectNameVersionDecider {
             decidedProjectVersionName = projectVersionOptions.defaultProjectVersionText;
         }
 
-        return new NameVersion(decidedProjectName, decidedProjectVersionName);
+        NameVersion nameVersion = new NameVersion(decidedProjectName, decidedProjectVersionName);
+        logger.info("Project name: {}", nameVersion.getName());
+        logger.info("Project version: {}", nameVersion.getVersion());
+        eventSystem.publishEvent(Event.ProjectNameVersionChosen, nameVersion);
+        return nameVersion;
     }
 
     private Optional<DetectToolProjectInfo> decideToolProjectInfo(List<DetectTool> preferredDetectTools, List<DetectToolProjectInfo> detectToolProjectInfo) {

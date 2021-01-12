@@ -33,26 +33,26 @@ public class ExitCodeManager {
     private final List<ExitCodeRequest> exitCodeRequests = new ArrayList<>();
     private final ExitCodeUtility exitCodeUtility;
 
-    public ExitCodeManager(final EventSystem eventSystem, final ExitCodeUtility exitCodeUtility) {
+    public ExitCodeManager(EventSystem eventSystem, ExitCodeUtility exitCodeUtility) {
         this.exitCodeUtility = exitCodeUtility;
         eventSystem.registerListener(Event.ExitCode, this::addExitCodeRequest);
     }
 
-    public void requestExitCode(final Exception e) {
-        requestExitCode(exitCodeUtility.getExitCodeFromExceptionDetails(e));
+    public void addExitCodeRequest(Exception e) {
+        addExitCodeRequest(exitCodeUtility.getExitCodeFromExceptionDetails(e));
     }
 
-    public void requestExitCode(final ExitCodeType exitCodeType) {
+    public void addExitCodeRequest(ExitCodeType exitCodeType) {
         exitCodeRequests.add(new ExitCodeRequest(exitCodeType));
     }
 
-    public void addExitCodeRequest(final ExitCodeRequest request) {
+    public void addExitCodeRequest(ExitCodeRequest request) {
         exitCodeRequests.add(request);
     }
 
     public ExitCodeType getWinningExitCode() {
         ExitCodeType winningExitCodeType = ExitCodeType.SUCCESS;
-        for (final ExitCodeRequest exitCodeRequest : exitCodeRequests) {
+        for (ExitCodeRequest exitCodeRequest : exitCodeRequests) {
             winningExitCodeType = ExitCodeType.getWinningExitCodeType(winningExitCodeType, exitCodeRequest.getExitCodeType());
         }
         return winningExitCodeType;

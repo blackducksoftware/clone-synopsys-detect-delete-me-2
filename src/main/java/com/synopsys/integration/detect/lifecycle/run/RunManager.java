@@ -45,7 +45,7 @@ public class RunManager {
         this.exitCodeManager = exitCodeManager;
     }
 
-    public RunResult run(RunContext runContext) {
+    public void run(RunContext runContext) {
         RunResult runResult = new RunResult();
         try {
             logger.debug("Detect run begin: {}", detectRun.getRunId());
@@ -61,8 +61,8 @@ public class RunManager {
                 logger.error("Detect run failed: {}", e.getClass().getSimpleName());
             }
             logger.debug("An exception was thrown during the detect run.", e);
-            exitCodeManager.requestExitCode(e);
+            exitCodeManager.addExitCodeRequest(e);
         }
-        return runResult;
+        //return runResult;
     }
 }
