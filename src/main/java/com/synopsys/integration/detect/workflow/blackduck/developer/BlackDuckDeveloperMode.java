@@ -66,6 +66,7 @@ public class BlackDuckDeveloperMode {
         List<DeveloperScanComponentResultView> results = new LinkedList<>();
         try {
             for (UploadTarget uploadTarget : bdioResult.getUploadTargets()) {
+                //TODO set the scan type which will be renamed to userAgent
                 results.addAll(developerScanService.performDeveloperScan(uploadTarget.getUploadFile(), detectConfigurationFactory.findTimeoutInSeconds()));
             }
             logger.debug("Developer scan result count: {}", results.size());
