@@ -95,7 +95,7 @@ public abstract class AbstractBlackDuckStep extends AbstractStep {
         }
     }
 
-    public BdioResult createBdioFiles(RunResult runResult, RunOptions runOptions, AggregateOptions aggregateOptions, NameVersion projectNameVersion) throws DetectUserFriendlyException {
+    protected BdioResult createBdioFiles(RunResult runResult, RunOptions runOptions, AggregateOptions aggregateOptions, NameVersion projectNameVersion) throws DetectUserFriendlyException {
         BdioOptions bdioOptions = detectConfigurationFactory.createBdioOptions();
         BdioManager bdioManager = new BdioManager(detectInfo, new SimpleBdioFactory(), new ExternalIdFactory(), new Bdio2Factory(), new IntegrationEscapeUtil(), codeLocationNameManager, bdioCodeLocationCreator, directoryManager,
             eventSystem);
