@@ -43,7 +43,6 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.configuration.connection.ConnectionFactory;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
-import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameGenerator;
 import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameManager;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
@@ -54,21 +53,26 @@ import com.synopsys.integration.util.NameVersion;
 
 public class BlackDuckSignatureScannerTool {
     private final Logger logger = LoggerFactory.getLogger(BlackDuckSignatureScannerTool.class);
-    private final DetectContext detectContext;
     private final BlackDuckSignatureScannerOptions signatureScannerOptions;
+    private final DetectConfigurationFactory detectConfigurationFactory;
+    private final ConnectionFactory connectionFactory;
+    private final DirectoryManager directoryManager;
+    private final CodeLocationNameManager codeLocationNameManager;
+    private final DetectContext detectContext;
 
-    public BlackDuckSignatureScannerTool(BlackDuckSignatureScannerOptions signatureScannerOptions, DetectContext detectContext) {
+    public BlackDuckSignatureScannerTool(BlackDuckSignatureScannerOptions signatureScannerOptions, final DetectConfigurationFactory detectConfigurationFactory,
+        final ConnectionFactory connectionFactory, final DirectoryManager directoryManager,
+        final CodeLocationNameManager codeLocationNameManager, final DetectContext detectContext) {
         this.signatureScannerOptions = signatureScannerOptions;
+        this.detectConfigurationFactory = detectConfigurationFactory;
+        this.connectionFactory = connectionFactory;
+        this.directoryManager = directoryManager;
+        this.codeLocationNameManager = codeLocationNameManager;
         this.detectContext = detectContext;
     }
 
     // TODO: Don't accept an Optional as a parameter.
     public SignatureScannerToolResult runScanTool(BlackDuckRunData blackDuckRunData, NameVersion projectNameVersion, Optional<File> dockerTar) throws DetectUserFriendlyException {
-        DetectConfigurationFactory detectConfigurationFactory = detectContext.getBean(DetectConfigurationFactory.class);
-        ConnectionFactory connectionFactory = detectContext.getBean(ConnectionFactory.class);
-        DirectoryManager directoryManager = detectContext.getBean(DirectoryManager.class);
-        CodeLocationNameGenerator codeLocationNameService = detectContext.getBean(CodeLocationNameGenerator.class);
-        CodeLocationNameManager codeLocationNameManager = detectContext.getBean(CodeLocationNameManager.class, codeLocationNameService);
 
         Optional<BlackDuckServerConfig> blackDuckServerConfig = Optional.empty();
         if (blackDuckRunData.isOnline() && blackDuckRunData.getBlackDuckServerConfig().isPresent()) {

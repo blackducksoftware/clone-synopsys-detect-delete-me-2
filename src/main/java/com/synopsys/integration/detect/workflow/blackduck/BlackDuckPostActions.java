@@ -52,13 +52,17 @@ public class BlackDuckPostActions {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final BlackDuckServicesFactory blackDuckServicesFactory;
     private final EventSystem eventSystem;
+    private final BlackDuckPostOptions blackDuckPostOptions;
+    private final long timeoutInSeconds;
 
-    public BlackDuckPostActions(BlackDuckServicesFactory blackDuckServicesFactory, EventSystem eventSystem) {
+    public BlackDuckPostActions(BlackDuckServicesFactory blackDuckServicesFactory, EventSystem eventSystem, BlackDuckPostOptions blackDuckPostOptions, long timeoutInSeconds) {
         this.blackDuckServicesFactory = blackDuckServicesFactory;
         this.eventSystem = eventSystem;
+        this.blackDuckPostOptions = blackDuckPostOptions;
+        this.timeoutInSeconds = timeoutInSeconds;
     }
 
-    public void perform(BlackDuckPostOptions blackDuckPostOptions, CodeLocationWaitData codeLocationWaitData, ProjectVersionWrapper projectVersionWrapper, NameVersion projectNameVersion, long timeoutInSeconds)
+    public void perform(CodeLocationWaitData codeLocationWaitData, ProjectVersionWrapper projectVersionWrapper, NameVersion projectNameVersion)
         throws DetectUserFriendlyException {
         try {
             if (blackDuckPostOptions.shouldWaitForResults()) {

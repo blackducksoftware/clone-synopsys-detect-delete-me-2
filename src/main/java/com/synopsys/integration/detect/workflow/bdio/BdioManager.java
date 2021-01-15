@@ -54,6 +54,7 @@ public class BdioManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final DetectInfo detectInfo;
+    private final BdioOptions bdioOptions;
     private final SimpleBdioFactory simpleBdioFactory;
     private final ExternalIdFactory externalIdFactory;
     private final Bdio2Factory bdio2Factory;
@@ -62,10 +63,12 @@ public class BdioManager {
     private final IntegrationEscapeUtil integrationEscapeUtil;
     private final CodeLocationNameManager codeLocationNameManager;
 
-    public BdioManager(final DetectInfo detectInfo, final SimpleBdioFactory simpleBdioFactory, final ExternalIdFactory externalIdFactory, final Bdio2Factory bdio2Factory,
+    public BdioManager(final DetectInfo detectInfo, final BdioOptions bdioOptions, final SimpleBdioFactory simpleBdioFactory, final ExternalIdFactory externalIdFactory,
+        final Bdio2Factory bdio2Factory,
         final IntegrationEscapeUtil integrationEscapeUtil, final CodeLocationNameManager codeLocationNameManager,
         final BdioCodeLocationCreator codeLocationManager, final DirectoryManager directoryManager) {
         this.detectInfo = detectInfo;
+        this.bdioOptions = bdioOptions;
         this.simpleBdioFactory = simpleBdioFactory;
         this.externalIdFactory = externalIdFactory;
         this.bdio2Factory = bdio2Factory;
@@ -75,7 +78,7 @@ public class BdioManager {
         this.directoryManager = directoryManager;
     }
 
-    public BdioResult createBdioFiles(final BdioOptions bdioOptions, final AggregateOptions aggregateOptions, final NameVersion projectNameVersion, final List<DetectCodeLocation> codeLocations, final boolean useBdio2)
+    public BdioResult createBdioFiles(final AggregateOptions aggregateOptions, final NameVersion projectNameVersion, final List<DetectCodeLocation> codeLocations, final boolean useBdio2)
         throws DetectUserFriendlyException {
         final DetectBdioWriter detectBdioWriter = new DetectBdioWriter(simpleBdioFactory, detectInfo);
         final Optional<String> aggregateName = aggregateOptions.getAggregateName();
