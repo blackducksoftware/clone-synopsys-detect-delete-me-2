@@ -70,18 +70,28 @@ public class DetectorTool {
     private final EventSystem eventSystem;
     private final CodeLocationConverter codeLocationConverter;
     private final DetectorIssuePublisher detectorIssuePublisher;
+    private final DetectorRuleSet detectorRuleSet;
+    private final DetectorFinderOptions detectorFinderOptions;
+    private final DetectorEvaluationOptions evaluationOptions;
+    private final String projectDetector;
+    private final List<DetectorType> requiredDetectors;
 
     public DetectorTool(DetectorFinder detectorFinder, ExtractionEnvironmentProvider extractionEnvironmentProvider, EventSystem eventSystem, CodeLocationConverter codeLocationConverter,
-        DetectorIssuePublisher detectorIssuePublisher) {
+        DetectorIssuePublisher detectorIssuePublisher, DetectorRuleSet detectorRuleSet, DetectorFinderOptions detectorFinderOptions, DetectorEvaluationOptions evaluationOptions, String projectDetector,
+        List<DetectorType> requiredDetectors) {
         this.detectorFinder = detectorFinder;
         this.extractionEnvironmentProvider = extractionEnvironmentProvider;
         this.eventSystem = eventSystem;
         this.codeLocationConverter = codeLocationConverter;
         this.detectorIssuePublisher = detectorIssuePublisher;
+        this.detectorRuleSet = detectorRuleSet;
+        this.detectorFinderOptions = detectorFinderOptions;
+        this.evaluationOptions = evaluationOptions;
+        this.projectDetector = projectDetector;
+        this.requiredDetectors = requiredDetectors;
     }
 
-    public DetectorToolResult performDetectors(File directory, DetectorRuleSet detectorRuleSet, DetectorFinderOptions detectorFinderOptions, DetectorEvaluationOptions evaluationOptions, String projectDetector,
-        List<DetectorType> requiredDetectors)
+    public DetectorToolResult performDetectors(File directory)
         throws DetectUserFriendlyException {
         logger.debug("Initializing detector system.");
         Optional<DetectorEvaluationTree> possibleRootEvaluation;

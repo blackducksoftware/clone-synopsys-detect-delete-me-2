@@ -109,6 +109,17 @@ public class BlackDuckImpactAnalysisTool {
         return Boolean.TRUE.equals(impactAnalysisOptions.isEnabled());
     }
 
+    @NotNull
+    public ImpactAnalysisToolResult performImpactAnalysisActionsWithLogs(NameVersion projectNameAndVersion, @Nullable ProjectVersionWrapper projectVersionWrapper) throws DetectUserFriendlyException {
+        ImpactAnalysisToolResult result = performImpactAnalysisActions(projectNameAndVersion, projectVersionWrapper);
+        if (result.isSuccessful()) {
+            logger.info("Vulnerability Impact Analysis successful.");
+        } else {
+            logger.warn("Something went wrong with the Vulnerability Impact Analysis tool.");
+        }
+        return result;
+    }
+
     /**
      * @param projectNameAndVersion is the Black Duck project name and version.
      * @param projectVersionWrapper is Nullable, but is a pre-requisite for code location mapping.
