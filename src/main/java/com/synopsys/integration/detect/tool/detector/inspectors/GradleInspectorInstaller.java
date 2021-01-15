@@ -25,21 +25,23 @@ package com.synopsys.integration.detect.tool.detector.inspectors;
 import java.io.IOException;
 
 import com.synopsys.integration.detect.workflow.ArtifactResolver;
-import com.synopsys.integration.detect.workflow.ArtifactoryConstants;
+import com.synopsys.integration.detect.workflow.ArtifactoryDetails;
 import com.synopsys.integration.detectable.detectable.exception.DetectableException;
 import com.synopsys.integration.exception.IntegrationException;
 
 public class GradleInspectorInstaller {
 
     private final ArtifactResolver artifactResolver;
+    private final ArtifactoryDetails artifactoryDetails;
 
-    public GradleInspectorInstaller(final ArtifactResolver artifactResolver) {
+    public GradleInspectorInstaller(final ArtifactResolver artifactResolver, final ArtifactoryDetails artifactoryDetails) {
         this.artifactResolver = artifactResolver;
+        this.artifactoryDetails = artifactoryDetails;
     }
 
     public String findVersion() throws DetectableException {
         try {
-            return artifactResolver.resolveArtifactVersion(ArtifactoryConstants.ARTIFACTORY_URL, ArtifactoryConstants.GRADLE_INSPECTOR_REPO, ArtifactoryConstants.GRADLE_INSPECTOR_PROPERTY);
+            return artifactResolver.resolveArtifactVersion(artifactoryDetails.artifactoryUrl, artifactoryDetails.gradleInspectorRepo, artifactoryDetails.gradleInspectorProperty);
         } catch (final IntegrationException | IOException e) {
             throw new DetectableException("Unable to resolve the gradle inspector version from Artifactory!", e);
         }

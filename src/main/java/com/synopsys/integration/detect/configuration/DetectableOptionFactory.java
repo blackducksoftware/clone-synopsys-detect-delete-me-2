@@ -42,7 +42,7 @@ import com.synopsys.integration.configuration.property.types.enumfilterable.Filt
 import com.synopsys.integration.configuration.property.types.enumfilterable.FilterableEnumValue;
 import com.synopsys.integration.configuration.property.types.path.PathResolver;
 import com.synopsys.integration.detect.tool.detector.inspectors.nuget.NugetLocatorOptions;
-import com.synopsys.integration.detect.workflow.ArtifactoryConstants;
+import com.synopsys.integration.detect.workflow.ArtifactoryDetails;
 import com.synopsys.integration.detect.workflow.diagnostic.DiagnosticSystem;
 import com.synopsys.integration.detectable.detectable.inspector.nuget.NugetInspectorOptions;
 import com.synopsys.integration.detectable.detectables.bazel.BazelDetectableOptions;
@@ -77,14 +77,17 @@ public class DetectableOptionFactory {
     @Nullable
     private final DiagnosticSystem diagnosticSystem;
     private final PathResolver pathResolver;
+    private final ArtifactoryDetails artifactoryDetails;
     private final ProxyInfo proxyInfo;
 
     private final Logger logger = LoggerFactory.getLogger(DetectableOptionFactory.class);
 
-    public DetectableOptionFactory(PropertyConfiguration detectConfiguration, @Nullable DiagnosticSystem diagnosticSystem, PathResolver pathResolver, ProxyInfo proxyInfo) {
+    public DetectableOptionFactory(PropertyConfiguration detectConfiguration, @Nullable DiagnosticSystem diagnosticSystem, PathResolver pathResolver, final ArtifactoryDetails artifactoryDetails,
+        ProxyInfo proxyInfo) {
         this.detectConfiguration = detectConfiguration;
         this.diagnosticSystem = diagnosticSystem;
         this.pathResolver = pathResolver;
+        this.artifactoryDetails = artifactoryDetails;
         this.proxyInfo = proxyInfo;
     }
 
@@ -154,7 +157,7 @@ public class DetectableOptionFactory {
         List<String> excludedConfigurationNames = getValue(DetectProperties.DETECT_GRADLE_EXCLUDED_CONFIGURATIONS);
         List<String> includedConfigurationNames = getValue(DetectProperties.DETECT_GRADLE_INCLUDED_CONFIGURATIONS);
         String configuredGradleInspectorRepositoryUrl = getNullableValue(DetectProperties.DETECT_GRADLE_INSPECTOR_REPOSITORY_URL);
-        String customRepository = ArtifactoryConstants.GRADLE_INSPECTOR_MAVEN_REPO;
+        String customRepository = artifactoryDetails.artifactoryUrl + artifactoryDetails.gradleInspectorMavenRepo;
         if (StringUtils.isNotBlank(configuredGradleInspectorRepositoryUrl)) {
             logger.warn("Using a custom gradle repository will not be supported in the future.");
             customRepository = configuredGradleInspectorRepositoryUrl;

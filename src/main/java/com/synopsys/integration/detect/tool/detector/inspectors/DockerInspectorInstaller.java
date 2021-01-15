@@ -31,27 +31,29 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.workflow.ArtifactResolver;
-import com.synopsys.integration.detect.workflow.ArtifactoryConstants;
+import com.synopsys.integration.detect.workflow.ArtifactoryDetails;
 import com.synopsys.integration.exception.IntegrationException;
 
 public class DockerInspectorInstaller {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ArtifactResolver artifactResolver;
+    private final ArtifactoryDetails artifactoryDetails;
 
-    public DockerInspectorInstaller(final ArtifactResolver artifactResolver) {
+    public DockerInspectorInstaller(final ArtifactResolver artifactResolver, final ArtifactoryDetails artifactoryDetails) {
         this.artifactResolver = artifactResolver;
+        this.artifactoryDetails = artifactoryDetails;
     }
 
     public File installJar(final File dockerDirectory, final Optional<String> dockerVersion) throws IntegrationException, IOException, DetectUserFriendlyException {
         logger.info("Determining the location of the Docker inspector.");
-        final String location = artifactResolver.resolveArtifactLocation(ArtifactoryConstants.ARTIFACTORY_URL, ArtifactoryConstants.DOCKER_INSPECTOR_REPO, ArtifactoryConstants.DOCKER_INSPECTOR_PROPERTY, dockerVersion.orElse(""),
-            ArtifactoryConstants.DOCKER_INSPECTOR_VERSION_OVERRIDE);
+        final String location = artifactResolver.resolveArtifactLocation(artifactoryDetails.artifactoryUrl, artifactoryDetails.dockerInspectorRepo, artifactoryDetails.dockerInspectorProperty, dockerVersion.orElse(""),
+            artifactoryDetails.dockerInspectorVersionOverride);
         return download(location, dockerDirectory);
     }
 
     public File installAirGap(final File dockerDirectory) throws IntegrationException, IOException, DetectUserFriendlyException {
         logger.info("Determining the location of the Docker inspector.");
-        final String location = artifactResolver.resolveArtifactLocation(ArtifactoryConstants.ARTIFACTORY_URL, ArtifactoryConstants.DOCKER_INSPECTOR_REPO, ArtifactoryConstants.DOCKER_INSPECTOR_AIR_GAP_PROPERTY, "", "");
+        final String location = artifactResolver.resolveArtifactLocation(artifactoryDetails.artifactoryUrl, artifactoryDetails.dockerInspectorRepo, artifactoryDetails.dockerInspectorAirGapProperty, "", "");
         return download(location, dockerDirectory);
     }
 

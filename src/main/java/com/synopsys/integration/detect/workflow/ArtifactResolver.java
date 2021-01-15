@@ -68,7 +68,7 @@ public class ArtifactResolver {
         if (StringUtils.isNotBlank(overrideVersion) && StringUtils.isNotBlank(overrideArtifactPattern)) {
             logger.debug("An override version was provided, will resolve using the given version.");
             String repoUrl = artifactoryBaseUrl + repositoryUrl;
-            String versionUrl = overrideArtifactPattern.replace(ArtifactoryConstants.VERSION_PLACEHOLDER, overrideVersion);
+            String versionUrl = overrideArtifactPattern.replace(ArtifactoryDetails.VERSION_PLACEHOLDER, overrideVersion);
             String artifactUrl = repoUrl + versionUrl;
             logger.debug(String.format("Determined the artifact url is: %s", artifactUrl));
             return artifactUrl;
