@@ -97,6 +97,7 @@ import com.synopsys.integration.detect.util.filter.DetectFilter;
 import com.synopsys.integration.detect.util.filter.DetectOverrideableFilter;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.ArtifactResolver;
+import com.synopsys.integration.detect.workflow.ArtifactoryDetails;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.airgap.AirGapCreator;
 import com.synopsys.integration.detect.workflow.airgap.AirGapPathFinder;
@@ -204,6 +205,8 @@ public class DetectBoot {
             diagnosticSystem = new DiagnosticSystem(diagnosticsDecision.isDiagnosticExtended, detectConfiguration, detectRun, detectInfo, directoryManager, eventSystem);
         }
 
+        ArtifactoryDetails artifactoryDetails = ArtifactoryDetails.fromResources(gson);
+
         logger.debug("Main boot completed. Deciding what Detect should do.");
 
         if (detectArgumentState.isGenerateAirGapZip()) {
@@ -211,7 +214,7 @@ public class DetectBoot {
             String airGapSuffix = inspectorFilter.getIncludedSet().stream().sorted().collect(Collectors.joining("-"));
             File airGapZip;
             try {
-                airGapZip = createAirGapZip(inspectorFilter, detectConfiguration, pathResolver, directoryManager, gson, eventSystem, configuration, airGapSuffix);
+                airGapZip = createAirGapZip(inspectorFilter, detectConfiguration, pathResolver, directoryManager, gson, eventSystem, configuration, airGapSuffix, artifactoryDetails);
             } catch (DetectUserFriendlyException e) {
                 return Optional.of(DetectBootResult.exception(e, detectConfiguration, directoryManager, diagnosticSystem));
             }
@@ -248,7 +251,7 @@ public class DetectBoot {
             return Optional.of(DetectBootResult.exception(e, detectConfiguration, directoryManager, diagnosticSystem));
         }
 
-        DetectableOptionFactory detectableOptionFactory = new DetectableOptionFactory(detectConfiguration, diagnosticSystem, pathResolver, detectableProxyInfo);
+        DetectableOptionFactory detectableOptionFactory = new DetectableOptionFactory(detectConfiguration, diagnosticSystem, pathResolver, artifactoryDetails, detectableProxyInfo);
         DetectorProfiler profiler = new DetectorProfiler(eventSystem);
 
         //Finished, populate the detect context
@@ -264,6 +267,7 @@ public class DetectBoot {
         detectContext.registerBean(objectMapper);
         detectContext.registerBean(xml);
         detectContext.registerBean(configuration);
+        detectContext.registerBean(artifactoryDetails);
 
         detectContext.registerConfiguration(RunBeanConfiguration.class);
         detectContext.lock(); //can only refresh once, this locks and triggers refresh.
@@ -403,7 +407,7 @@ public class DetectBoot {
     private File createAirGapZip(DetectFilter inspectorFilter, PropertyConfiguration detectConfiguration, PathResolver pathResolver, DirectoryManager directoryManager, Gson gson,
         EventSystem eventSystem,
         Configuration configuration,
-        String airGapSuffix)
+        String airGapSuffix, ArtifactoryDetails artifactoryDetails)
         throws DetectUserFriendlyException {
         DetectConfigurationFactory detectConfigurationFactory = new DetectConfigurationFactory(detectConfiguration, pathResolver);
         ConnectionDetails connectionDetails = detectConfigurationFactory.createConnectionDetails();
@@ -415,12 +419,12 @@ public class DetectBoot {
         SystemPathExecutableFinder systemPathExecutableFinder = new SystemPathExecutableFinder(directoryExecutableFinder);
         DetectExecutableResolver detectExecutableResolver = new DetectExecutableResolver(directoryExecutableFinder, systemPathExecutableFinder, detectConfigurationFactory.createExecutablePaths());
 
-        GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver);
+        GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver, artifactoryDetails);
         DetectExecutableRunner runner = DetectExecutableRunner.newDebug(eventSystem);
         GradleAirGapCreator gradleAirGapCreator = new GradleAirGapCreator(detectExecutableResolver, gradleInspectorInstaller, runner, configuration);
 
-        NugetAirGapCreator nugetAirGapCreator = new NugetAirGapCreator(new NugetInspectorInstaller(artifactResolver));
-        DockerAirGapCreator dockerAirGapCreator = new DockerAirGapCreator(new DockerInspectorInstaller(artifactResolver));
+        NugetAirGapCreator nugetAirGapCreator = new NugetAirGapCreator(new NugetInspectorInstaller(artifactResolver, artifactoryDetails));
+        DockerAirGapCreator dockerAirGapCreator = new DockerAirGapCreator(new DockerInspectorInstaller(artifactResolver, artifactoryDetails));
 
         AirGapCreator airGapCreator = new AirGapCreator(new AirGapPathFinder(), eventSystem, gradleAirGapCreator, nugetAirGapCreator, dockerAirGapCreator);
         String gradleInspectorVersion = detectConfiguration.getValueOrEmpty(DetectProperties.DETECT_GRADLE_INSPECTOR_VERSION.getProperty()).orElse(null);

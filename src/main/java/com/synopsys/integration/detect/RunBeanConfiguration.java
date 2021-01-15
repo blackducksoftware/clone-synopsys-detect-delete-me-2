@@ -65,6 +65,7 @@ import com.synopsys.integration.detect.tool.detector.inspectors.nuget.runtime.Do
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScanner;
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerOptions;
 import com.synopsys.integration.detect.workflow.ArtifactResolver;
+import com.synopsys.integration.detect.workflow.ArtifactoryDetails;
 import com.synopsys.integration.detect.workflow.DetectRun;
 import com.synopsys.integration.detect.workflow.airgap.AirGapInspectorPaths;
 import com.synopsys.integration.detect.workflow.airgap.AirGapOptions;
@@ -104,6 +105,8 @@ public class RunBeanConfiguration {
     public DocumentBuilder documentBuilder;
     @Autowired
     public DetectableOptionFactory detectableOptionFactory;
+    @Autowired
+    public ArtifactoryDetails artifactoryDetails;
 
     @Bean
     public ExternalIdFactory externalIdFactory() {
@@ -186,13 +189,13 @@ public class RunBeanConfiguration {
     //#region Detectables
     @Bean
     public DockerInspectorResolver dockerInspectorResolver() throws DetectUserFriendlyException {
-        DockerInspectorInstaller dockerInspectorInstaller = new DockerInspectorInstaller(artifactResolver());
+        DockerInspectorInstaller dockerInspectorInstaller = new DockerInspectorInstaller(artifactResolver(), artifactoryDetails);
         return new ArtifactoryDockerInspectorResolver(directoryManager, airGapManager(), fullFileFinder(), dockerInspectorInstaller, detectableOptionFactory.createDockerDetectableOptions());
     }
 
     @Bean()
     public GradleInspectorResolver gradleInspectorResolver() throws DetectUserFriendlyException {
-        GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver());
+        GradleInspectorInstaller gradleInspectorInstaller = new GradleInspectorInstaller(artifactResolver(), artifactoryDetails);
         return new ArtifactoryGradleInspectorResolver(gradleInspectorInstaller, configuration, detectableOptionFactory.createGradleInspectorOptions().getGradleInspectorScriptOptions(), airGapManager(), directoryManager);
     }
 
@@ -204,7 +207,7 @@ public class RunBeanConfiguration {
         if (nugetAirGapPath.isPresent()) {
             locator = new AirgapNugetInspectorLocator(airGapManager());
         } else {
-            NugetInspectorInstaller installer = new NugetInspectorInstaller(artifactResolver());
+            NugetInspectorInstaller installer = new NugetInspectorInstaller(artifactResolver(), artifactoryDetails);
             locator = new OnlineNugetInspectorLocator(installer, directoryManager, installerOptions.getNugetInspectorVersion().orElse(null));
         }
 
