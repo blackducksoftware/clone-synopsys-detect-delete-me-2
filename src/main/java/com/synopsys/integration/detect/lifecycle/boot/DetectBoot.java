@@ -44,6 +44,7 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.configuration.DetectableOptionFactory;
 import com.synopsys.integration.detect.configuration.enumeration.DetectGroup;
 import com.synopsys.integration.detect.configuration.help.DetectArgumentState;
+import com.synopsys.integration.detect.configuration.help.DetectHelpArgumentState;
 import com.synopsys.integration.detect.configuration.help.json.HelpJsonManager;
 import com.synopsys.integration.detect.configuration.help.print.HelpPrinter;
 import com.synopsys.integration.detect.configuration.validation.DeprecationResult;
@@ -83,13 +84,14 @@ public class DetectBoot {
     }
 
     public Optional<DetectBootResult> boot(String detectVersion) throws IOException, IllegalAccessException {
-        if (detectArgumentState.isHelp() || detectArgumentState.isDeprecatedHelp() || detectArgumentState.isVerboseHelp()) {
+        DetectHelpArgumentState helpArgumentState = detectArgumentState.getHelpArgumentState();
+        if (helpArgumentState.isHelp() || helpArgumentState.isDeprecatedHelp() || helpArgumentState.isVerboseHelp()) {
             HelpPrinter helpPrinter = new HelpPrinter();
             helpPrinter.printAppropriateHelpMessage(DEFAULT_PRINT_STREAM, DetectProperties.allProperties(), Arrays.asList(DetectGroup.values()), DetectGroup.BLACKDUCK_SERVER, detectArgumentState);
             return Optional.of(DetectBootResult.exit(new PropertyConfiguration(propertySources)));
         }
 
-        if (detectArgumentState.isHelpJsonDocument()) {
+        if (helpArgumentState.isHelpJsonDocument()) {
             HelpJsonManager helpJsonManager = detectBootFactory.createHelpJsonManager();
             helpJsonManager.createHelpJsonDocument(String.format("synopsys-detect-%s-help.json", detectVersion));
             return Optional.of(DetectBootResult.exit(new PropertyConfiguration(propertySources)));
@@ -210,7 +212,12 @@ public class DetectBoot {
         detectContext.registerConfiguration(RunBeanConfiguration.class);
         detectContext.lock(); //can only refresh once, this locks and triggers refresh.
 
-        return Optional.of(DetectBootResult.run(detectConfiguration, productRunData, directoryManager, diagnosticSystem));
+        if (detectArgumentState.isAnalyze()) {
+            return Optional.of(DetectBootResult.analyze(detectConfiguration, productRunData, directoryManager, diagnosticSystem));
+        } else {
+            return Optional.of(DetectBootResult.run(detectConfiguration, productRunData, directoryManager, diagnosticSystem));
+        }
+
     }
 
 }
