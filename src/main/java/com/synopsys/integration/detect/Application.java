@@ -181,7 +181,20 @@ public class Application implements ApplicationRunner {
                 exitCodeManager.requestExitCode(e);
             }
         } else if (detectBootResult.getBootType() == DetectBootResult.BootType.ANALYZE) {
-            AnalyzeManager analyzeManager = new AnalyzeManager()
+            AnalyzeManager analyzeManager = new AnalyzeManager(detectContext);
+            try {
+                logger.debug("Detect analyze begin: {}", detectRun.getRunId());
+                analyzeManager.run();
+                logger.debug("Detect analyze completed.");
+            } catch (Exception e) {
+                if (e.getMessage() != null) {
+                    logger.error("Detect run failed: {}", e.getMessage());
+                } else {
+                    logger.error("Detect analyze failed: {}", e.getClass().getSimpleName());
+                }
+                logger.debug("An exception was thrown during the detect analyze.", e);
+                exitCodeManager.requestExitCode(e);
+            }
         } else {
             logger.debug("Detect will NOT attempt to run.");
             detectBootResult.getException().ifPresent(exitCodeManager::requestExitCode);
