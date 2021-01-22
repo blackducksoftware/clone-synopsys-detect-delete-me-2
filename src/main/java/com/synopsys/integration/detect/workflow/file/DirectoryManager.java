@@ -103,7 +103,7 @@ public class DirectoryManager {
             logger.warn("However, this folder typically has restricted access and may cause exceptions in detect.");
             logger.warn("To ensure continued operation, supply an output directory using " + DetectProperties.DETECT_OUTPUT_PATH.getProperty().getName() + " in the future.");
         }
-        logger.info("Output directory: " + outputDirectory.getAbsolutePath());
+        logger.debug("Output directory: " + outputDirectory.getAbsolutePath());
 
         directoryOptions.getToolsOutputPath()
             .map(Path::toFile)
