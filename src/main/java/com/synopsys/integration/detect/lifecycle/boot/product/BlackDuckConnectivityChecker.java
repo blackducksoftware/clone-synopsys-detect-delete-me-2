@@ -40,6 +40,7 @@ import com.synopsys.integration.blackduck.service.dataservice.UserGroupService;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.exception.IntegrationException;
+import com.synopsys.integration.log.SilentIntLogger;
 import com.synopsys.integration.log.Slf4jIntLogger;
 import com.synopsys.integration.rest.client.ConnectionResult;
 
@@ -51,14 +52,15 @@ public class BlackDuckConnectivityChecker {
 
         logger.debug("Detect will check communication with the Black Duck server.");
 
-        ConnectionResult connectionResult = blackDuckServerConfig.attemptConnection(new Slf4jIntLogger(logger));
+        ConnectionResult connectionResult = blackDuckServerConfig.attemptConnection(new SilentIntLogger()); // An info log is logged even in happy case when using trust cert. If it fails, we run it again with a logger should be enough. - jp
 
         if (connectionResult.isFailure()) {
+            blackDuckServerConfig.attemptConnection(new Slf4jIntLogger(logger));
             logger.error("Failed to connect to the Black Duck server");
             return BlackDuckConnectivityResult.failure(connectionResult.getFailureMessage().orElse("Could not reach the Black Duck server or the credentials were invalid."));
         }
 
-        logger.info("Connection to the Black Duck server was successful.");
+        logger.debug("Connection to the Black Duck server was successful.");
 
         BlackDuckServicesFactory blackDuckServicesFactory = blackDuckServerConfig.createBlackDuckServicesFactory(new Slf4jIntLogger(logger));
 
