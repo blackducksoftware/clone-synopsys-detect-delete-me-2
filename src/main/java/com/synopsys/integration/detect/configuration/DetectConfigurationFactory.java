@@ -103,6 +103,14 @@ public class DetectConfigurationFactory {
         this.pathResolver = pathResolver;
     }
 
+    public Integer findAnalyzeDepthOrNull() {
+        if (detectConfiguration.wasPropertyProvided(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH.getProperty())) {
+            return detectConfiguration.getValue(DetectProperties.DETECT_DETECTOR_SEARCH_DEPTH.getProperty());
+        } else {
+            return null;
+        }
+    }
+
     //#region Prefer These Over Any Property
     public Long findTimeoutInSeconds() {
         long timeout = getValue(DetectProperties.DETECT_TIMEOUT);
