@@ -102,6 +102,10 @@ public class Bds<T> {
         return stream.min(comparator);
     }
 
+    public Optional<T> maxBy(final Comparator<? super T> comparator) {
+        return stream.max(comparator);
+    }
+
     public <R> Map<R, List<T>> groupBy(final Function<? super T, ? extends R> classifier) {
         return stream.collect(Collectors.groupingBy(classifier));
     }
@@ -109,6 +113,10 @@ public class Bds<T> {
     public <K, U> Map<K, U> toMap(final Function<? super T, ? extends K> keyMapper,
         final Function<? super T, ? extends U> valueMapper) {
         return stream.collect(Collectors.toMap(keyMapper, valueMapper));
+    }
+
+    public String joining(String delimiter) {
+        return stream.map(Objects::toString).collect(Collectors.joining(delimiter));
     }
 
     @SafeVarargs
