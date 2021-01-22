@@ -251,7 +251,7 @@ public class RunManager {
             DetectorRuleFactory detectorRuleFactory = new DetectorRuleFactory();
             DetectorRuleSet detectRuleSet = detectorRuleFactory.createRules(detectDetectableFactory, buildless);
 
-            Path sourcePath = directoryManager.getSourceDirectory().toPath();
+            Path sourcePath = directoryManager.getSourceDirectory().toPath(); //TODO: This doesn't quite seem right - can we losslessly convert between File and Path? - jp
             DetectorFinderOptions finderOptions = new DetectorFinderOptions(detectConfigurationFactory.createSearchFilter(sourcePath), detectConfigurationFactory.findSearchDepth());
             DetectorEvaluationOptions detectorEvaluationOptions = detectConfigurationFactory.createDetectorEvaluationOptions();
 
