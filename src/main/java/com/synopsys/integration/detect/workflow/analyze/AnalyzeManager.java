@@ -43,7 +43,8 @@ import com.synopsys.integration.detect.tool.detector.DetectorRuleFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
 import com.synopsys.integration.detect.tool.detector.file.DetectDetectorFileFilter;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
-import com.synopsys.integration.detect.workflow.report.util.DetectorEvaluationUtils;
+import com.synopsys.integration.detect.workflow.report.EvaluationSummarizer;
+import com.synopsys.integration.detect.workflow.report.EvaluationSummary;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 import com.synopsys.integration.detector.base.DetectorEvaluation;
 import com.synopsys.integration.detector.base.DetectorEvaluationTree;
@@ -106,29 +107,48 @@ public class AnalyzeManager {
         logger.info(ReportConstants.RUN_SEPARATOR);
 
         //First, let's print some info about the detectors were found.
-        logger.info("The following (" + buildDetectors.size() + ") detector types were found: " + Bds.of(buildDetectors).joining(", "));
-        logger.info("Min depth : " + Bds.of(detectorsAtDepths).map(DetectorsAtDepths::getDepth).minBy(Integer::compareTo).map(Object::toString).orElse("N/A"));
-        logger.info("Max depth : " + Bds.of(detectorsAtDepths).map(DetectorsAtDepths::getDepth).maxBy(Integer::compareTo).map(Object::toString).orElse("N/A"));
+        if (buildDetectors.size() > 0) {
+            logger.info("The following (" + buildDetectors.size() + ") detector types were found: " + Bds.of(buildDetectors).joining(", "));
 
-        boolean anyAtDepthZero = Bds.of(detectorsAtDepths).filter(it -> it.getDepth() == 0).filter(it -> it.getDetectorTypes().isEmpty()).toList().isEmpty();
-        if (anyAtDepthZero) {
-            logger.info("Detectors were found in the root folder.");
+            Set<DetectorType> detectorsAtRoot = Bds.of(detectorsAtDepths).filter(it -> it.getDepth() == 0).flatMap(DetectorsAtDepths::getDetectorTypes).toSet();
+            Set<DetectorType> detectorsDeeper = Bds.of(detectorsAtDepths).filter(it -> it.getDepth() > 0).flatMap(DetectorsAtDepths::getDetectorTypes).toSet();
+
+            int maxDepth = Bds.of(detectorsAtDepths).map(DetectorsAtDepths::getDepth).maxBy(Integer::compareTo).orElseGet(() -> 0);
+            boolean anyAtDepthZero = !detectorsAtRoot.isEmpty();
+
+            if (anyAtDepthZero && maxDepth == 0) {
+                logger.info("Detectors were ONLY found in the root folder. The default search depth is sufficient for this project.");
+            } else if (anyAtDepthZero && maxDepth > 0) {
+                logger.info("Detectors were found in the root folder, but also up to depth {}. While not required, increasing the search depth will include additional detectors.", maxDepth);
+                Set<DetectorType> difference = SetUtils.difference(detectorsDeeper, detectorsAtRoot);
+                if (difference.size() > 0) {
+                    logger.info("Detectors of the following types are only present at a depth greater than root: {}", Bds.of(difference).joining(", "));
+                }
+            } else if (!anyAtDepthZero && maxDepth > 0) {
+                logger.info("NO detectors were found in the root folder, but were found up to depth {}. Search depth must be increased for any detector results.", maxDepth);
+            }
+
+            //We should at this point guess which project we think it will be.
+
         } else {
-            logger.info("NO detectors were found in the root folder. Search depth must be increased for any detector results.");
+            logger.info("No detectors were found at any depth. Detectors are not required to scan this project and could be disabled with no data loss.");
         }
+
         //OK so predicting what detect will pick is not as easy as I thought...
         //ProjectNameVersionDecider projectNameVersionDecider = new ProjectNameVersionDecider(new ProjectNameVersionOptions())
         // logger.info("Detect believes this is most likely a " + + " project.");
 
         //Next, let's verify all 'Applicable' detectors were 'Extractable', if not, we should try running the buildless rules and compare the detectors.
-        Set<DetectorType> applicableButNotExtractable = findApplicableButNotExtractable(buildEvaluation);
-        if (applicableButNotExtractable.isEmpty()) {
-            logger.info("All detectors were extractable, no further configuration recommended.");
-        } else { //TODO: Handle fallbacks.
-            logger.info(ReportConstants.RUN_SEPARATOR);
-            logger.info("Issues were found! The following detectors will not be extractable: " + Bds.of(applicableButNotExtractable).joining(", "));
+        EvaluationSummarizer evaluationSummarizer = new EvaluationSummarizer();
+        EvaluationSummary summary = evaluationSummarizer.summarize(buildEvaluation);
 
-            Bds.of(DetectorEvaluationUtils.filteredChildren(buildEvaluation, it -> it.isApplicable() && !it.isExtractable())).forEach(it -> {
+        if (summary.getFailedNotSkipped().isEmpty()) {
+            logger.info("All detectors were extractable.");
+        } else {
+            logger.info(ReportConstants.RUN_SEPARATOR);
+            logger.info("Issues were found! The following detectors will not be extractable: " + Bds.of(mapToDetectorTypes(summary.getFailedNotSkipped())).joining(", "));
+
+            summary.getFailedNotSkipped().forEach(it -> {
                 logger.info("\t" + it.getDetectorType() + ": " + it.getExtractabilityMessage());
             });
 
@@ -138,14 +158,21 @@ public class AnalyzeManager {
             Set<DetectorType> buildlessDetectors = findAllApplicableDetectorTypes(buildlessEvaluation);
             logger.info(ReportConstants.RUN_SEPARATOR);
 
-            logger.info("The following (" + buildlessDetectors.size() + ") detector types were found in buildless: " + Bds.of(buildlessDetectors).joining(", "));
-
-            Set<DetectorType> difference = SetUtils.difference(buildDetectors, buildlessDetectors);
-            if (difference.isEmpty()) {
-                logger.info("The same set of detectors is applicable for both buildless and build - buildless could be used.");
+            if (buildDetectors.size() == 0) {
+                logger.info("No detectors were applicable in buildless. Buildless should not be used.");
             } else {
-                logger.info("The following (" + difference.size() + ") detector types would be MISSING if ran in buildless: " + Bds.of(difference).joining(", "));
+                logger.info("The following (" + buildlessDetectors.size() + ") detector types were found in buildless: " + Bds.of(buildlessDetectors).joining(", "));
+
+                Set<DetectorType> difference = SetUtils.difference(buildDetectors, buildlessDetectors);
+                if (difference.isEmpty()) {
+                    logger.info("The same set of detectors is applicable for both buildless and build.");
+                    logger.info("While the results will not have the same fidelity, buildless could be used without decreasing detector counts.");
+                } else {
+                    logger.info("The following (" + difference.size() + ") detector types would be MISSING if ran in buildless: " + Bds.of(difference).joining(", "));
+                    logger.info("While it is not preferred to run in buildless, it could be used to generate some results.");
+                }
             }
+
         }
         //Now we have partially evaluated tree. Let's do some summaries about what we found. Ideally the reporters for diagnostics are involved.
         //Let's start simply. Lets try counting the
@@ -175,14 +202,15 @@ public class AnalyzeManager {
     }
 
     public Set<DetectorType> findAllApplicableDetectorTypes(DetectorEvaluationTree rootEvaluation) {
-        return Bds.of(DetectorEvaluationUtils.filteredChildren(rootEvaluation, DetectorEvaluation::isApplicable))
+        return Bds.of(rootEvaluation.allDescendentEvaluations())
+                   .filter(DetectorEvaluation::isApplicable)
                    .map(DetectorEvaluation::getDetectorType)
                    .toSet();
 
     }
 
-    public Set<DetectorType> findApplicableButNotExtractable(DetectorEvaluationTree rootEvaluation) {
-        return Bds.of(DetectorEvaluationUtils.filteredChildren(rootEvaluation, it -> it.isApplicable() && !it.isExtractable()))
+    public Set<DetectorType> mapToDetectorTypes(List<DetectorEvaluation> evaluations) {
+        return Bds.of(evaluations)
                    .map(DetectorEvaluation::getDetectorType)
                    .toSet();
 
