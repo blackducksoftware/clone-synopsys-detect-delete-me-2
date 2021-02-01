@@ -24,6 +24,7 @@ package com.synopsys.integration.detect.workflow.analyze;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -43,6 +44,10 @@ import com.synopsys.integration.detect.tool.detector.DetectorRuleFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
 import com.synopsys.integration.detect.tool.detector.file.DetectDetectorFileFilter;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
+import com.synopsys.integration.detect.workflow.nameversion.DetectorNameVersionHandler;
+import com.synopsys.integration.detect.workflow.nameversion.DetectorProjectInfo;
+import com.synopsys.integration.detect.workflow.nameversion.DetectorProjectInfoMetadata;
+import com.synopsys.integration.detect.workflow.nameversion.decision.NameVersionDecision;
 import com.synopsys.integration.detect.workflow.report.EvaluationSummarizer;
 import com.synopsys.integration.detect.workflow.report.EvaluationSummary;
 import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
@@ -56,6 +61,7 @@ import com.synopsys.integration.detector.finder.DetectorFinder;
 import com.synopsys.integration.detector.finder.DetectorFinderDirectoryListException;
 import com.synopsys.integration.detector.finder.DetectorFinderOptions;
 import com.synopsys.integration.detector.rule.DetectorRuleSet;
+import com.synopsys.integration.util.NameVersion;
 
 public class AnalyzeManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -153,10 +159,22 @@ public class AnalyzeManager {
         logger.info("");
         logger.info(ReportConstants.RUN_SEPARATOR);
 
+        //It would also be nice to try to predict which detector is the Project/Version.
+        //To accurately predict, we would need to know if the detector will produce a Project/Version which we can't currently know until evaluation....
+        DetectorNameVersionHandler nameVersionHandler = new DetectorNameVersionHandler(Collections.singletonList(DetectorType.GIT));
+        for (DetectorsAtDepths detectorsAtDepth : detectorsAtDepths) {
+            for (DetectorType type : detectorsAtDepth.getDetectorTypes()) {
+                if (nameVersionHandler.willAccept(new DetectorProjectInfoMetadata(type, detectorsAtDepth.getDepth()))) {
+                    nameVersionHandler.accept(new DetectorProjectInfo(type, detectorsAtDepth.getDepth(), new NameVersion("Example Name", "Example Version")));
+                }
+            }
+        }
 
-        //OK so predicting what detect will pick is not as easy as I thought...
-        //ProjectNameVersionDecider projectNameVersionDecider = new ProjectNameVersionDecider(new ProjectNameVersionOptions())
-        // logger.info("Detect believes this is most likely a " + + " project.");
+        NameVersionDecision decision = nameVersionHandler.finalDecision();
+        decision.printDescription(logger::info, logger::info);
+
+        logger.info("");
+        logger.info(ReportConstants.RUN_SEPARATOR);
 
         //Next, let's verify all 'Applicable' detectors were 'Extractable', if not, we should try running the buildless rules and compare the detectors.
         EvaluationSummarizer evaluationSummarizer = new EvaluationSummarizer();
@@ -164,6 +182,7 @@ public class AnalyzeManager {
 
         if (summary.getFailedNotSkipped().isEmpty()) {
             logger.info("All detectors were extractable.");
+            logger.info("Build mode should be used and should succeed.");
         } else {
             logger.info(ReportConstants.RUN_SEPARATOR);
             logger.info("Issues were found! The following detectors will not be extractable: " + Bds.of(mapToDetectorTypes(summary.getFailedNotSkipped())).joining(", "));
@@ -198,10 +217,6 @@ public class AnalyzeManager {
         //Let's start simply. Lets try counting the
         //
         logger.info(ReportConstants.RUN_SEPARATOR);
-    }
-
-    public void compareBuildAndBuildless(Set<DetectorType> build, Set<DetectorType> buildless) {
-
     }
 
     public DetectorEvaluationTree evaluateDetectorsRulesToExtractable(DetectorRuleSet ruleSet, DetectorEvaluationOptions detectorEvaluationOptions, File sourceDirectory, DetectorFinderOptions detectorFinderOptions,
