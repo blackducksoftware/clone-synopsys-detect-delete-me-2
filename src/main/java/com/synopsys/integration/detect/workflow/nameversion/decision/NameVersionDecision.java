@@ -23,9 +23,9 @@
 package com.synopsys.integration.detect.workflow.nameversion.decision;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 import com.synopsys.integration.util.NameVersion;
 
@@ -49,5 +49,5 @@ public abstract class NameVersionDecision {
         return getNameVersion();
     }
 
-    public abstract void printDescription(Logger logger);
+    public abstract void printDescription(Consumer<String> info, Consumer<String> debug);
 }

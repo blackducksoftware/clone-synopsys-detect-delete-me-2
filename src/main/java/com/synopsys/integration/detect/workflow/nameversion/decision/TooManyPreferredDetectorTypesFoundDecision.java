@@ -22,7 +22,7 @@
  */
 package com.synopsys.integration.detect.workflow.nameversion.decision;
 
-import org.slf4j.Logger;
+import java.util.function.Consumer;
 
 import com.synopsys.integration.detector.base.DetectorType;
 
@@ -38,7 +38,7 @@ public class TooManyPreferredDetectorTypesFoundDecision extends NameVersionDecis
     }
 
     @Override
-    public void printDescription(final Logger logger) {
-        logger.debug(String.format("More than one preferred detector of type %s was found. Project info could not be found in a detector.", detectorType.name()));
+    public void printDescription(Consumer<String> info, Consumer<String> debug) {
+        debug.accept(String.format("More than one preferred detector of type %s was found. Project info could not be found in a detector.", detectorType.name()));
     }
 }
