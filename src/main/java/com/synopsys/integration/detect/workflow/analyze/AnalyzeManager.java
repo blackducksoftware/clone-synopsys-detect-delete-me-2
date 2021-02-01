@@ -213,10 +213,24 @@ public class AnalyzeManager {
             }
 
         }
-        //Now we have partially evaluated tree. Let's do some summaries about what we found. Ideally the reporters for diagnostics are involved.
-        //Let's start simply. Lets try counting the
-        //
+
+        logger.info("");
         logger.info(ReportConstants.RUN_SEPARATOR);
+
+        logger.info("Detailed Detector Report");
+        for (DetectorEvaluationTree tree : buildEvaluation.asFlatList()) {
+
+            List<DetectorEvaluation> applicable = Bds.of(tree.getOrderedEvaluations())
+                                                      .filter(DetectorEvaluation::isApplicable)
+                                                      .toList();
+
+            if (applicable.size() > 0) {
+                logger.info("\t(" + tree.getDepthFromRoot() + ") " + tree.getDirectory().toString());
+                applicable.forEach(evaluation -> {
+                    logger.info("\t\t" + evaluation.getDetectorRule().getDescriptiveName() + ": " + evaluation.getExtractabilityMessage());
+                });
+            }
+        }
     }
 
     public DetectorEvaluationTree evaluateDetectorsRulesToExtractable(DetectorRuleSet ruleSet, DetectorEvaluationOptions detectorEvaluationOptions, File sourceDirectory, DetectorFinderOptions detectorFinderOptions,
