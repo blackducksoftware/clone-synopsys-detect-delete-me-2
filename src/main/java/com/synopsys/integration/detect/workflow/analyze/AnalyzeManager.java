@@ -133,6 +133,26 @@ public class AnalyzeManager {
         } else {
             logger.info("No detectors were found at any depth. Detectors are not required to scan this project and could be disabled with no data loss.");
         }
+        logger.info("");
+        logger.info(ReportConstants.RUN_SEPARATOR);
+
+        //Lets also try searching with search.continue
+        if (!detectorEvaluationOptions.isForceNested()) {
+            logger.info("Detect will check to see if additional detectors can be found if detector search was forced to continue.");
+            DetectorEvaluationOptions options = new DetectorEvaluationOptions(true, detectorEvaluationOptions.getDetectorFilter());
+            DetectorEvaluationTree forcedBuildEvaluation = evaluateDetectorsRulesToExtractable(buildRules, options, sourceDirectory, detectorFinderOptions, extractionEnvironmentProvider);
+            Set<DetectorType> forcedTypes = findAllApplicableDetectorTypes(forcedBuildEvaluation);
+            Set<DetectorType> difference = SetUtils.difference(forcedTypes, buildDetectors);
+            if (difference.size() > 0) {
+                logger.info("The following detectors would also be found if forced continue was enabled: {}", Bds.of(difference).joining(", "));
+            } else {
+                logger.info("No additional detectors would be found if forced continue was enabled.");
+            }
+        }
+
+        logger.info("");
+        logger.info(ReportConstants.RUN_SEPARATOR);
+
 
         //OK so predicting what detect will pick is not as easy as I thought...
         //ProjectNameVersionDecider projectNameVersionDecider = new ProjectNameVersionDecider(new ProjectNameVersionOptions())
