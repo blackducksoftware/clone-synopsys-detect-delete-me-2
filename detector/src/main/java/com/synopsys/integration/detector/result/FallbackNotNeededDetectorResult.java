@@ -37,6 +37,6 @@ public class FallbackNotNeededDetectorResult extends FailedDetectableResult {
 
     @Override
     public String toDescription() {
-        return String.format("No fallback needed, detector passed: %s", passingDetector.getDescriptiveName());
+        return String.format("Not needed, is a fallback for: %s", passingDetector.getDescriptiveName());
     }
 }
