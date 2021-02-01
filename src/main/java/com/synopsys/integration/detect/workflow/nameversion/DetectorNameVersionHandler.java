@@ -108,12 +108,15 @@ public class DetectorNameVersionHandler {
 
         Optional<DetectorProjectInfo> chosenDetectorProjectInfo = chosenPossibilities.stream().min(Comparator.comparing(p -> p.getNameVersion().getName()));
 
-        return chosenDetectorProjectInfo.map(chosen -> {
+        if (chosenDetectorProjectInfo.isPresent()) {
+            DetectorProjectInfo chosen = chosenDetectorProjectInfo.get();
             List<DetectorProjectInfo> otherOptions = chosenPossibilities.stream()
-                                                         .filter(it -> chosen.getDetectorType().equals(it.getDetectorType()))
+                                                         .filter(it -> !chosen.getDetectorType().equals(it.getDetectorType()))
                                                          .collect(Collectors.toList());
-            return (NameVersionDecision) new ArbitraryNameVersionDecision(chosen.getNameVersion(), chosen, otherOptions);
-        }).orElse(new UniqueDetectorNotFoundDecision());
+            return new ArbitraryNameVersionDecision(chosen.getNameVersion(), chosen, otherOptions);
+        } else {
+            return new UniqueDetectorNotFoundDecision();
+        }
     }
 
     // Return only project info whose detector types appear exactly once.

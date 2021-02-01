@@ -50,6 +50,7 @@ import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.nameversion.DetectorNameVersionHandler;
 import com.synopsys.integration.detect.workflow.nameversion.PreferredDetectorNameVersionHandler;
+import com.synopsys.integration.detect.workflow.nameversion.decision.NameVersionDecision;
 import com.synopsys.integration.detect.workflow.status.DetectorStatus;
 import com.synopsys.integration.detect.workflow.status.StatusType;
 import com.synopsys.integration.detect.workflow.status.UnrecognizedPaths;
@@ -149,8 +150,11 @@ public class DetectorTool {
 
         Map<CodeLocation, DetectCodeLocation> codeLocationMap = createCodeLocationMap(detectorEvaluations, directory);
 
+        NameVersionDecision decision = detectorNameVersionHandler.finalDecision();
+        decision.printDescription(logger::info, logger::debug);
+
         DetectorToolResult detectorToolResult = new DetectorToolResult(
-            detectorNameVersionHandler.finalDecision().getChosenNameVersion().orElse(null),
+            decision.getChosenNameVersion().orElse(null),
             new ArrayList<>(codeLocationMap.values()),
             evaluationResult.getApplicableDetectorTypes(),
             new HashSet<>(),
