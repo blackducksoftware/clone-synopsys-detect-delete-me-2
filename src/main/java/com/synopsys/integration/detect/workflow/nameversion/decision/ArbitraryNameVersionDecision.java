@@ -23,9 +23,9 @@
 package com.synopsys.integration.detect.workflow.nameversion.decision;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 import com.synopsys.integration.detect.configuration.DetectProperties;
 import com.synopsys.integration.detect.workflow.nameversion.DetectorProjectInfo;
@@ -50,23 +50,23 @@ public class ArbitraryNameVersionDecision extends NameVersionDecision {
     }
 
     @Override
-    public void printDescription(final Logger logger) {
-        logger.info("The following project names were found: ");
-        logger.info(String.format("\t%s: %s, %s",
+    public void printDescription(Consumer<String> info, Consumer<String> debug) {
+        info.accept("The following project names were found: ");
+        info.accept(String.format("\t%s: %s, %s",
             chosenDetector.getDetectorType().name(),
             chosenDetector.getNameVersion().getName(),
             chosenDetector.getNameVersion().getVersion()));
         for (final DetectorProjectInfo projectNamePossibility : otherDetectors) {
-            logger.info(String.format("\t%s: %s, %s",
+            info.accept(String.format("\t%s: %s, %s",
                 projectNamePossibility.getDetectorType().name(),
                 projectNamePossibility.getNameVersion().getName(),
                 projectNamePossibility.getNameVersion().getVersion()
             ));
         }
-        logger.info(String.format("Chose to use %s at depth %d for project name and version. Override with %s.",
+        info.accept(String.format("Chose to use %s at depth %d for project name and version. Override with %s.",
             chosenDetector.getDetectorType().name(),
             chosenDetector.getDepth(),
-             DetectProperties.DETECT_PROJECT_DETECTOR.getProperty().getKey()
+            DetectProperties.DETECT_PROJECT_DETECTOR.getProperty().getKey()
         ));
 
     }

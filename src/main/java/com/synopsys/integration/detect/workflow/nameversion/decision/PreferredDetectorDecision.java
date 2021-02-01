@@ -22,7 +22,7 @@
  */
 package com.synopsys.integration.detect.workflow.nameversion.decision;
 
-import org.slf4j.Logger;
+import java.util.function.Consumer;
 
 import com.synopsys.integration.detect.workflow.nameversion.DetectorProjectInfo;
 
@@ -39,7 +39,7 @@ public class PreferredDetectorDecision extends NameVersionDecision {
     }
 
     @Override
-    public void printDescription(final Logger logger) {
-        logger.debug(String.format("Using preferred bom tool project info from %s found at depth %d as project info.", detectorProjectInfo.getDetectorType().name(), detectorProjectInfo.getDepth()));
+    public void printDescription(Consumer<String> info, Consumer<String> debug) {
+        info.accept(String.format("Using preferred bom tool project info from %s found at depth %d as project info.", detectorProjectInfo.getDetectorType().name(), detectorProjectInfo.getDepth()));
     }
 }
