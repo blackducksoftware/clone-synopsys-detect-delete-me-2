@@ -35,31 +35,18 @@ import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadOutput;
 import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadTarget;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.workflow.bdio.BdioResult;
 import com.synopsys.integration.detect.workflow.blackduck.DetectBdioUploadService;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationAccumulator;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class CodeLocationOperation extends BlackDuckOnlineOperation<BdioResult, CodeLocationAccumulator<UploadOutput, UploadBatchOutput>> {
+public class BdioUploadOperation {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public CodeLocationOperation(ProductRunData productRunData) {
-        super(productRunData);
-    }
-
-    @Override
-    public String getOperationName() {
-        return "Create Code Locations";
-    }
-
-    @Override
-    public OperationResult<CodeLocationAccumulator<UploadOutput, UploadBatchOutput>> executeOperation(BdioResult input) throws DetectUserFriendlyException, IntegrationException {
+    public CodeLocationAccumulator<UploadOutput, UploadBatchOutput> execute(BlackDuckServicesFactory blackDuckServicesFactory, BdioResult input) throws DetectUserFriendlyException, IntegrationException {
         CodeLocationAccumulator<UploadOutput, UploadBatchOutput> codeLocationAccumulator = new CodeLocationAccumulator<>();
         List<UploadTarget> uploadTargetList = input.getUploadTargets();
         if (!uploadTargetList.isEmpty()) {
-            BlackDuckServicesFactory blackDuckServicesFactory = getBlackDuckServicesFactory();
             BdioUploadService bdioUploadService = blackDuckServicesFactory.createBdioUploadService();
             Bdio2UploadService bdio2UploadService = blackDuckServicesFactory.createBdio2UploadService();
             DetectBdioUploadService detectBdioUploadService = new DetectBdioUploadService();
@@ -71,6 +58,6 @@ public class CodeLocationOperation extends BlackDuckOnlineOperation<BdioResult, 
         } else {
             logger.debug("Did not create any BDIO files.");
         }
-        return OperationResult.success(codeLocationAccumulator);
+        return codeLocationAccumulator;
     }
 }

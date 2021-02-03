@@ -31,10 +31,10 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.lifecycle.run.RunContext;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateOptionsOperation;
+import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateDecisionOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BdioFileGenerationOperation;
+import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BdioUploadOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BinaryScanOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.CodeLocationOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.CodeLocationResultOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.FullScanPostProcessingOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.ImpactAnalysisOperation;
@@ -72,8 +72,8 @@ public class OperationFactory {
         return new PolarisOperation(runContext.getProductRunData(), runContext.getDetectConfiguration(), runContext.getDirectoryManager(), runOptions.getDetectToolFilter(), runContext.getEventSystem());
     }
 
-    public final DockerOperation createDockerOperation() {
-        return new DockerOperation(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), runOptions.getDetectToolFilter(), runContext.getExtractionEnvironmentProvider(),
+    public final DockerToolOperation createDockerOperation() {
+        return new DockerToolOperation(runContext.getDirectoryManager(), runContext.getEventSystem(), runContext.getDetectDetectableFactory(), runOptions.getDetectToolFilter(), runContext.getExtractionEnvironmentProvider(),
             runContext.getCodeLocationConverter());
     }
 
@@ -92,14 +92,14 @@ public class OperationFactory {
         return new RapidScanOperation(runContext.getProductRunData(), runContext.getGson(), runContext.getEventSystem(), runContext.getDirectoryManager(), runContext.getDetectConfigurationFactory().findTimeoutInSeconds());
     }
 
-    public final AggregateOptionsOperation createAggregateOptionsOperation() {
-        return new AggregateOptionsOperation(runOptions);
+    public final AggregateDecisionOperation createAggregateDecisionOperation() {
+        return new AggregateDecisionOperation();
     }
 
     public final BdioFileGenerationOperation createBdioFileGenerationOperation() {
         BdioManager bdioManager = new BdioManager(runContext.getDetectInfo(), new SimpleBdioFactory(), new ExternalIdFactory(), new Bdio2Factory(), new IntegrationEscapeUtil(), runContext.getCodeLocationNameManager(),
             runContext.getBdioCodeLocationCreator(), runContext.getDirectoryManager());
-        return new BdioFileGenerationOperation(runOptions, runContext.getDetectConfigurationFactory().createBdioOptions(), bdioManager, runContext.getEventSystem());
+        return new BdioFileGenerationOperation(bdioManager, runContext.getEventSystem(), runContext.getDetectConfigurationFactory().createBdioOptions());
     }
 
     public final BinaryScanOperation createBinaryScanOperation() {
@@ -109,8 +109,8 @@ public class OperationFactory {
         return new BinaryScanOperation(blackDuckRunData, runOptions.getDetectToolFilter(), binaryScanOptions, runContext.getEventSystem(), runContext.getDirectoryManager(), runContext.getCodeLocationNameManager());
     }
 
-    public final CodeLocationOperation createCodeLocationOperation() {
-        return new CodeLocationOperation(runContext.getProductRunData());
+    public final BdioUploadOperation createBdioUploadOperation() {
+        return new BdioUploadOperation();
     }
 
     public final CodeLocationResultOperation createCodeLocationResultOperation() {
@@ -122,7 +122,7 @@ public class OperationFactory {
         BlackDuckPostOptions blackDuckPostOptions = detectConfigurationFactory.createBlackDuckPostOptions();
         Long timeoutInSeconds = detectConfigurationFactory.findTimeoutInSeconds();
 
-        return new FullScanPostProcessingOperation(runContext.getProductRunData(), runOptions.getDetectToolFilter(), blackDuckPostOptions, runContext.getEventSystem(), timeoutInSeconds);
+        return new FullScanPostProcessingOperation(runOptions.getDetectToolFilter(), blackDuckPostOptions, runContext.getEventSystem(), timeoutInSeconds);
     }
 
     public final ImpactAnalysisOperation createImpactAnalysisOperation() {

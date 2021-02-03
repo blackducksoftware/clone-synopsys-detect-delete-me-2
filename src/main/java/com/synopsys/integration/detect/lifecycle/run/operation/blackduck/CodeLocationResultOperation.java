@@ -24,7 +24,6 @@ package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationAccumulator;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationResultCalculator;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationResults;
@@ -42,15 +41,9 @@ public class CodeLocationResultOperation extends BlackDuckOnlineOperation<CodeLo
         this.eventSystem = eventSystem;
     }
 
-    @Override
-    public String getOperationName() {
-        return "Code Location Results";
-    }
-
-    @Override
-    public OperationResult<CodeLocationResults> executeOperation(CodeLocationAccumulator input) throws DetectUserFriendlyException, IntegrationException {
+    public CodeLocationResults executeOperation(CodeLocationAccumulator input) throws DetectUserFriendlyException, IntegrationException {
         CodeLocationResults codeLocationResults = codeLocationResultCalculator.calculateCodeLocationResults(input);
         eventSystem.publishEvent(Event.CodeLocationsCompleted, codeLocationResults.getAllCodeLocationNames());
-        return OperationResult.success(codeLocationResults);
+        return codeLocationResults;
     }
 }

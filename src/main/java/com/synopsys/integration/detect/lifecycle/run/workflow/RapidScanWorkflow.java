@@ -29,7 +29,7 @@ import com.synopsys.integration.detect.lifecycle.run.operation.DetectorOperation
 import com.synopsys.integration.detect.lifecycle.run.operation.OperationFactory;
 import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.lifecycle.run.operation.RapidScanOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateOptionsOperation;
+import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateDecisionOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BdioFileGenerationOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.ProjectDecisionOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.BdioInput;
@@ -49,7 +49,7 @@ public class RapidScanWorkflow extends Workflow {
         RunResult runResult = new RunResult();
         DetectorOperation detectorOperation = getOperationFactory().createDetectorOperation();
         ProjectDecisionOperation projectDecisionOperation = getOperationFactory().createProjectDecisionOperation();
-        AggregateOptionsOperation aggregateOptionsOperation = getOperationFactory().createAggregateOptionsOperation();
+        AggregateDecisionOperation aggregateDecisionOperation = getOperationFactory().createAggregateOptionsOperation();
         BdioFileGenerationOperation bdioFileGenerationOperation = getOperationFactory().createBdioFileGenerationOperation();
         RapidScanOperation rapidScanOperation = getOperationFactory().createRapidScanOperation();
 
@@ -66,7 +66,7 @@ public class RapidScanWorkflow extends Workflow {
         OperationResult<NameVersion> projectInfo = projectDecisionOperation.execute(runResult.getDetectToolProjectInfo());
         NameVersion projectNameVersion = projectInfo.getContent();
 
-        OperationResult<AggregateOptions> aggregateOptions = aggregateOptionsOperation.execute(priorOperationsFailed);
+        OperationResult<AggregateOptions> aggregateOptions = aggregateDecisionOperation.execute(priorOperationsFailed);
         BdioInput bdioInput = new BdioInput(aggregateOptions.getContent(), projectNameVersion, runResult.getDetectCodeLocations());
 
         OperationResult<BdioResult> bdioGeneration = bdioFileGenerationOperation.execute(bdioInput);

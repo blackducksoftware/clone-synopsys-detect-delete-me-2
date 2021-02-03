@@ -30,25 +30,37 @@ import com.synopsys.integration.detect.lifecycle.run.workflow.WorkflowFactory;
 import com.synopsys.integration.detect.lifecycle.run.workflow.WorkflowResult;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
 import com.synopsys.integration.detect.workflow.DetectRun;
-import com.synopsys.integration.detect.workflow.event.EventSystem;
+import com.synopsys.integration.detect.workflow.report.util.ReportConstants;
 
-public class RunManager2 {
+public class WorkflowRunManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final DetectRun detectRun;
     private final ExitCodeManager exitCodeManager;
-    private final EventSystem eventSystem;
 
-    public RunManager2(DetectRun detectRun, ExitCodeManager exitCodeManager, EventSystem eventSystem) {
+    public WorkflowRunManager(DetectRun detectRun, ExitCodeManager exitCodeManager) {
         this.detectRun = detectRun;
         this.exitCodeManager = exitCodeManager;
-        this.eventSystem = eventSystem;
     }
 
-    public WorkflowResult run(RunContext runContext) {
+    public WorkflowResult run(RunContext runContext, RunOptions runOptions) {
         WorkflowFactory workflowFactory = new WorkflowFactory();
         logger.debug("Detect run begin: {}", detectRun.getRunId());
         Workflow workflow = workflowFactory.createWorkflow(runContext);
-        WorkflowResult result = workflow.execute();
+        WorkflowResult result;
+        try {
+            result = workflow.execute();
+            logger.info("All tools have finished.");
+            logger.info(ReportConstants.RUN_SEPARATOR);
+            logger.debug("Detect run completed.");
+        } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+                logger.error("Detect run failed: {}", ex.getMessage());
+            } else {
+                logger.error("Detect run failed: {}", ex.getClass().getSimpleName());
+            }
+            logger.debug("An exception was thrown during the detect run.", ex);
+            result = WorkflowResult.fail(ex);
+        }
 
         if (result.hasFailed()) {
             result.getException().ifPresent(exitCodeManager::requestExitCode);

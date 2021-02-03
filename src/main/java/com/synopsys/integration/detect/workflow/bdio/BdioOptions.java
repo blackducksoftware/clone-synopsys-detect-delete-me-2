@@ -25,10 +25,12 @@ package com.synopsys.integration.detect.workflow.bdio;
 public class BdioOptions {
     private final String projectCodeLocationSuffix;
     private final String projectCodeLocationPrefix;
+    private final boolean useBdio2;
 
-    public BdioOptions(final String projectCodeLocationPrefix, String projectCodeLocationSuffix) {
+    public BdioOptions(final String projectCodeLocationPrefix, String projectCodeLocationSuffix, final boolean useBdio2) {
         this.projectCodeLocationSuffix = projectCodeLocationSuffix;
         this.projectCodeLocationPrefix = projectCodeLocationPrefix;
+        this.useBdio2 = useBdio2;
     }
 
     public String getProjectCodeLocationSuffix() {
@@ -37,5 +39,9 @@ public class BdioOptions {
 
     public String getProjectCodeLocationPrefix() {
         return projectCodeLocationPrefix;
+    }
+
+    public boolean useBdio2() {
+        return useBdio2;
     }
 }

@@ -30,7 +30,6 @@ import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCodeLocationUnmapService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCustomFieldService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectProjectService;
@@ -52,13 +51,7 @@ public class ProjectCreationOperation extends BlackDuckOnlineOperation<NameVersi
         this.detectCustomFieldService = detectCustomFieldService;
     }
 
-    @Override
-    public String getOperationName() {
-        return "Project Creation";
-    }
-
-    @Override
-    public OperationResult<ProjectVersionWrapper> executeOperation(NameVersion input) throws DetectUserFriendlyException, IntegrationException {
+    public ProjectVersionWrapper execute(NameVersion input) throws DetectUserFriendlyException, IntegrationException {
         BlackDuckServicesFactory blackDuckServicesFactory = getBlackDuckServicesFactory();
         DetectProjectService detectProjectService = new DetectProjectService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createProjectService(),
             blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createProjectUsersService(), blackDuckServicesFactory.createTagService(), detectProjectServiceOptions,
@@ -72,6 +65,6 @@ public class ProjectCreationOperation extends BlackDuckOnlineOperation<NameVersi
         } else {
             logger.debug("Will not unmap code locations: Project view was not present, or should not unmap code locations.");
         }
-        return OperationResult.success(projectVersionWrapper);
+        return projectVersionWrapper;
     }
 }

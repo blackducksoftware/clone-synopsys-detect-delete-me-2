@@ -22,45 +22,33 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 
+import java.util.List;
+
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
-import com.synopsys.integration.detect.lifecycle.run.RunOptions;
-import com.synopsys.integration.detect.lifecycle.run.operation.Operation;
-import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
-import com.synopsys.integration.detect.lifecycle.run.operation.input.BdioInput;
+import com.synopsys.integration.detect.workflow.bdio.AggregateOptions;
 import com.synopsys.integration.detect.workflow.bdio.BdioManager;
 import com.synopsys.integration.detect.workflow.bdio.BdioOptions;
 import com.synopsys.integration.detect.workflow.bdio.BdioResult;
+import com.synopsys.integration.detect.workflow.codelocation.DetectCodeLocation;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
-import com.synopsys.integration.exception.IntegrationException;
+import com.synopsys.integration.util.NameVersion;
 
-public class BdioFileGenerationOperation extends Operation<BdioInput, BdioResult> {
-    private final RunOptions runOptions;
-    private final BdioOptions bdioOptions;
+public class BdioFileGenerationOperation {
     private final BdioManager bdioManager;
     private final EventSystem eventSystem;
+    private final BdioOptions bdioOptions;
 
-    public BdioFileGenerationOperation(RunOptions runOptions, BdioOptions bdioOptions, BdioManager bdioManager, EventSystem eventSystem) {
-        this.runOptions = runOptions;
-        this.bdioOptions = bdioOptions;
+    public BdioFileGenerationOperation(BdioManager bdioManager, EventSystem eventSystem, final BdioOptions bdioOptions) {
         this.bdioManager = bdioManager;
         this.eventSystem = eventSystem;
+        this.bdioOptions = bdioOptions;
     }
 
-    @Override
-    public boolean shouldExecute() {
-        return true;
-    }
-
-    @Override
-    public String getOperationName() {
-        return "Bdio Generation";
-    }
-
-    @Override
-    public OperationResult<BdioResult> executeOperation(BdioInput input) throws DetectUserFriendlyException, IntegrationException {
-        BdioResult bdioResult = bdioManager.createBdioFiles(bdioOptions, input.getAggregateOptions(), input.getNameVersion(), input.getCodeLocations(), runOptions.shouldUseBdio2());
+    public BdioResult execute(AggregateOptions aggregateOptions, NameVersion projectNameVersion, List<DetectCodeLocation> codeLocations)
+        throws DetectUserFriendlyException {
+        BdioResult bdioResult = bdioManager.createBdioFiles(bdioOptions, aggregateOptions, projectNameVersion, codeLocations);
         eventSystem.publishEvent(Event.DetectCodeLocationNamesCalculated, bdioResult.getCodeLocationNamesResult());
-        return OperationResult.success(bdioResult);
+        return bdioResult;
     }
 }
