@@ -28,7 +28,6 @@ import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
 import com.synopsys.integration.detect.tool.detector.CodeLocationConverter;
 import com.synopsys.integration.detect.tool.detector.DetectDetectableFactory;
 import com.synopsys.integration.detect.tool.detector.extraction.ExtractionEnvironmentProvider;
@@ -40,8 +39,6 @@ import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detectable.detectable.inspector.nuget.NugetInspectorResolver;
 
 public class RunContext {
-    private final DetectContext detectContext;
-    private final ProductRunData productRunData;
     private final PropertyConfiguration detectConfiguration;
     private final DetectConfigurationFactory detectConfigurationFactory;
     private final DirectoryManager directoryManager;
@@ -56,9 +53,7 @@ public class RunContext {
     private final CodeLocationConverter codeLocationConverter;
     private final Gson gson;
 
-    public RunContext(DetectContext detectContext, ProductRunData productRunData) {
-        this.detectContext = detectContext;
-        this.productRunData = productRunData;
+    public RunContext(DetectContext detectContext) { //typed access to beans.
         detectConfiguration = detectContext.getBean(PropertyConfiguration.class);
         detectConfigurationFactory = detectContext.getBean(DetectConfigurationFactory.class);
         directoryManager = detectContext.getBean(DirectoryManager.class);
@@ -72,14 +67,6 @@ public class RunContext {
         extractionEnvironmentProvider = new ExtractionEnvironmentProvider(directoryManager);
         codeLocationConverter = new CodeLocationConverter(new ExternalIdFactory());
         gson = detectContext.getBean(Gson.class);
-    }
-
-    public DetectContext getDetectContext() {
-        return detectContext;
-    }
-
-    public ProductRunData getProductRunData() {
-        return productRunData;
     }
 
     public PropertyConfiguration getDetectConfiguration() {
@@ -128,10 +115,6 @@ public class RunContext {
 
     public CodeLocationConverter getCodeLocationConverter() {
         return codeLocationConverter;
-    }
-
-    public RunOptions createRunOptions() {
-        return detectConfigurationFactory.createRunOptions();
     }
 
     public Gson getGson() {

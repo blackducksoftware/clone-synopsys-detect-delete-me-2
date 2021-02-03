@@ -26,36 +26,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
-import com.synopsys.integration.detect.lifecycle.run.operation.Operation;
-import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.workflow.bdio.AggregateMode;
 import com.synopsys.integration.detect.workflow.bdio.AggregateOptions;
 import com.synopsys.integration.exception.IntegrationException;
 
-public class AggregateOptionsOperation extends Operation<Boolean, AggregateOptions> {
-    private final RunOptions runOptions;
+public class AggregateDecisionOperation {
 
-    public AggregateOptionsOperation(RunOptions runOptions) {
-        this.runOptions = runOptions;
-    }
-
-    @Override
-    public boolean shouldExecute() {
-        return true;
-    }
-
-    @Override
-    public String getOperationName() {
-        return "Aggregate Options Creation";
-    }
-
-    @Override
-    public OperationResult<AggregateOptions> executeOperation(Boolean input) throws DetectUserFriendlyException, IntegrationException {
+    public AggregateOptions execute(RunOptions runOptions, boolean anyToolFailed) throws DetectUserFriendlyException, IntegrationException {
         String aggregateName = runOptions.getAggregateName().orElse(null);
         AggregateMode aggregateMode = runOptions.getAggregateMode();
         AggregateOptions aggregateOptions;
         if (StringUtils.isNotBlank(aggregateName)) {
-            if (input.booleanValue()) {
+            if (anyToolFailed) {
                 aggregateOptions = AggregateOptions.aggregateButSkipEmpty(aggregateName, aggregateMode);
             } else {
                 aggregateOptions = AggregateOptions.aggregateAndAlwaysUpload(aggregateName, aggregateMode);
@@ -64,6 +46,6 @@ public class AggregateOptionsOperation extends Operation<Boolean, AggregateOptio
             aggregateOptions = AggregateOptions.doNotAggregate();
         }
 
-        return OperationResult.success(aggregateOptions);
+        return aggregateOptions;
     }
 }

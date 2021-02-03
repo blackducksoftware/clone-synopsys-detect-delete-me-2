@@ -22,33 +22,28 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.workflow;
 
+import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadBatchOutput;
 import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadOutput;
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
-import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
+import com.synopsys.integration.detect.lifecycle.run.RunContext;
+import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.lifecycle.run.RunResult;
-import com.synopsys.integration.detect.lifecycle.run.operation.BazelOperation;
+import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.DetectorOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.DockerOperation;
+import com.synopsys.integration.detect.lifecycle.run.operation.DockerToolOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.OperationFactory;
 import com.synopsys.integration.detect.lifecycle.run.operation.OperationResult;
 import com.synopsys.integration.detect.lifecycle.run.operation.PolarisOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateOptionsOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BdioFileGenerationOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BinaryScanOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.CodeLocationOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.CodeLocationResultOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.FullScanPostProcessingOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.ImpactAnalysisOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.ProjectCreationOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.ProjectDecisionOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.SignatureScanOperation;
-import com.synopsys.integration.detect.lifecycle.run.operation.input.BdioInput;
-import com.synopsys.integration.detect.lifecycle.run.operation.input.CodeLocationInput;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.FullScanPostProcessingInput;
-import com.synopsys.integration.detect.lifecycle.run.operation.input.ImpactAnalysisInput;
-import com.synopsys.integration.detect.lifecycle.run.operation.input.SignatureScanInput;
+import com.synopsys.integration.detect.tool.DetectableToolResult;
+import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.bdio.AggregateOptions;
 import com.synopsys.integration.detect.workflow.bdio.BdioResult;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationAccumulator;
@@ -56,119 +51,77 @@ import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocat
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
-public class DefaultWorkflow extends Workflow {
-    public DefaultWorkflow(PropertyConfiguration detectConfiguration, OperationFactory operationFactory) {
-        super(detectConfiguration, operationFactory);
+public class SourceWorkflow implements Workflow {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private <T> OperationResult<T> runTool(String displayName, boolean operationConditional, Supplier<OperationResult<T>> operation) {
+        if (operationConditional) {
+            logger.info("Will include the {} tool.", displayName);
+            OperationResult<T> result = operation.get();
+            logger.info("{} actions finished.", displayName);
+            return result;
+        } else {
+            logger.info("{} tool will not be run.", displayName);
+            return OperationResult.success();
+        }
+    }
+
+    private void runDetectableTool(RunResult runResult, String displayName, boolean operationConditional, Supplier<OperationResult<DetectableToolResult>> operation) {
+        OperationResult<DetectableToolResult> result = runTool(displayName, operationConditional, operation);
+        if (result.hasContent() && result.getContent() != null) {
+            runResult.addDetectableToolResult(result.getContent());
+            if (result.requestedExitCode()) {
+                eventSystem.publishExitCode(result.exitCode());
+            }
+        }
+    }
+
+    private void runDetectorTool(RunResult runResult, String displayName, boolean operationConditional, Supplier<OperationResult<DetectableToolResult>> operation) {
+        OperationResult<DetectableToolResult> result = runTool(displayName, operationConditional, operation);
+        if (result.hasContent() && result.getContent() != null) {
+            runResult.addDetectableToolResult(result.getContent());
+            if (result.requestedExitCode()) {
+                eventSystem.publishExitCode(result.exitCode());
+            }
+        }
     }
 
     @Override
-    public WorkflowResult executeWorkflow() throws DetectUserFriendlyException, IntegrationException {
+    public WorkflowResult execute(RunContext runContext, RunOptions runOptions, ProductRunData productRunData) throws DetectUserFriendlyException, IntegrationException {
         RunResult runResult = new RunResult();
-        PolarisOperation polarisOperation = getOperationFactory().createPolarisOperation();
-        DockerOperation dockerOperation = getOperationFactory().createDockerOperation();
-        BazelOperation bazelOperation = getOperationFactory().createBazelOperation();
-        DetectorOperation detectorOperation = getOperationFactory().createDetectorOperation();
-        ProjectDecisionOperation projectDecisionOperation = getOperationFactory().createProjectDecisionOperation();
-        AggregateOptionsOperation aggregateOptionsOperation = getOperationFactory().createAggregateOptionsOperation();
-        ProjectCreationOperation projectCreationOperation = getOperationFactory().createProjectCreationOperation();
-        BdioFileGenerationOperation bdioFileGenerationOperation = getOperationFactory().createBdioFileGenerationOperation();
-        CodeLocationOperation codeLocationOperation = getOperationFactory().createCodeLocationOperation();
-        SignatureScanOperation signatureScanOperation = getOperationFactory().createSignatureScanOperation();
-        BinaryScanOperation binaryScanOperation = getOperationFactory().createBinaryScanOperation();
-        ImpactAnalysisOperation impactAnalysisOperation = getOperationFactory().createImpactAnalysisOperation();
-        CodeLocationResultOperation codeLocationResultOperation = getOperationFactory().createCodeLocationResultOperation();
-        FullScanPostProcessingOperation fullScanPostProcessingOperation = getOperationFactory().createFullScanPostProcessingOperation();
+        DetectToolFilter detectToolFilter = runOptions.getDetectToolFilter();
+        OperationFactory operationFactory = new OperationFactory(runContext);
 
-        if (polarisOperation.shouldExecute()) {
-            logToolStarted(polarisOperation);
-            polarisOperation.execute(null);
-            logToolFinished(polarisOperation);
-        } else {
-            logToolSkipped(polarisOperation);
-        }
+        runTool("Polaris", PolarisOperation.shouldExecute(detectToolFilter, productRunData), () -> operationFactory.createPolarisOperation().execute());
 
-        boolean priorOperationsFailed = false;
-        if (dockerOperation.shouldExecute()) {
-            logToolStarted(dockerOperation);
-            OperationResult<Void> dockerResult = dockerOperation.execute(runResult);
-            priorOperationsFailed = dockerResult.hasFailed();
-            logToolFinished(dockerOperation);
-        } else {
-            logToolSkipped(dockerOperation);
-        }
-        if (bazelOperation.shouldExecute()) {
-            logToolStarted(bazelOperation);
-            OperationResult<Void> bazelResult = bazelOperation.execute(runResult);
-            priorOperationsFailed = priorOperationsFailed || bazelResult.hasFailed();
-            logToolFinished(bazelOperation);
-        } else {
-            logToolSkipped(bazelOperation);
-        }
-        if (detectorOperation.shouldExecute()) {
-            logToolStarted(detectorOperation);
-            OperationResult<Void> detectorResult = detectorOperation.execute(runResult);
-            priorOperationsFailed = priorOperationsFailed || detectorResult.hasFailed();
-            logToolFinished(detectorOperation);
-        } else {
-            logToolSkipped(detectorOperation);
-        }
+        runDetectableTool(runResult, "Docker", DockerToolOperation.shouldExecute(detectToolFilter), () -> operationFactory.createDockerOperation().execute());
+        runDetectableTool(runResult, "Bazel", DockerToolOperation.shouldExecute(detectToolFilter), () -> operationFactory.createDockerOperation().execute());
 
-        OperationResult<NameVersion> projectInfo = projectDecisionOperation.execute(runResult.getDetectToolProjectInfo());
-        NameVersion projectNameVersion = projectInfo.getContent();
+        runDetectorTool("Detector", DetectorOperation.shouldExecute(detectToolFilter, productRunData), () -> operationFactory.createDetectorOperation().execute());
 
-        ProjectVersionWrapper projectVersionWrapper = null;
-        if (projectCreationOperation.shouldExecute()) {
-            OperationResult<ProjectVersionWrapper> projectCreationResult = projectCreationOperation.execute(projectNameVersion);
-            projectVersionWrapper = projectCreationResult.getContent();
-        }
+        if (productRunData.shouldUseBlackDuckProduct() && productRunData.getBlackDuckRunData().isOnline()) {
+            BlackDuckServicesFactory blackDuckServicesFactory = productRunData.getBlackDuckRunData().getBlackDuckServicesFactory();
 
-        OperationResult<AggregateOptions> aggregateOptions = aggregateOptionsOperation.execute(priorOperationsFailed);
-        BdioInput bdioInput = new BdioInput(aggregateOptions.getContent(), projectNameVersion, runResult.getDetectCodeLocations());
+            NameVersion projectNameVersion = operationFactory.createProjectDecisionOperation().execute(runResult.getDetectToolProjectInfo());
+            ProjectVersionWrapper projectVersionWrapper = operationFactory.createProjectCreationOperation().execute(projectNameVersion);
 
-        OperationResult<BdioResult> bdioGeneration = bdioFileGenerationOperation.execute(bdioInput);
-        BdioResult bdioResult = bdioGeneration.getContent();
+            AggregateOptions aggregateOptions = operationFactory.createAggregateDecisionOperation().execute(runOptions, runResult.anyFailed());
 
-        CodeLocationAccumulator codeLocationAccumulator = null;
-        if (codeLocationOperation.shouldExecute()) {
-            OperationResult<CodeLocationAccumulator<UploadOutput, UploadBatchOutput>> codeLocationResult = codeLocationOperation.execute(bdioResult);
-            codeLocationAccumulator = codeLocationResult.getContent();
-        }
-        if (signatureScanOperation.shouldExecute()) {
-            logToolStarted(signatureScanOperation);
-            SignatureScanInput signatureScanInput = new SignatureScanInput(projectNameVersion, codeLocationAccumulator, runResult.getDockerTar().orElse(null));
-            signatureScanOperation.execute(signatureScanInput);
-            logToolFinished(signatureScanOperation);
-        } else {
-            logToolSkipped(signatureScanOperation);
-        }
-        if (binaryScanOperation.shouldExecute()) {
-            logToolStarted(binaryScanOperation);
-            CodeLocationInput codeLocationInput = new CodeLocationInput(projectNameVersion, codeLocationAccumulator);
-            binaryScanOperation.execute(codeLocationInput);
-            logToolFinished(binaryScanOperation);
-        } else {
-            logToolSkipped(binaryScanOperation);
-        }
-        if (impactAnalysisOperation.shouldExecute()) {
-            logToolStarted(impactAnalysisOperation);
-            ImpactAnalysisInput impactAnalysisInput = new ImpactAnalysisInput(projectNameVersion, codeLocationAccumulator, projectVersionWrapper);
-            impactAnalysisOperation.execute(impactAnalysisInput);
-            logToolFinished(impactAnalysisOperation);
-        } else {
-            logToolSkipped(impactAnalysisOperation);
-        }
+            BdioResult bdioResult = operationFactory.createBdioFileGenerationOperation().execute(aggregateOptions, projectNameVersion, runResult.getDetectCodeLocations());
+            CodeLocationAccumulator<UploadOutput, UploadBatchOutput> uploadResult = operationFactory.createBdioUploadOperation().execute(blackDuckServicesFactory, bdioResult);
 
-        CodeLocationResults codeLocationResults = null;
-        if (codeLocationResultOperation.shouldExecute()) {
-            OperationResult<CodeLocationResults> codeLocationProcessingResult = codeLocationResultOperation.execute(codeLocationAccumulator);
-            codeLocationResults = codeLocationProcessingResult.getContent();
-        }
+            runTool("Signature  Scan", true, () -> operationFactory.createSignatureScanOperation().executeOperation());
+            runTool("Binary  Scan", true, () -> operationFactory.createSignatureScanOperation().executeOperation());
+            runTool("Impact Analysis  Scan", true, () -> operationFactory.createSignatureScanOperation().executeOperation());
 
-        if (fullScanPostProcessingOperation.shouldExecute()) {
+            CodeLocationResults codeLocationResults = operationFactory.createCodeLocationResultOperation().executeOperation(uploadResult);
+
             FullScanPostProcessingInput postProcessingInput = new FullScanPostProcessingInput(projectNameVersion, bdioResult, codeLocationResults, projectVersionWrapper);
-            fullScanPostProcessingOperation.execute(postProcessingInput);
+            operationFactory.createFullScanPostProcessingOperation().execute(blackDuckServicesFactory, postProcessingInput);
         }
+
         return WorkflowResult.success();
     }
+
 }
 

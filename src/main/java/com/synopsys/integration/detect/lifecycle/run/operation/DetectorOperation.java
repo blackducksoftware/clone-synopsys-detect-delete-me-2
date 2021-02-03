@@ -74,14 +74,8 @@ public class DetectorOperation extends Operation<RunResult, Void> {
         this.codeLocationConverter = codeLocationConverter;
     }
 
-    @Override
-    public boolean shouldExecute() {
+    public static boolean shouldExecute(DetectToolFilter detectToolFilter) {
         return detectToolFilter.shouldInclude(DetectTool.DETECTOR);
-    }
-
-    @Override
-    public String getOperationName() {
-        return "Detector";
     }
 
     @Override

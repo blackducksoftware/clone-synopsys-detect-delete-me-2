@@ -20,14 +20,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.synopsys.integration.detect.lifecycle.run.workflow;
+package com.synopsys.integration.detect.lifecycle.run.operation;
 
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
-import com.synopsys.integration.detect.lifecycle.run.RunContext;
-import com.synopsys.integration.detect.lifecycle.run.RunOptions;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
-import com.synopsys.integration.exception.IntegrationException;
+import com.synopsys.integration.detect.tool.DetectableToolResult;
 
-public interface Workflow {
-    WorkflowResult execute(RunContext runContext, RunOptions runOptions, ProductRunData productRunData) throws DetectUserFriendlyException, IntegrationException;
+public class DetectableToolOperationResult {
+    public DetectableToolResult detectableToolResult;
 }
+
