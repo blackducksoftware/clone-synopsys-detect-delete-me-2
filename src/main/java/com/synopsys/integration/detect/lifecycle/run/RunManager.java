@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +53,7 @@ import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.configuration.DetectProperties;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
+import com.synopsys.integration.detect.configuration.connection.ConnectionFactory;
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
@@ -79,6 +82,7 @@ import com.synopsys.integration.detect.tool.impactanalysis.service.ImpactAnalysi
 import com.synopsys.integration.detect.tool.polaris.PolarisTool;
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerOptions;
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerTool;
+import com.synopsys.integration.detect.tool.signaturescanner.ScanBatchRunnerFactory;
 import com.synopsys.integration.detect.tool.signaturescanner.SignatureScannerToolResult;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.bdio.AggregateMode;
@@ -127,6 +131,7 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.log.Slf4jIntLogger;
 import com.synopsys.integration.polaris.common.configuration.PolarisServerConfig;
 import com.synopsys.integration.rest.HttpUrl;
+import com.synopsys.integration.util.IntEnvironmentVariables;
 import com.synopsys.integration.util.IntegrationEscapeUtil;
 import com.synopsys.integration.util.NameVersion;
 import com.synopsys.integration.util.NoThreadExecutorService;
@@ -388,7 +393,11 @@ public class RunManager {
                     codeLocationCreationService = blackDuckServicesFactory.createCodeLocationCreationService();
                     blackDuckServerConfig = blackDuckRunData.getBlackDuckServerConfig();
                 }
-                SignatureScannerToolResult signatureScannerToolResult = blackDuckSignatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, projectNameVersion, runResult.getDockerTar());
+                ConnectionFactory connectionFactory = detectContext.getBean(ConnectionFactory.class);
+                ExecutorService executorService = Executors.newFixedThreadPool(blackDuckSignatureScannerOptions.getParallelProcessors());
+                IntEnvironmentVariables intEnvironmentVariables = IntEnvironmentVariables.includeSystemEnv();
+                ScanBatchRunnerFactory scanBatchRunnerFactory = new ScanBatchRunnerFactory(intEnvironmentVariables, executorService);
+                SignatureScannerToolResult signatureScannerToolResult = blackDuckSignatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, projectNameVersion, runResult.getDockerTar(), directoryManager, connectionFactory, codeLocationNameManager, scanBatchRunnerFactory, executorService);
                 if (signatureScannerToolResult.getResult() == Result.SUCCESS && signatureScannerToolResult.getCreationData().isPresent()) {
                     codeLocationAccumulator.addWaitableCodeLocation(signatureScannerToolResult.getCreationData().get());
                 } else if (signatureScannerToolResult.getResult() != Result.SUCCESS) {
