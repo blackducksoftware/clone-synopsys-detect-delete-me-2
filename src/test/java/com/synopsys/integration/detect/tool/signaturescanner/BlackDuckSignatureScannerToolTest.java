@@ -59,9 +59,6 @@ public class BlackDuckSignatureScannerToolTest {
 
         DetectContext detectContext = Mockito.mock(DetectContext.class);
         Mockito.when(detectContext.getBean(any(Class.class), any(BlackDuckSignatureScannerOptions.class), any(ScanBatchRunner.class), any(), any())).thenReturn(blackDuckSignatureScanner);
-        Mockito.when(detectContext.getBean(DirectoryManager.class)).thenReturn(directoryManager);
-        Mockito.when(detectContext.getBean(CodeLocationNameManager.class)).thenReturn(codeLocationNameManager);
-        Mockito.when(detectContext.getBean(ConnectionFactory.class)).thenReturn(null);
 
         NameVersion projectNameVersion = new NameVersion("name", "version");
         BlackDuckOnlineProperties blackDuckOnlineProperties = new BlackDuckOnlineProperties(null, false, false, false);
@@ -71,17 +68,21 @@ public class BlackDuckSignatureScannerToolTest {
 
         BlackDuckSignatureScannerTool blackDuckSignatureScannerTool = new BlackDuckSignatureScannerTool(blackDuckSignatureScannerOptions, detectContext);
 
-        testOffline(blackDuckSignatureScannerTool, scanBatchOutput, projectNameVersion);
-        testOnline(blackDuckSignatureScannerTool, scanBatchOutput, projectNameVersion);
+        ExecutorService executorService = Executors.newFixedThreadPool(blackDuckSignatureScannerOptions.getParallelProcessors());
+        IntEnvironmentVariables intEnvironmentVariables = IntEnvironmentVariables.includeSystemEnv();
+        ScanBatchRunnerFactory scanBatchRunnerFactory = new ScanBatchRunnerFactory(intEnvironmentVariables, executorService);
+
+        testOffline(blackDuckSignatureScannerTool, scanBatchOutput, projectNameVersion, directoryManager, null, codeLocationNameManager, scanBatchRunnerFactory, executorService);
+        testOnline(blackDuckSignatureScannerTool, scanBatchOutput, projectNameVersion, directoryManager, null, codeLocationNameManager, scanBatchRunnerFactory, executorService);
     }
 
-    private void testOffline(BlackDuckSignatureScannerTool blackDuckSignatureScannerTool, ScanBatchOutput scanBatchOutput, NameVersion projectNameVersion) throws DetectUserFriendlyException {
+    private void testOffline(BlackDuckSignatureScannerTool blackDuckSignatureScannerTool, ScanBatchOutput scanBatchOutput, NameVersion projectNameVersion, DirectoryManager directoryManager, ConnectionFactory connectionFactory, CodeLocationNameManager codeLocationNameManager, ScanBatchRunnerFactory scanBatchRunnerFactory, ExecutorService executorService) throws DetectUserFriendlyException {
         SignatureScannerToolResult expected = SignatureScannerToolResult.createOfflineResult(scanBatchOutput);
-        SignatureScannerToolResult actual = blackDuckSignatureScannerTool.runScanTool(null, null, projectNameVersion, Optional.empty());
+        SignatureScannerToolResult actual = blackDuckSignatureScannerTool.runScanTool(null, null, projectNameVersion, Optional.empty(), directoryManager, connectionFactory, codeLocationNameManager, scanBatchRunnerFactory, executorService);
         Assertions.assertTrue(areEqualResults(expected, actual));
     }
 
-    private void testOnline(BlackDuckSignatureScannerTool blackDuckSignatureScannerTool, ScanBatchOutput scanBatchOutput, NameVersion projectNameVersion) throws IntegrationException, DetectUserFriendlyException {
+    private void testOnline(BlackDuckSignatureScannerTool blackDuckSignatureScannerTool, ScanBatchOutput scanBatchOutput, NameVersion projectNameVersion, DirectoryManager directoryManager, ConnectionFactory connectionFactory, CodeLocationNameManager codeLocationNameManager, ScanBatchRunnerFactory scanBatchRunnerFactory, ExecutorService executorService) throws IntegrationException, DetectUserFriendlyException {
         BlackDuckServerConfig blackDuckServerConfig = buildBlackDuckServerConfig();
 
         CodeLocationCreationService codeLocationCreationService = Mockito.mock(CodeLocationCreationService.class);
@@ -90,7 +91,7 @@ public class BlackDuckSignatureScannerToolTest {
         CodeLocationCreationData<ScanBatchOutput> codeLocationCreationData = new CodeLocationCreationData<>(notificationTaskRange, scanBatchOutput);
 
         SignatureScannerToolResult expected = SignatureScannerToolResult.createOnlineResult(codeLocationCreationData);
-        SignatureScannerToolResult actual = blackDuckSignatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, projectNameVersion, Optional.empty());
+        SignatureScannerToolResult actual = blackDuckSignatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, projectNameVersion, Optional.empty(), directoryManager, connectionFactory, codeLocationNameManager, scanBatchRunnerFactory, executorService);
         Assertions.assertTrue(areEqualResults(expected, actual));
     }
 
