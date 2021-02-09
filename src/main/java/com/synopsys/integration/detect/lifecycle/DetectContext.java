@@ -28,36 +28,45 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import com.synopsys.integration.detect.workflow.DetectRun;
 
 public class DetectContext {
+    public static final String BEAN_NAME_GSON_HTML_UNSAFE = "gson_html_unsafe";
     private final AnnotationConfigApplicationContext springContext;
     private final ConfigurableListableBeanFactory beanFactory;
 
     private boolean lock = false;
 
-    public DetectContext(final DetectRun detectRun) {
+    public DetectContext(DetectRun detectRun) {
         //Detect context is currently actually backed by Spring.
         springContext = new AnnotationConfigApplicationContext();
         springContext.setDisplayName("Detect Context " + detectRun.getRunId());
         beanFactory = springContext.getBeanFactory();
     }
 
-    public void registerConfiguration(final Class configuration) {
+    public void registerConfiguration(Class configuration) {
         checkLock();
         springContext.register(configuration);
 
     }
 
-    public <T> T registerBean(final T singleton) {
-        checkLock();
+    public <T> T registerBean(T singleton) {
         //register and return the registered object as a convenience
-        beanFactory.registerSingleton(singleton.getClass().getSimpleName(), singleton);
+        return registerBean(singleton.getClass().getSimpleName(), singleton);
+    }
+
+    public <T> T registerBean(String beanName, T singleton) {
+        checkLock();
+        beanFactory.registerSingleton(beanName, singleton);
         return singleton;
     }
 
-    public <T> T getBean(final Class<T> beanClass) {
+    public <T> T getBeanByName(String beanName, Class<T> beanClass) {
+        return beanFactory.getBean(beanName, beanClass);
+    }
+
+    public <T> T getBean(Class<T> beanClass) {
         return beanFactory.getBean(beanClass);
     }
 
-    public <T> T getBean(final Class<T> beanClass, final Object... args) {
+    public <T> T getBean(Class<T> beanClass, Object... args) {
         return beanFactory.getBean(beanClass, args);
     }
 
