@@ -57,7 +57,12 @@ public class BlackDuckRapidModePostActionsTest {
         Iterator<JsonElement> iterator = array.iterator();
         while (iterator.hasNext()) {
             JsonElement arrayItem = iterator.next();
-            results.add(gson.fromJson(arrayItem, DeveloperScanComponentResultView.class));
+            String json = gson.toJson(arrayItem);
+            DeveloperScanComponentResultView view = gson.fromJson(arrayItem, DeveloperScanComponentResultView.class);
+            view.setJson(json);
+            view.setGson(gson);
+            view.setJsonElement(arrayItem);
+            results.add(view);
         }
 
         return results;
