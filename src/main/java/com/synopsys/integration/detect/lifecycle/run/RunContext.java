@@ -55,6 +55,7 @@ public class RunContext {
     private final ExtractionEnvironmentProvider extractionEnvironmentProvider;
     private final CodeLocationConverter codeLocationConverter;
     private final Gson gson;
+    private final Gson htmlUnsafeGson;
 
     public RunContext(DetectContext detectContext, ProductRunData productRunData) {
         this.detectContext = detectContext;
@@ -72,6 +73,7 @@ public class RunContext {
         extractionEnvironmentProvider = new ExtractionEnvironmentProvider(directoryManager);
         codeLocationConverter = new CodeLocationConverter(new ExternalIdFactory());
         gson = detectContext.getBean(Gson.class);
+        htmlUnsafeGson = detectContext.getBeanByName(DetectContext.BEAN_NAME_GSON_HTML_UNSAFE, Gson.class);
     }
 
     public DetectContext getDetectContext() {
@@ -136,5 +138,9 @@ public class RunContext {
 
     public Gson getGson() {
         return gson;
+    }
+
+    public Gson getHtmlUnsafeGson() {
+        return htmlUnsafeGson;
     }
 }

@@ -115,6 +115,8 @@ public class Application implements ApplicationRunner {
         Gson gson = BlackDuckServicesFactory.createDefaultGsonBuilder().setPrettyPrinting().create();
         DetectInfo detectInfo = DetectInfoUtility.createDefaultDetectInfo();
         detectContext.registerBean(gson);
+        Gson gsonHtmlUnsafe = BlackDuckServicesFactory.createDefaultGsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        detectContext.registerBean(DetectContext.BEAN_NAME_GSON_HTML_UNSAFE, gsonHtmlUnsafe);
         detectContext.registerBean(detectInfo);
 
         boolean printOutput = true;
