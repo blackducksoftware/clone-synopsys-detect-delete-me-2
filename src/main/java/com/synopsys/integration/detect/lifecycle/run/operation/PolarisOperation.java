@@ -14,6 +14,7 @@ import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
 import com.synopsys.integration.detect.tool.detector.executable.DetectExecutableRunner;
 import com.synopsys.integration.detect.tool.polaris.PolarisTool;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
@@ -35,10 +36,10 @@ public class PolarisOperation {
         this.eventSystem = eventSystem;
     }
 
-    public void execute() {
+    public OperationResult<Void> execute() {
         PolarisServerConfig polarisServerConfig = productRunData.getPolarisRunData().getPolarisServerConfig();
         DetectableExecutableRunner polarisExecutableRunner = DetectExecutableRunner.newInfo(eventSystem);
         PolarisTool polarisTool = new PolarisTool(eventSystem, directoryManager, polarisExecutableRunner, detectConfiguration, polarisServerConfig);
-        polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
+        return polarisTool.runPolaris(new Slf4jIntLogger(logger), directoryManager.getSourceDirectory());
     }
 }

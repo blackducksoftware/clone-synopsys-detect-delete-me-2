@@ -16,6 +16,7 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.FullScanPostProcessingInput;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.BlackDuckPostActions;
 import com.synopsys.integration.detect.workflow.blackduck.BlackDuckPostOptions;
 import com.synopsys.integration.detect.workflow.event.Event;
@@ -26,6 +27,7 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.rest.HttpUrl;
 
 public class FullScanPostProcessingOperation {
+    private static final String OPERATION_NAME = "BLACK_DUCK_POST_SCAN";
     private final DetectToolFilter detectToolFilter;
     private final BlackDuckPostOptions blackDuckPostOptions;
     private final EventSystem eventSystem;
@@ -39,22 +41,31 @@ public class FullScanPostProcessingOperation {
         this.detectTimeoutInSeconds = detectTimeoutInSeconds;
     }
 
-    public void execute(BlackDuckServicesFactory blackDuckServicesFactory, FullScanPostProcessingInput postProcessingInput) throws DetectUserFriendlyException, IntegrationException {
-        BlackDuckPostActions blackDuckPostActions = new BlackDuckPostActions(blackDuckServicesFactory.createCodeLocationCreationService(), eventSystem, blackDuckServicesFactory.getBlackDuckApiClient(),
-            blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createReportService(detectTimeoutInSeconds * 1000));
-        blackDuckPostActions
-            .perform(blackDuckPostOptions, postProcessingInput.getCodeLocationResults().getCodeLocationWaitData(), postProcessingInput.getProjectVersionWrapper(), postProcessingInput.getProjectNameVersion(), detectTimeoutInSeconds);
+    public OperationResult<Void> execute(BlackDuckServicesFactory blackDuckServicesFactory, FullScanPostProcessingInput postProcessingInput) throws DetectUserFriendlyException, IntegrationException {
+        OperationResult<Void> operationResult = OperationResult.success(OPERATION_NAME);
+        try {
+            BlackDuckPostActions blackDuckPostActions = new BlackDuckPostActions(blackDuckServicesFactory.createCodeLocationCreationService(), eventSystem, blackDuckServicesFactory.getBlackDuckApiClient(),
+                blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createReportService(detectTimeoutInSeconds * 1000));
+            OperationResult<Void> postActionsResult = blackDuckPostActions
+                                                          .perform(blackDuckPostOptions, postProcessingInput.getCodeLocationResults().getCodeLocationWaitData(), postProcessingInput.getProjectVersionWrapper(),
+                                                              postProcessingInput.getProjectNameVersion(), detectTimeoutInSeconds);
 
-        if ((!postProcessingInput.getBdioResult().getUploadTargets().isEmpty() || detectToolFilter.shouldInclude(DetectTool.SIGNATURE_SCAN))) {
-            Optional<String> componentsLink = Optional.ofNullable(postProcessingInput.getProjectVersionWrapper())
-                                                  .map(ProjectVersionWrapper::getProjectVersionView)
-                                                  .flatMap(projectVersionView -> projectVersionView.getFirstLinkSafely(ProjectVersionView.COMPONENTS_LINK))
-                                                  .map(HttpUrl::string);
+            if ((!postProcessingInput.getBdioResult().getUploadTargets().isEmpty() || detectToolFilter.shouldInclude(DetectTool.SIGNATURE_SCAN))) {
+                Optional<String> componentsLink = Optional.ofNullable(postProcessingInput.getProjectVersionWrapper())
+                                                      .map(ProjectVersionWrapper::getProjectVersionView)
+                                                      .flatMap(projectVersionView -> projectVersionView.getFirstLinkSafely(ProjectVersionView.COMPONENTS_LINK))
+                                                      .map(HttpUrl::string);
 
-            if (componentsLink.isPresent()) {
-                DetectResult detectResult = new BlackDuckBomDetectResult(componentsLink.get());
-                eventSystem.publishEvent(Event.ResultProduced, detectResult);
+                if (componentsLink.isPresent()) {
+                    DetectResult detectResult = new BlackDuckBomDetectResult(componentsLink.get());
+                    eventSystem.publishEvent(Event.ResultProduced, detectResult);
+                }
             }
+            operationResult.addStatusAndExitCodes(postActionsResult);
+            operationResult.setOperationException(postActionsResult.getOperationException().orElse(null));
+        } catch (Exception ex) {
+            operationResult = OperationResult.fail(OPERATION_NAME, ex);
         }
+        return operationResult;
     }
 }

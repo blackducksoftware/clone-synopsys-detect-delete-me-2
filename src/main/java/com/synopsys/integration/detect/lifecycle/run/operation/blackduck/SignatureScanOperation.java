@@ -8,7 +8,6 @@
 package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import com.synopsys.integration.blackduck.codelocation.CodeLocationCreationData;
 import com.synopsys.integration.blackduck.codelocation.CodeLocationCreationService;
@@ -21,15 +20,15 @@ import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.SignatureScanInput;
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerTool;
 import com.synopsys.integration.detect.tool.signaturescanner.SignatureScannerToolResult;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.status.DetectIssue;
 import com.synopsys.integration.detect.workflow.status.DetectIssueType;
-import com.synopsys.integration.detect.workflow.status.Status;
-import com.synopsys.integration.detect.workflow.status.StatusType;
 import com.synopsys.integration.exception.IntegrationException;
 
 public class SignatureScanOperation {
+    private static final String OPERATION_NAME = "SIGNATURE_SCAN";
     private final BlackDuckRunData blackDuckRunData;
     private final BlackDuckSignatureScannerTool signatureScannerTool;
     private final EventSystem eventSystem;
@@ -41,21 +40,26 @@ public class SignatureScanOperation {
         this.eventSystem = eventSystem;
     }
 
-    public Optional<CodeLocationCreationData<ScanBatchOutput>> execute(SignatureScanInput signatureScanInput) throws DetectUserFriendlyException, IntegrationException {
-        Optional<CodeLocationCreationData<ScanBatchOutput>> result = Optional.empty();
-        BlackDuckServerConfig blackDuckServerConfig = null;
-        CodeLocationCreationService codeLocationCreationService = null;
-        if (null != blackDuckRunData && blackDuckRunData.isOnline()) {
-            BlackDuckServicesFactory blackDuckServicesFactory = blackDuckRunData.getBlackDuckServicesFactory();
-            codeLocationCreationService = blackDuckServicesFactory.createCodeLocationCreationService();
-            blackDuckServerConfig = blackDuckRunData.getBlackDuckServerConfig();
-        }
-        SignatureScannerToolResult signatureScannerToolResult = signatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, signatureScanInput.getProjectNameVersion(), signatureScanInput.getDockerTar());
-        if (signatureScannerToolResult.getResult() == Result.SUCCESS && signatureScannerToolResult.getCreationData().isPresent()) {
-            result = signatureScannerToolResult.getCreationData();
-        } else if (signatureScannerToolResult.getResult() != Result.SUCCESS) {
-            eventSystem.publishEvent(Event.StatusSummary, new Status("SIGNATURE_SCAN", StatusType.FAILURE));
-            eventSystem.publishEvent(Event.Issue, new DetectIssue(DetectIssueType.SIGNATURE_SCANNER, Arrays.asList(signatureScannerToolResult.getResult().toString())));
+    public OperationResult<CodeLocationCreationData<ScanBatchOutput>> execute(SignatureScanInput signatureScanInput) throws DetectUserFriendlyException, IntegrationException {
+        OperationResult<CodeLocationCreationData<ScanBatchOutput>> result = OperationResult.success(OPERATION_NAME);
+        try {
+            BlackDuckServerConfig blackDuckServerConfig = null;
+            CodeLocationCreationService codeLocationCreationService = null;
+            if (null != blackDuckRunData && blackDuckRunData.isOnline()) {
+                BlackDuckServicesFactory blackDuckServicesFactory = blackDuckRunData.getBlackDuckServicesFactory();
+                codeLocationCreationService = blackDuckServicesFactory.createCodeLocationCreationService();
+                blackDuckServerConfig = blackDuckRunData.getBlackDuckServerConfig();
+            }
+            SignatureScannerToolResult signatureScannerToolResult = signatureScannerTool.runScanTool(codeLocationCreationService, blackDuckServerConfig, signatureScanInput.getProjectNameVersion(), signatureScanInput.getDockerTar());
+            if (signatureScannerToolResult.getResult() == Result.SUCCESS && signatureScannerToolResult.getCreationData().isPresent()) {
+                result = OperationResult.success(OPERATION_NAME, signatureScannerToolResult.getCreationData().get());
+            } else if (signatureScannerToolResult.getResult() != Result.SUCCESS) {
+                result = OperationResult.fail(OPERATION_NAME);
+                //eventSystem.publishEvent(Event.StatusSummary, new Status(OPERATION_NAME, StatusType.FAILURE));
+                eventSystem.publishEvent(Event.Issue, new DetectIssue(DetectIssueType.SIGNATURE_SCANNER, Arrays.asList(signatureScannerToolResult.getResult().toString())));
+            }
+        } catch (Exception ex) {
+            result = OperationResult.fail(OPERATION_NAME, ex);
         }
         return result;
     }

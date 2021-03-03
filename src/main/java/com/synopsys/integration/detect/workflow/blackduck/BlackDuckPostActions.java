@@ -25,11 +25,14 @@ import com.synopsys.integration.blackduck.service.model.NotificationTaskRange;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationWaitData;
 import com.synopsys.integration.detect.workflow.blackduck.policy.PolicyChecker;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.result.ReportDetectResult;
+import com.synopsys.integration.detect.workflow.status.Status;
+import com.synopsys.integration.detect.workflow.status.StatusType;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.rest.exception.IntegrationRestException;
 import com.synopsys.integration.util.NameVersion;
@@ -50,29 +53,46 @@ public class BlackDuckPostActions {
         this.reportService = reportService;
     }
 
-    public void perform(BlackDuckPostOptions blackDuckPostOptions, CodeLocationWaitData codeLocationWaitData, ProjectVersionWrapper projectVersionWrapper, NameVersion projectNameVersion, long timeoutInSeconds)
+    public OperationResult<Void> perform(BlackDuckPostOptions blackDuckPostOptions, CodeLocationWaitData codeLocationWaitData, ProjectVersionWrapper projectVersionWrapper, NameVersion projectNameVersion, long timeoutInSeconds)
         throws DetectUserFriendlyException {
+        OperationResult operationResult = OperationResult.empty();
+        Status lastOperation = null;
         try {
             if (blackDuckPostOptions.shouldWaitForResults()) {
+                lastOperation = new Status("BLACK_DUCK_CODE_LOCATION_WAIT", StatusType.SUCCESS);
                 waitForCodeLocations(codeLocationWaitData, timeoutInSeconds, projectNameVersion);
+                operationResult.addStatus(lastOperation);
             }
             if (blackDuckPostOptions.shouldPerformPolicyCheck()) {
+                lastOperation = new Status("BLACK_DUCK_POLICY_CHECK", StatusType.SUCCESS);
                 checkPolicy(blackDuckPostOptions, projectVersionWrapper.getProjectVersionView());
+                operationResult.addStatus(lastOperation);
             }
             if (blackDuckPostOptions.shouldGenerateAnyReport()) {
+                lastOperation = new Status("BLACK_DUCK_REPORT_GENERATION", StatusType.SUCCESS);
                 generateReports(blackDuckPostOptions, projectVersionWrapper);
+                operationResult.addStatus(lastOperation);
             }
         } catch (DetectUserFriendlyException e) {
-            throw e;
+            operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
+            operationResult.setOperationException(e);
         } catch (IllegalArgumentException e) {
-            throw new DetectUserFriendlyException(String.format("Your Black Duck configuration is not valid: %s", e.getMessage()), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
+            operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
+            operationResult.setOperationException(new DetectUserFriendlyException(String.format("Your Black Duck configuration is not valid: %s", e.getMessage()), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY));
         } catch (IntegrationRestException e) {
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
+            operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
+            operationResult.setOperationException(new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY));
         } catch (BlackDuckTimeoutExceededException e) {
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_TIMEOUT);
+            operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
+            operationResult.setOperationException(new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_TIMEOUT));
         } catch (Exception e) {
-            throw new DetectUserFriendlyException(String.format("There was a problem: %s", e.getMessage()), e, ExitCodeType.FAILURE_GENERAL_ERROR);
+            if (null != lastOperation) {
+                operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
+            }
+            operationResult.setOperationException(new DetectUserFriendlyException(String.format("There was a problem: %s", e.getMessage()), e, ExitCodeType.FAILURE_GENERAL_ERROR));
         }
+
+        return operationResult;
     }
 
     private void waitForCodeLocations(CodeLocationWaitData codeLocationWaitData, long timeoutInSeconds, NameVersion projectNameVersion) throws DetectUserFriendlyException, InterruptedException, IntegrationException {

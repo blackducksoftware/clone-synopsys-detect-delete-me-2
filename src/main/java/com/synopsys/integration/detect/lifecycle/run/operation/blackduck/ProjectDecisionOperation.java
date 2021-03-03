@@ -11,12 +11,14 @@ import java.util.List;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.project.DetectToolProjectInfo;
 import com.synopsys.integration.detect.workflow.project.ProjectNameVersionDecider;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class ProjectDecisionOperation {
+    private static final String OPERATION_NAME = "BLACK_DUCK_PROJECT_DECISION";
     private final RunOptions runOptions;
     private final ProjectNameVersionDecider projectNameVersionDecider;
 
@@ -25,7 +27,13 @@ public class ProjectDecisionOperation {
         this.projectNameVersionDecider = projectNameVersionDecider;
     }
 
-    public NameVersion execute(List<DetectToolProjectInfo> detectToolProjectInfoList) throws DetectUserFriendlyException, IntegrationException {
-        return projectNameVersionDecider.decideProjectNameVersion(runOptions.getPreferredTools(), detectToolProjectInfoList);
+    public OperationResult<NameVersion> execute(List<DetectToolProjectInfo> detectToolProjectInfoList) throws DetectUserFriendlyException, IntegrationException {
+        OperationResult<NameVersion> operationResult;
+        try {
+            operationResult = OperationResult.success(OPERATION_NAME, projectNameVersionDecider.decideProjectNameVersion(runOptions.getPreferredTools(), detectToolProjectInfoList));
+        } catch (Exception ex) {
+            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+        }
+        return operationResult;
     }
 }
