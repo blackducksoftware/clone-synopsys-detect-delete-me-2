@@ -57,6 +57,7 @@ public class RunManager {
     }
 
     public OperationResult<Void> run(RunContext runContext) {
+        //TODO Add the results from other operations into OperationResult.
         overallStatus = OperationResult.success(OPERATION_NAME);
         try {
             RunResult runResult = new RunResult();
