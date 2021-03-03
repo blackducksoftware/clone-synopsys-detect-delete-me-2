@@ -14,9 +14,11 @@ import com.synopsys.integration.detect.configuration.DetectUserFriendlyException
 import com.synopsys.integration.detect.lifecycle.run.operation.input.ImpactAnalysisInput;
 import com.synopsys.integration.detect.tool.impactanalysis.BlackDuckImpactAnalysisTool;
 import com.synopsys.integration.detect.tool.impactanalysis.ImpactAnalysisToolResult;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.exception.IntegrationException;
 
 public class ImpactAnalysisOperation {
+    private static final String OPERATION_NAME = "BLACK_DUCK_IMPACT_ANALYSIS";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BlackDuckImpactAnalysisTool blackDuckImpactAnalysisTool;
 
@@ -24,16 +26,23 @@ public class ImpactAnalysisOperation {
         this.blackDuckImpactAnalysisTool = blackDuckImpactAnalysisTool;
     }
 
-    public ImpactAnalysisToolResult execute(ImpactAnalysisInput impactAnalysisInput) throws DetectUserFriendlyException, IntegrationException {
-        ImpactAnalysisToolResult impactAnalysisToolResult = blackDuckImpactAnalysisTool.performImpactAnalysisActions(impactAnalysisInput.getProjectNameVersion(), impactAnalysisInput.getProjectVersionWrapper());
+    public OperationResult<ImpactAnalysisToolResult> execute(ImpactAnalysisInput impactAnalysisInput) throws DetectUserFriendlyException, IntegrationException {
+        OperationResult<ImpactAnalysisToolResult> operationResult;
+        try {
+            ImpactAnalysisToolResult impactAnalysisToolResult = blackDuckImpactAnalysisTool.performImpactAnalysisActions(impactAnalysisInput.getProjectNameVersion(), impactAnalysisInput.getProjectVersionWrapper());
 
-        if (impactAnalysisToolResult.isSuccessful()) {
-            logger.info("Vulnerability Impact Analysis successful.");
-        } else {
-            logger.warn("Something went wrong with the Vulnerability Impact Analysis tool.");
+            if (impactAnalysisToolResult.isSuccessful()) {
+                logger.info("Vulnerability Impact Analysis successful.");
+            } else {
+                logger.warn("Something went wrong with the Vulnerability Impact Analysis tool.");
+            }
+
+            operationResult = OperationResult.success(OPERATION_NAME, impactAnalysisToolResult);
+        } catch (Exception ex) {
+            operationResult = OperationResult.fail(OPERATION_NAME, ex);
         }
 
-        return impactAnalysisToolResult;
+        return operationResult;
     }
 
     public boolean shouldImpactAnalysisToolRun() {

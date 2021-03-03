@@ -14,6 +14,7 @@ import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCodeLocationUnmapService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCustomFieldService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectProjectService;
@@ -22,6 +23,7 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class ProjectCreationOperation {
+    private static final String OPERATION_NAME = "BLACK_DUCK_PROJECT_CREATION";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final RunOptions runOptions;
     private final DetectProjectServiceOptions detectProjectServiceOptions;
@@ -34,19 +36,26 @@ public class ProjectCreationOperation {
         this.detectCustomFieldService = detectCustomFieldService;
     }
 
-    public ProjectVersionWrapper execute(BlackDuckServicesFactory blackDuckServicesFactory, NameVersion projectNameVersion) throws DetectUserFriendlyException, IntegrationException {
-        DetectProjectService detectProjectService = new DetectProjectService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createProjectService(),
-            blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createProjectUsersService(), blackDuckServicesFactory.createTagService(), detectProjectServiceOptions,
-            blackDuckServicesFactory.createProjectMappingService(), detectCustomFieldService);
-        DetectCodeLocationUnmapService detectCodeLocationUnmapService = new DetectCodeLocationUnmapService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createCodeLocationService());
+    public OperationResult<ProjectVersionWrapper> execute(BlackDuckServicesFactory blackDuckServicesFactory, NameVersion projectNameVersion) throws DetectUserFriendlyException, IntegrationException {
+        OperationResult<ProjectVersionWrapper> operationResult = OperationResult.success(OPERATION_NAME);
+        try {
+            DetectProjectService detectProjectService = new DetectProjectService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createProjectService(),
+                blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createProjectUsersService(), blackDuckServicesFactory.createTagService(), detectProjectServiceOptions,
+                blackDuckServicesFactory.createProjectMappingService(), detectCustomFieldService);
+            DetectCodeLocationUnmapService detectCodeLocationUnmapService = new DetectCodeLocationUnmapService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createCodeLocationService());
 
-        ProjectVersionWrapper projectVersionWrapper = detectProjectService.createOrUpdateBlackDuckProject(projectNameVersion);
-        if (null != projectVersionWrapper && runOptions.shouldUnmapCodeLocations()) {
-            logger.debug("Unmapping code locations.");
-            detectCodeLocationUnmapService.unmapCodeLocations(projectVersionWrapper.getProjectVersionView());
-        } else {
-            logger.debug("Will not unmap code locations: Project view was not present, or should not unmap code locations.");
+            ProjectVersionWrapper projectVersionWrapper = detectProjectService.createOrUpdateBlackDuckProject(projectNameVersion);
+            if (null != projectVersionWrapper && runOptions.shouldUnmapCodeLocations()) {
+                logger.debug("Unmapping code locations.");
+                detectCodeLocationUnmapService.unmapCodeLocations(projectVersionWrapper.getProjectVersionView());
+            } else {
+                logger.debug("Will not unmap code locations: Project view was not present, or should not unmap code locations.");
+            }
+            operationResult = OperationResult.success(OPERATION_NAME, projectVersionWrapper);
+        } catch (Exception ex) {
+            operationResult = OperationResult.fail(OPERATION_NAME, ex);
         }
-        return projectVersionWrapper;
+
+        return operationResult;
     }
 }
