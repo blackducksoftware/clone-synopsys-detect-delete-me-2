@@ -97,13 +97,18 @@ public class OperationResult<T> {
         this.exitCodes.add(exitCodeRequest);
     }
 
-    public <T> void addStatusAndExitCodes(OperationResult<T> otherResult) {
+    public <T> void aggregateResultData(OperationResult<T> otherResult) {
         for (Status status : otherResult.getStatuses()) {
             addStatus(status);
         }
 
         for (ExitCodeRequest exitCodeRequest : otherResult.getExitCodes()) {
             addExitCode(exitCodeRequest);
+        }
+
+        // preserve first exception encountered
+        if (!shouldHaltExecution()) {
+            setOperationException(otherResult.getOperationException().orElse(null));
         }
     }
 

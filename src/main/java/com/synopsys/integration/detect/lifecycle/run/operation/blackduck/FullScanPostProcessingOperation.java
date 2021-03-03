@@ -61,7 +61,7 @@ public class FullScanPostProcessingOperation {
                     eventSystem.publishEvent(Event.ResultProduced, detectResult);
                 }
             }
-            operationResult.addStatusAndExitCodes(postActionsResult);
+            operationResult.aggregateResultData(postActionsResult);
             operationResult.setOperationException(postActionsResult.getOperationException().orElse(null));
         } catch (Exception ex) {
             operationResult = OperationResult.fail(OPERATION_NAME, ex);
