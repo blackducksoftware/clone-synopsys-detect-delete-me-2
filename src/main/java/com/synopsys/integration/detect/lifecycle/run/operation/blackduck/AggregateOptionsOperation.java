@@ -9,12 +9,10 @@ package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.bdio.AggregateMode;
 import com.synopsys.integration.detect.workflow.bdio.AggregateOptions;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class AggregateOptionsOperation {
     private static final String OPERATION_NAME = "BLACK_DUCK_AGGREGATE_OPTIONS_DECISION";
@@ -24,7 +22,7 @@ public class AggregateOptionsOperation {
         this.runOptions = runOptions;
     }
 
-    public OperationResult<AggregateOptions> execute(Boolean anythingFailedPrior) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<AggregateOptions> execute(Boolean anythingFailedPrior) {
         String aggregateName = runOptions.getAggregateName().orElse(null);
         AggregateMode aggregateMode = runOptions.getAggregateMode();
         AggregateOptions aggregateOptions;

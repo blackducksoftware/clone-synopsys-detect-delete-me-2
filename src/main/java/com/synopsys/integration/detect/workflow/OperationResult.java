@@ -23,49 +23,40 @@ public class OperationResult<T> {
     private T content;
     private List<Status> statuses;
     private List<ExitCodeRequest> exitCodes;
-    @Nullable
-    private Exception operationException;
 
     public static <T> OperationResult<T> empty() {
-        return new OperationResult("", null, new LinkedList<>(), new LinkedList<>(), null);
+        return new OperationResult("", null, new LinkedList<>(), new LinkedList<>());
     }
 
     public static <T> OperationResult<T> success(String name) {
         List<Status> statuses = new LinkedList<>();
         statuses.add(new Status(name, StatusType.SUCCESS));
-        return new OperationResult(name, null, statuses, new LinkedList<>(), null);
+        return new OperationResult(name, null, statuses, new LinkedList<>());
     }
 
     public static <T> OperationResult<T> success(String name, T content) {
         List<Status> statuses = new LinkedList<>();
         statuses.add(new Status(name, StatusType.SUCCESS));
-        return new OperationResult(name, content, statuses, new LinkedList<>(), null);
+        return new OperationResult(name, content, statuses, new LinkedList<>());
     }
 
     public static <T> OperationResult<T> fail(String name) {
         List<Status> statuses = new LinkedList<>();
         statuses.add(new Status(name, StatusType.FAILURE));
-        return new OperationResult(name, null, statuses, new LinkedList<>(), null);
+        return new OperationResult(name, null, statuses, new LinkedList<>());
     }
 
     public static <T> OperationResult<T> fail(String name, T content) {
         List<Status> statuses = new LinkedList<>();
         statuses.add(new Status(name, StatusType.FAILURE));
-        return new OperationResult(name, content, statuses, new LinkedList<>(), null);
+        return new OperationResult(name, content, statuses, new LinkedList<>());
     }
 
-    public static <T> OperationResult<T> fail(String name, Exception operationException) {
-        List<Status> statuses = new LinkedList<>();
-        statuses.add(new Status(name, StatusType.FAILURE));
-        return new OperationResult(name, null, statuses, new LinkedList<>(), operationException);
-    }
-
-    public OperationResult(String name, @Nullable T content, List<Status> statuses, List<ExitCodeRequest> exitCodes, @Nullable Exception operationException) {
+    private OperationResult(String name, @Nullable T content, List<Status> statuses, List<ExitCodeRequest> exitCodes) {
         this.name = name;
         this.content = content;
         this.statuses = statuses;
         this.exitCodes = exitCodes;
-        this.operationException = operationException;
     }
 
     public boolean anyFailed() {
@@ -92,10 +83,6 @@ public class OperationResult<T> {
                    .allMatch(StatusType.SUCCESS::equals);
     }
 
-    public boolean shouldHaltExecution() {
-        return getOperationException().isPresent();
-    }
-
     public void addStatus(Status status) {
         this.statuses.add(status);
     }
@@ -111,11 +98,6 @@ public class OperationResult<T> {
 
         for (ExitCodeRequest exitCodeRequest : otherResult.getExitCodes()) {
             addExitCode(exitCodeRequest);
-        }
-
-        // preserve first exception encountered
-        if (!shouldHaltExecution()) {
-            setOperationException(otherResult.getOperationException().orElse(null));
         }
     }
 
@@ -133,13 +115,5 @@ public class OperationResult<T> {
 
     public List<Status> getStatuses() {
         return statuses;
-    }
-
-    public Optional<Exception> getOperationException() {
-        return Optional.ofNullable(operationException);
-    }
-
-    public void setOperationException(@Nullable Exception operationException) {
-        this.operationException = operationException;
     }
 }

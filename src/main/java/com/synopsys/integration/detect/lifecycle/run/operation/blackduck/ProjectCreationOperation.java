@@ -12,14 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.RunOptions;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCodeLocationUnmapService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectCustomFieldService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectProjectService;
 import com.synopsys.integration.detect.workflow.blackduck.DetectProjectServiceOptions;
-import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class ProjectCreationOperation {
@@ -36,8 +35,8 @@ public class ProjectCreationOperation {
         this.detectCustomFieldService = detectCustomFieldService;
     }
 
-    public OperationResult<ProjectVersionWrapper> execute(BlackDuckServicesFactory blackDuckServicesFactory, NameVersion projectNameVersion) throws DetectUserFriendlyException, IntegrationException {
-        OperationResult<ProjectVersionWrapper> operationResult = OperationResult.success(OPERATION_NAME);
+    public OperationResult<ProjectVersionWrapper> execute(BlackDuckServicesFactory blackDuckServicesFactory, NameVersion projectNameVersion) throws OperationException {
+        OperationResult<ProjectVersionWrapper> operationResult;
         try {
             DetectProjectService detectProjectService = new DetectProjectService(blackDuckServicesFactory.getBlackDuckApiClient(), blackDuckServicesFactory.createProjectService(),
                 blackDuckServicesFactory.createProjectBomService(), blackDuckServicesFactory.createProjectUsersService(), blackDuckServicesFactory.createTagService(), detectProjectServiceOptions,
@@ -53,7 +52,8 @@ public class ProjectCreationOperation {
             }
             operationResult = OperationResult.success(OPERATION_NAME, projectVersionWrapper);
         } catch (Exception ex) {
-            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException(String.format("Error creating Black Duck project %s %s", projectNameVersion.getName(), projectNameVersion.getVersion()), ex, operationResult);
         }
 
         return operationResult;

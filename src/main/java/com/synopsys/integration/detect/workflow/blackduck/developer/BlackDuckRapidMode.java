@@ -18,13 +18,16 @@ import com.synopsys.integration.blackduck.api.manual.view.DeveloperScanComponent
 import com.synopsys.integration.blackduck.codelocation.bdioupload.UploadTarget;
 import com.synopsys.integration.blackduck.developermode.RapidScanService;
 import com.synopsys.integration.blackduck.exception.BlackDuckIntegrationException;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
+import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeRequest;
+import com.synopsys.integration.detect.workflow.OperationException;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.bdio.BdioResult;
 import com.synopsys.integration.rest.exception.IntegrationRestException;
 
 public class BlackDuckRapidMode {
+    private static final String OPERATION_NAME = "BLACK_DUCK_RAPID_SCAN";
     public static final int DEFAULT_WAIT_INTERVAL_IN_SECONDS = 1;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private BlackDuckRunData blackDuckRunData;
@@ -37,11 +40,11 @@ public class BlackDuckRapidMode {
         this.timeoutInSeconds = timeoutInSeconds;
     }
 
-    public List<DeveloperScanComponentResultView> run(BdioResult bdioResult) throws DetectUserFriendlyException {
+    public OperationResult<List<DeveloperScanComponentResultView>> run(BdioResult bdioResult) throws OperationException {
         logger.info("Begin Rapid Mode Scan");
         if (!blackDuckRunData.isOnline()) {
             logger.warn("Black Duck isn't online skipping rapid mode scan.");
-            return Collections.emptyList();
+            return OperationResult.success(OPERATION_NAME, Collections.emptyList());
         }
 
         List<DeveloperScanComponentResultView> results = new LinkedList<>();
@@ -51,14 +54,24 @@ public class BlackDuckRapidMode {
             }
             logger.debug("Rapid scan result count: {}", results.size());
         } catch (IllegalArgumentException e) {
-            throw new DetectUserFriendlyException(String.format("Your Black Duck configuration is not valid: %s", e.getMessage()), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
+            String reason = String.format("Your Black Duck configuration is not valid: %s", e.getMessage());
+            OperationResult<List<DeveloperScanComponentResultView>> operationResult = OperationResult.fail(OPERATION_NAME);
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY, reason));
+            throw new OperationException(reason, e, operationResult);
         } catch (IntegrationRestException e) {
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
+            OperationResult<List<DeveloperScanComponentResultView>> operationResult = OperationResult.fail(OPERATION_NAME);
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY, e.getMessage()));
+            throw new OperationException(e.getMessage(), e, operationResult);
         } catch (BlackDuckIntegrationException e) {
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_TIMEOUT);
+            OperationResult<List<DeveloperScanComponentResultView>> operationResult = OperationResult.fail(OPERATION_NAME);
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_TIMEOUT, e.getMessage()));
+            throw new OperationException(e.getMessage(), e, operationResult);
         } catch (Exception e) {
-            throw new DetectUserFriendlyException(String.format("There was a problem: %s", e.getMessage()), e, ExitCodeType.FAILURE_GENERAL_ERROR);
+            String reason = String.format("There was a problem: %s", e.getMessage());
+            OperationResult<List<DeveloperScanComponentResultView>> operationResult = OperationResult.fail(OPERATION_NAME);
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_GENERAL_ERROR, reason));
+            throw new OperationException(reason, e, operationResult);
         }
-        return results;
+        return OperationResult.success(OPERATION_NAME, results);
     }
 }

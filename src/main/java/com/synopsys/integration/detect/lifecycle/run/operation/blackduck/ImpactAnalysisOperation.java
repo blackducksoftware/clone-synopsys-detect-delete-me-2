@@ -10,12 +10,11 @@ package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.ImpactAnalysisInput;
 import com.synopsys.integration.detect.tool.impactanalysis.BlackDuckImpactAnalysisTool;
 import com.synopsys.integration.detect.tool.impactanalysis.ImpactAnalysisToolResult;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class ImpactAnalysisOperation {
     private static final String OPERATION_NAME = "BLACK_DUCK_IMPACT_ANALYSIS";
@@ -26,7 +25,7 @@ public class ImpactAnalysisOperation {
         this.blackDuckImpactAnalysisTool = blackDuckImpactAnalysisTool;
     }
 
-    public OperationResult<ImpactAnalysisToolResult> execute(ImpactAnalysisInput impactAnalysisInput) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<ImpactAnalysisToolResult> execute(ImpactAnalysisInput impactAnalysisInput) throws OperationException {
         OperationResult<ImpactAnalysisToolResult> operationResult;
         try {
             ImpactAnalysisToolResult impactAnalysisToolResult = blackDuckImpactAnalysisTool.performImpactAnalysisActions(impactAnalysisInput.getProjectNameVersion(), impactAnalysisInput.getProjectVersionWrapper());
@@ -39,7 +38,8 @@ public class ImpactAnalysisOperation {
 
             operationResult = OperationResult.success(OPERATION_NAME, impactAnalysisToolResult);
         } catch (Exception ex) {
-            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException("Error performing Vulnerabilty Impact Analysis", ex, operationResult);
         }
 
         return operationResult;

@@ -13,14 +13,14 @@ import com.google.gson.Gson;
 import com.synopsys.integration.blackduck.api.manual.view.DeveloperScanComponentResultView;
 import com.synopsys.integration.blackduck.developermode.RapidScanService;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.RapidScanInput;
+import com.synopsys.integration.detect.workflow.OperationException;
+import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.developer.BlackDuckRapidMode;
 import com.synopsys.integration.detect.workflow.blackduck.developer.BlackDuckRapidModePostActions;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class RapidScanOperation {
     private final Gson gson;
@@ -35,12 +35,17 @@ public class RapidScanOperation {
         this.timeoutInSeconds = timeoutInSeconds;
     }
 
-    public void execute(BlackDuckRunData blackDuckRunData, BlackDuckServicesFactory blackDuckServicesFactory, RapidScanInput input) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<Void> execute(BlackDuckRunData blackDuckRunData, BlackDuckServicesFactory blackDuckServicesFactory, RapidScanInput input) throws OperationException {
+        OperationResult<Void> overallResult = OperationResult.empty();
         RapidScanService developerScanService = blackDuckServicesFactory.createRapidScanService();
         BlackDuckRapidMode rapidScanMode = new BlackDuckRapidMode(blackDuckRunData, developerScanService, timeoutInSeconds);
         BlackDuckRapidModePostActions postActions = new BlackDuckRapidModePostActions(gson, eventSystem, directoryManager);
 
-        List<DeveloperScanComponentResultView> results = rapidScanMode.run(input.getBdioResult());
-        postActions.perform(input.getProjectNameVersion(), results);
+        OperationResult<List<DeveloperScanComponentResultView>> results = rapidScanMode.run(input.getBdioResult());
+        overallResult.aggregateResultData(results);
+        if (results.getContent().isPresent()) {
+            overallResult.aggregateResultData(postActions.perform(input.getProjectNameVersion(), results.getContent().get()));
+        }
+        return overallResult;
     }
 }
