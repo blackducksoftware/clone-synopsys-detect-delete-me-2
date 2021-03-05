@@ -53,7 +53,6 @@ import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class RunManager {
-    private static final String OPERATION_NAME = "OVERALL_RUN_STATUS";
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private ExitCodeManager exitCodeManager;
     private OperationResult<Void> overallStatus;
@@ -63,7 +62,7 @@ public class RunManager {
     }
 
     public void run(RunContext runContext) {
-        overallStatus = OperationResult.success(OPERATION_NAME);
+        overallStatus = OperationResult.empty();
         EventSystem eventSystem = runContext.getEventSystem();
         try {
             RunResult runResult = new RunResult();
@@ -94,10 +93,8 @@ public class RunManager {
             logger.info("All tools have finished.");
             logger.info(ReportConstants.RUN_SEPARATOR);
         } catch (OperationException ex) {
-            overallStatus = OperationResult.fail(OPERATION_NAME);
             overallStatus.aggregateResultData(ex.getOperationResult());
         } catch (Exception e) {
-            overallStatus = OperationResult.fail(OPERATION_NAME);
             if (e.getMessage() != null) {
                 logger.error("Detect run failed: {}", e.getMessage());
             } else {
