@@ -10,17 +10,16 @@ package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 import com.synopsys.integration.blackduck.codelocation.CodeLocationCreationData;
 import com.synopsys.integration.blackduck.codelocation.binaryscanner.BinaryScanBatchOutput;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
 import com.synopsys.integration.detect.tool.binaryscanner.BinaryScanOptions;
 import com.synopsys.integration.detect.tool.binaryscanner.BinaryScanToolResult;
 import com.synopsys.integration.detect.tool.binaryscanner.BlackDuckBinaryScannerTool;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameManager;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.detectable.detectable.file.WildcardFileFinder;
-import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.util.NameVersion;
 
 public class BinaryScanOperation {
@@ -40,7 +39,7 @@ public class BinaryScanOperation {
         this.codeLocationNameManager = codeLocationNameManager;
     }
 
-    public OperationResult<CodeLocationCreationData<BinaryScanBatchOutput>> execute(NameVersion projectNameVersion) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<CodeLocationCreationData<BinaryScanBatchOutput>> execute(NameVersion projectNameVersion) throws OperationException {
         OperationResult<CodeLocationCreationData<BinaryScanBatchOutput>> operationResult = OperationResult.success(OPERATION_NAME);
         try {
             BlackDuckServicesFactory blackDuckServicesFactory = blackDuckRunData.getBlackDuckServicesFactory();
@@ -53,7 +52,8 @@ public class BinaryScanOperation {
                 }
             }
         } catch (Exception ex) {
-            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException("Error occurred executing binary scanner.", ex, operationResult);
         }
 
         return operationResult;

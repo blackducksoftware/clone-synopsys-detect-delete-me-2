@@ -7,14 +7,13 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.operation.blackduck;
 
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationAccumulator;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationResultCalculator;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationResults;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class CodeLocationResultCalculationOperation {
     private static final String OPERATION_NAME = "BLACK_DUCK_CODE_LOCATION_RESULTS";
@@ -26,14 +25,15 @@ public class CodeLocationResultCalculationOperation {
         this.eventSystem = eventSystem;
     }
 
-    public OperationResult<CodeLocationResults> execute(CodeLocationAccumulator codeLocationAccumulator) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<CodeLocationResults> execute(CodeLocationAccumulator codeLocationAccumulator) throws OperationException {
         OperationResult<CodeLocationResults> operationResult;
         try {
             CodeLocationResults codeLocationResults = codeLocationResultCalculator.calculateCodeLocationResults(codeLocationAccumulator);
             eventSystem.publishEvent(Event.CodeLocationsCompleted, codeLocationResults.getAllCodeLocationNames());
             operationResult = OperationResult.success(OPERATION_NAME, codeLocationResults);
         } catch (Exception ex) {
-            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException("Code location result calculation failed", ex, operationResult);
         }
         return operationResult;
     }

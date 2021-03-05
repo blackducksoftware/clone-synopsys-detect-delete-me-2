@@ -25,6 +25,8 @@ import com.synopsys.integration.blackduck.service.model.NotificationTaskRange;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
+import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeRequest;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.codelocation.CodeLocationWaitData;
 import com.synopsys.integration.detect.workflow.blackduck.policy.PolicyChecker;
@@ -54,7 +56,7 @@ public class BlackDuckPostActions {
     }
 
     public OperationResult<Void> perform(BlackDuckPostOptions blackDuckPostOptions, CodeLocationWaitData codeLocationWaitData, ProjectVersionWrapper projectVersionWrapper, NameVersion projectNameVersion, long timeoutInSeconds)
-        throws DetectUserFriendlyException {
+        throws OperationException {
         OperationResult operationResult = OperationResult.empty();
         Status lastOperation = null;
         try {
@@ -75,21 +77,28 @@ public class BlackDuckPostActions {
             }
         } catch (DetectUserFriendlyException e) {
             operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
-            operationResult.setOperationException(e);
+            operationResult.addExitCode(new ExitCodeRequest(e.getExitCodeType(), e.getMessage()));
+            throw new OperationException(e.getMessage(), e, operationResult);
         } catch (IllegalArgumentException e) {
+            String reason = String.format("Your Black Duck configuration is not valid: %s", e.getMessage());
             operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
-            operationResult.setOperationException(new DetectUserFriendlyException(String.format("Your Black Duck configuration is not valid: %s", e.getMessage()), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY));
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY, reason));
+            throw new OperationException(reason, e, operationResult);
         } catch (IntegrationRestException e) {
             operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
-            operationResult.setOperationException(new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY));
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY, e.getMessage()));
+            throw new OperationException(e.getMessage(), e, operationResult);
         } catch (BlackDuckTimeoutExceededException e) {
             operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
-            operationResult.setOperationException(new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_TIMEOUT));
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_TIMEOUT));
+            throw new OperationException(e.getMessage(), e, operationResult);
         } catch (Exception e) {
             if (null != lastOperation) {
                 operationResult.addStatus(new Status(lastOperation.getDescriptionKey(), StatusType.FAILURE));
             }
-            operationResult.setOperationException(new DetectUserFriendlyException(String.format("There was a problem: %s", e.getMessage()), e, ExitCodeType.FAILURE_GENERAL_ERROR));
+            String reason = String.format("There was a problem: %s", e.getMessage());
+            operationResult.addExitCode(new ExitCodeRequest(ExitCodeType.FAILURE_GENERAL_ERROR, reason));
+            throw new OperationException(reason, e, operationResult);
         }
 
         return operationResult;

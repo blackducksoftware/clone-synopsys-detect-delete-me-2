@@ -15,17 +15,16 @@ import com.synopsys.integration.blackduck.codelocation.Result;
 import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatchOutput;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.SignatureScanInput;
 import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerTool;
 import com.synopsys.integration.detect.tool.signaturescanner.SignatureScannerToolResult;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.status.DetectIssue;
 import com.synopsys.integration.detect.workflow.status.DetectIssueType;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class SignatureScanOperation {
     private static final String OPERATION_NAME = "SIGNATURE_SCAN";
@@ -40,7 +39,7 @@ public class SignatureScanOperation {
         this.eventSystem = eventSystem;
     }
 
-    public OperationResult<CodeLocationCreationData<ScanBatchOutput>> execute(SignatureScanInput signatureScanInput) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<CodeLocationCreationData<ScanBatchOutput>> execute(SignatureScanInput signatureScanInput) throws OperationException {
         OperationResult<CodeLocationCreationData<ScanBatchOutput>> result = OperationResult.success(OPERATION_NAME);
         try {
             BlackDuckServerConfig blackDuckServerConfig = null;
@@ -59,7 +58,8 @@ public class SignatureScanOperation {
                 eventSystem.publishEvent(Event.Issue, new DetectIssue(DetectIssueType.SIGNATURE_SCANNER, Arrays.asList(signatureScannerToolResult.getResult().toString())));
             }
         } catch (Exception ex) {
-            result = OperationResult.fail(OPERATION_NAME, ex);
+            result = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException("Error executing Black Duck signature scanner", ex, result);
         }
         return result;
     }

@@ -12,10 +12,10 @@ import java.util.Optional;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
-import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
 import com.synopsys.integration.detect.lifecycle.run.operation.input.FullScanPostProcessingInput;
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
+import com.synopsys.integration.detect.workflow.OperationException;
 import com.synopsys.integration.detect.workflow.OperationResult;
 import com.synopsys.integration.detect.workflow.blackduck.BlackDuckPostActions;
 import com.synopsys.integration.detect.workflow.blackduck.BlackDuckPostOptions;
@@ -23,7 +23,6 @@ import com.synopsys.integration.detect.workflow.event.Event;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.result.BlackDuckBomDetectResult;
 import com.synopsys.integration.detect.workflow.result.DetectResult;
-import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.rest.HttpUrl;
 
 public class FullScanPostProcessingOperation {
@@ -41,7 +40,7 @@ public class FullScanPostProcessingOperation {
         this.detectTimeoutInSeconds = detectTimeoutInSeconds;
     }
 
-    public OperationResult<Void> execute(BlackDuckServicesFactory blackDuckServicesFactory, FullScanPostProcessingInput postProcessingInput) throws DetectUserFriendlyException, IntegrationException {
+    public OperationResult<Void> execute(BlackDuckServicesFactory blackDuckServicesFactory, FullScanPostProcessingInput postProcessingInput) throws OperationException {
         OperationResult<Void> operationResult = OperationResult.success(OPERATION_NAME);
         try {
             BlackDuckPostActions blackDuckPostActions = new BlackDuckPostActions(blackDuckServicesFactory.createCodeLocationCreationService(), eventSystem, blackDuckServicesFactory.getBlackDuckApiClient(),
@@ -62,9 +61,13 @@ public class FullScanPostProcessingOperation {
                 }
             }
             operationResult.aggregateResultData(postActionsResult);
-            operationResult.setOperationException(postActionsResult.getOperationException().orElse(null));
+        } catch (OperationException ex) {
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            operationResult.aggregateResultData(ex.getOperationResult());
+            throw new OperationException(ex.getMessage(), ex, operationResult);
         } catch (Exception ex) {
-            operationResult = OperationResult.fail(OPERATION_NAME, ex);
+            operationResult = OperationResult.fail(OPERATION_NAME);
+            throw new OperationException(ex.getMessage(), ex, operationResult);
         }
         return operationResult;
     }
