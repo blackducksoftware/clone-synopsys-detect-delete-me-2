@@ -7,6 +7,7 @@
  */
 package com.synopsys.integration.detect.workflow.status;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -67,18 +68,15 @@ public class DetectStatusLogger {
 
     private void logDetectStatus(IntLogger logger, List<Status> statusSummaries) {
         // sort by type, and within type, sort by description
-        statusSummaries.sort((left, right) -> {
-            if (left.getClass() == right.getClass()) {
-                return left.getDescriptionKey().compareTo(right.getDescriptionKey());
-            } else {
-                return left.getClass().getName().compareTo(right.getClass().getName());
-            }
-        });
+        List<Status> sortedStatus = statusSummaries.stream()
+                                        .sorted(Comparator.comparing(Status::getCreationDate)
+                                                    .thenComparing(Status::getDescriptionKey))
+                                        .collect(Collectors.toList());
         logger.info("======== Detect Status ========");
         logger.info("");
         Class<? extends Status> previousSummaryClass = null;
 
-        for (Status status : statusSummaries) {
+        for (Status status : sortedStatus) {
             if (previousSummaryClass != null && !previousSummaryClass.equals(status.getClass())) {
                 logger.info("");
             }
