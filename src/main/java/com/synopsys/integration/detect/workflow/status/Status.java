@@ -7,13 +7,21 @@
  */
 package com.synopsys.integration.detect.workflow.status;
 
+import java.time.Instant;
+
 public class Status {
     private final String descriptionKey;
     private final StatusType statusType;
+    private final Instant creationDate;
 
-    public Status(final String descriptionKey, final StatusType statusType) {
+    public Status(String descriptionKey, StatusType statusType) {
+        this(descriptionKey, statusType, Instant.now());
+    }
+
+    public Status(String descriptionKey, StatusType statusType, Instant creationDate) {
         this.descriptionKey = descriptionKey;
         this.statusType = statusType;
+        this.creationDate = creationDate;
     }
 
     public String getDescriptionKey() {
@@ -24,4 +32,7 @@ public class Status {
         return statusType;
     }
 
+    public Instant getCreationDate() {
+        return creationDate;
+    }
 }
