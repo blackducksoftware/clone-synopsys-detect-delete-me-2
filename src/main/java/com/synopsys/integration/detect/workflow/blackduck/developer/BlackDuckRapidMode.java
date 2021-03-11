@@ -27,7 +27,7 @@ import com.synopsys.integration.detect.workflow.bdio.BdioResult;
 import com.synopsys.integration.rest.exception.IntegrationRestException;
 
 public class BlackDuckRapidMode {
-    private static final String OPERATION_NAME = "BLACK_DUCK_RAPID_SCAN";
+    private static final String OPERATION_NAME = "Black Duck Rapid Scan";
     public static final int DEFAULT_WAIT_INTERVAL_IN_SECONDS = 1;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private BlackDuckRunData blackDuckRunData;

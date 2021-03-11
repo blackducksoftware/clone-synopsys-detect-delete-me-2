@@ -32,10 +32,11 @@ public class BdioFileGenerationOperation {
     }
 
     public OperationResult<BdioResult> execute(BdioInput bdioInput) throws OperationException {
-        OperationResult<BdioResult> result = OperationResult.success(OPERATION_NAME);
+        OperationResult<BdioResult> result;
         try {
             BdioResult bdioResult = bdioManager.createBdioFiles(bdioOptions, bdioInput.getAggregateOptions(), bdioInput.getNameVersion(), bdioInput.getCodeLocations(), runOptions.shouldUseBdio2());
             eventSystem.publishEvent(Event.DetectCodeLocationNamesCalculated, bdioResult.getCodeLocationNamesResult());
+            result = OperationResult.success(OPERATION_NAME, bdioResult);
         } catch (Exception ex) {
             result = OperationResult.fail(OPERATION_NAME);
             throw new OperationException("Error occurred generating BDIO files.", ex, result);

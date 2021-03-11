@@ -42,8 +42,9 @@ public class BdioUploadOperation {
                     DetectBdioUploadService detectBdioUploadService = new DetectBdioUploadService();
                     logger.info(String.format("Created %d BDIO files.", uploadTargetList.size()));
                     logger.debug("Uploading BDIO files.");
-                    result = OperationResult.success(OPERATION_NAME, detectBdioUploadService.uploadBdioFiles(bdioResult, bdioUploadService,
-                        bdio2UploadService));
+                    CodeLocationCreationData<UploadBatchOutput> codeLocationCreationData = detectBdioUploadService.uploadBdioFiles(bdioResult, bdioUploadService,
+                        bdio2UploadService);
+                    result = OperationResult.success(OPERATION_NAME, codeLocationCreationData);
                 }
             } else {
                 logger.debug("Did not create any BDIO files.");

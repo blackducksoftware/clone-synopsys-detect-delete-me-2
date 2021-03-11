@@ -17,7 +17,7 @@ import com.synopsys.integration.detect.workflow.project.ProjectNameVersionDecide
 import com.synopsys.integration.util.NameVersion;
 
 public class ProjectDecisionOperation {
-    private static final String OPERATION_NAME = "BLACK_DUCK_PROJECT_DECISION";
+    private static final String OPERATION_NAME = "Black Duck Project Decision";
     private final RunOptions runOptions;
     private final ProjectNameVersionDecider projectNameVersionDecider;
 
