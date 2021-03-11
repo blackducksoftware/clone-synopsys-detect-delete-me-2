@@ -65,24 +65,6 @@ public class OperationResult<T> {
                    .anyMatch(StatusType.FAILURE::equals);
     }
 
-    public boolean allFailed() {
-        return statuses.stream()
-                   .map(Status::getStatusType)
-                   .allMatch(StatusType.FAILURE::equals);
-    }
-
-    public boolean anySuccess() {
-        return statuses.stream()
-                   .map(Status::getStatusType)
-                   .anyMatch(StatusType.SUCCESS::equals);
-    }
-
-    public boolean allSuccess() {
-        return statuses.stream()
-                   .map(Status::getStatusType)
-                   .allMatch(StatusType.SUCCESS::equals);
-    }
-
     public void addStatus(Status status) {
         this.statuses.add(status);
     }
@@ -92,6 +74,7 @@ public class OperationResult<T> {
     }
 
     public <T> void aggregateResultData(OperationResult<T> otherResult) {
+        // TODO use addAll
         for (Status status : otherResult.getStatuses()) {
             addStatus(status);
         }

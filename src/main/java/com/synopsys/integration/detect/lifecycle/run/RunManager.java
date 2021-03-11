@@ -55,6 +55,7 @@ import com.synopsys.integration.util.NameVersion;
 public class RunManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private ExitCodeManager exitCodeManager;
+    //TODO create an operation result that just contains the Void type. Use that here.
     private OperationResult<Void> overallStatus;
 
     public RunManager(ExitCodeManager exitCodeManager) {
