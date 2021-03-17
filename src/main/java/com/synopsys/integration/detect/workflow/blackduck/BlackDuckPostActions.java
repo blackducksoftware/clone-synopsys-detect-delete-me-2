@@ -17,7 +17,6 @@ import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectView;
 import com.synopsys.integration.blackduck.codelocation.CodeLocationCreationService;
 import com.synopsys.integration.blackduck.codelocation.CodeLocationWaitResult;
-import com.synopsys.integration.blackduck.exception.BlackDuckTimeoutExceededException;
 import com.synopsys.integration.blackduck.service.BlackDuckApiClient;
 import com.synopsys.integration.blackduck.service.dataservice.ProjectBomService;
 import com.synopsys.integration.blackduck.service.dataservice.ReportService;
@@ -32,7 +31,6 @@ import com.synopsys.integration.detect.workflow.result.ReportDetectResult;
 import com.synopsys.integration.detect.workflow.status.OperationSystem;
 import com.synopsys.integration.detect.workflow.status.StatusEventPublisher;
 import com.synopsys.integration.exception.IntegrationException;
-import com.synopsys.integration.rest.exception.IntegrationRestException;
 import com.synopsys.integration.util.NameVersion;
 
 public class BlackDuckPostActions {
@@ -82,16 +80,6 @@ public class BlackDuckPostActions {
         } catch (DetectUserFriendlyException e) {
             operationSystem.completeWithError(currentOperationKey, e.getMessage());
             throw e;
-        } catch (IllegalArgumentException e) {
-            String errorReason = String.format("Your Black Duck configuration is not valid: %s", e.getMessage());
-            operationSystem.completeWithError(currentOperationKey, errorReason);
-            throw new DetectUserFriendlyException(errorReason, e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
-        } catch (IntegrationRestException e) {
-            operationSystem.completeWithError(currentOperationKey, e.getMessage());
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_BLACKDUCK_CONNECTIVITY);
-        } catch (BlackDuckTimeoutExceededException e) {
-            operationSystem.completeWithError(currentOperationKey, e.getMessage());
-            throw new DetectUserFriendlyException(e.getMessage(), e, ExitCodeType.FAILURE_TIMEOUT);
         } catch (Exception e) {
             String errorReason = String.format("There was a problem: %s", e.getMessage());
             operationSystem.completeWithError(currentOperationKey, errorReason);
