@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -42,13 +41,11 @@ import com.synopsys.integration.blackduck.service.model.NotificationTaskRange;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.connection.ConnectionFactory;
 import com.synopsys.integration.detect.lifecycle.DetectContext;
-import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameGenerator;
 import com.synopsys.integration.detect.workflow.codelocation.CodeLocationNameManager;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.log.SilentIntLogger;
 import com.synopsys.integration.rest.client.IntHttpClient;
-import com.synopsys.integration.util.IntEnvironmentVariables;
 import com.synopsys.integration.util.NameVersion;
 
 public class BlackDuckSignatureScannerTool {
@@ -62,7 +59,9 @@ public class BlackDuckSignatureScannerTool {
     }
 
     // TODO: Don't accept an Optional as a parameter.
-    public SignatureScannerToolResult runScanTool(CodeLocationCreationService codeLocationCreationService, BlackDuckServerConfig blackDuckServerConfig, NameVersion projectNameVersion, Optional<File> dockerTar, DirectoryManager directoryManager, ConnectionFactory connectionFactory, CodeLocationNameManager codeLocationNameManager, ScanBatchRunnerFactory scanBatchRunnerFactory, ExecutorService executorService) throws DetectUserFriendlyException {
+    public SignatureScannerToolResult runScanTool(CodeLocationCreationService codeLocationCreationService, BlackDuckServerConfig blackDuckServerConfig, NameVersion projectNameVersion, Optional<File> dockerTar,
+        DirectoryManager directoryManager, ConnectionFactory connectionFactory, CodeLocationNameManager codeLocationNameManager, ScanBatchRunnerFactory scanBatchRunnerFactory, ExecutorService executorService)
+        throws DetectUserFriendlyException {
         Optional<Path> localScannerInstallPath = determineLocalScannerInstallPath();
         File installDirectory = determineInstallDirectory(localScannerInstallPath.orElse(null), directoryManager);
         ScanBatchRunner scanBatchRunner = createScanBatchRunner(blackDuckServerConfig, localScannerInstallPath.orElse(null), scanBatchRunnerFactory, installDirectory, connectionFactory);
@@ -115,7 +114,8 @@ public class BlackDuckSignatureScannerTool {
         return installDirectory;
     }
 
-    private ScanBatchRunner createScanBatchRunner(@Nullable BlackDuckServerConfig blackDuckServerConfig, @Nullable Path localScannerInstallPath, ScanBatchRunnerFactory scanBatchRunnerFactory, File installDirectory, ConnectionFactory connectionFactory) throws DetectUserFriendlyException {
+    private ScanBatchRunner createScanBatchRunner(@Nullable BlackDuckServerConfig blackDuckServerConfig, @Nullable Path localScannerInstallPath, ScanBatchRunnerFactory scanBatchRunnerFactory, File installDirectory,
+        ConnectionFactory connectionFactory) throws DetectUserFriendlyException {
         ScanBatchRunner scanBatchRunner;
         if (blackDuckServerConfig != null && !signatureScannerOptions.getUserProvidedScannerInstallUrl().isPresent() && localScannerInstallPath == null) {
             logger.debug("Signature scanner will use the Black Duck server to download/update the scanner - this is the most likely situation.");
