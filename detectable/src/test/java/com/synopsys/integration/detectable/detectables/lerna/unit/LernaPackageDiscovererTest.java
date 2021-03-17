@@ -1,6 +1,8 @@
 package com.synopsys.integration.detectable.detectables.lerna.unit;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +39,12 @@ class LernaPackageDiscovererTest {
                 "    \"version\": \"3.2.1\",",
                 "    \"private\": true,",
                 "    \"location\": \"/source/packages/packageB\"",
+                "  },",
+                "  {",
+                "    \"name\": \"@lerna/packageC\",",
+                "    \"version\": \"1.1.1\",",
+                "    \"private\": true,",
+                "    \"location\": \"/source/packages/packageC\"",
                 "  }",
                 "]"),
                 ""
@@ -46,7 +54,7 @@ class LernaPackageDiscovererTest {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         LernaPackageDiscoverer lernaPackageDiscoverer = new LernaPackageDiscoverer(executableRunner, gson);
 
-        List<LernaPackage> lernaPackages = lernaPackageDiscoverer.discoverLernaPackages(workingDirectory, lernaExecutable);
+        List<LernaPackage> lernaPackages = lernaPackageDiscoverer.discoverLernaPackages(workingDirectory, lernaExecutable, Arrays.asList("@lerna/packageC"), new LinkedList<>());
 
         Assertions.assertEquals(2, lernaPackages.size(), "Expected to find two Lerna packages.");
 
