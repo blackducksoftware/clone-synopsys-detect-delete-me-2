@@ -32,15 +32,17 @@ import com.synopsys.integration.detectable.detectables.lerna.model.LernaResult;
 public class LernaExtractor {
     private final LernaPackageDiscoverer lernaPackageDiscoverer;
     private final LernaPackager lernaPackager;
+    private final LernaOptions lernaOptions;
 
-    public LernaExtractor(LernaPackageDiscoverer lernaPackageDiscoverer, LernaPackager lernaPackager) {
+    public LernaExtractor(LernaPackageDiscoverer lernaPackageDiscoverer, LernaPackager lernaPackager, LernaOptions lernaOptions) {
         this.lernaPackageDiscoverer = lernaPackageDiscoverer;
         this.lernaPackager = lernaPackager;
+        this.lernaOptions = lernaOptions;
     }
 
     public Extraction extract(File sourceDirectory, File packageJson, File lernaExecutable) {
         try {
-            List<LernaPackage> lernaPackages = lernaPackageDiscoverer.discoverLernaPackages(sourceDirectory, lernaExecutable);
+            List<LernaPackage> lernaPackages = lernaPackageDiscoverer.discoverLernaPackages(sourceDirectory, lernaExecutable, lernaOptions.getExcludedPackages(), lernaOptions.getIncludedPackages());
             LernaResult lernaResult = lernaPackager.generateLernaResult(sourceDirectory, packageJson, lernaPackages);
 
             if (lernaResult.getException().isPresent()) {
