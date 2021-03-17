@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.blackduck.exception.BlackDuckApiException;
+import com.synopsys.integration.blackduck.exception.BlackDuckTimeoutExceededException;
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.exception.IntegrationException;
@@ -19,18 +20,19 @@ import com.synopsys.integration.rest.exception.IntegrationRestException;
 public class ExitCodeUtility {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String BLACKDUCK_ERROR_MESSAGE = "An unrecoverable error occurred - most likely this is due to your environment and/or configuration. Please double check the Detect documentation: https://detect.synopsys.com/doc/";
+    private static final String BLACKDUCK_TIMEOUT_MESSAGE = "A timeout occurred - most likely this is due to your environment and/or configuration. Please double check the Detect documentation: https://detect.synopsys.com/doc/";
 
-    public ExitCodeType getExitCodeFromExceptionDetails(final Exception e) {
-        final ExitCodeType exceptionExitCodeType;
+    public ExitCodeType getExitCodeFromExceptionDetails(Exception e) {
+        ExitCodeType exceptionExitCodeType;
 
         if (e instanceof DetectUserFriendlyException) {
             if (e.getCause() != null) {
                 logger.debug(e.getCause().getMessage(), e.getCause());
             }
-            final DetectUserFriendlyException friendlyException = (DetectUserFriendlyException) e;
+            DetectUserFriendlyException friendlyException = (DetectUserFriendlyException) e;
             exceptionExitCodeType = friendlyException.getExitCodeType();
         } else if (e instanceof BlackDuckApiException) {
-            final BlackDuckApiException be = (BlackDuckApiException) e;
+            BlackDuckApiException be = (BlackDuckApiException) e;
 
             logger.error(BLACKDUCK_ERROR_MESSAGE);
             logger.error(be.getMessage());
@@ -38,6 +40,12 @@ public class ExitCodeUtility {
             logger.error(be.getOriginalIntegrationRestException().getMessage());
 
             exceptionExitCodeType = ExitCodeType.FAILURE_BLACKDUCK_FEATURE_ERROR;
+        } else if (e instanceof BlackDuckTimeoutExceededException) {
+            BlackDuckTimeoutExceededException be = (BlackDuckTimeoutExceededException) e;
+
+            logger.error(BLACKDUCK_TIMEOUT_MESSAGE);
+            logger.error(be.getMessage());
+            exceptionExitCodeType = ExitCodeType.FAILURE_TIMEOUT;
         } else if (e instanceof IntegrationRestException) {
             logger.error(BLACKDUCK_ERROR_MESSAGE);
             logger.debug(e.getMessage(), e);
