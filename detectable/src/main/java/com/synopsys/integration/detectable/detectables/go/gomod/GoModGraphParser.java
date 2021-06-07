@@ -95,7 +95,7 @@ public class GoModGraphParser {
     public List<CodeLocation> parseListAndGoModGraph(List<String> listOutput, List<String> modGraphOutput, Set<String> moduleExclusionList) {
         List<CodeLocation> codeLocations = new ArrayList<>();
         for (String module : listOutput) {
-            DependencyGraph graph = parseGoModGraph(modGraphOutput, module, moduleExclusionList);
+            DependencyGraph graph = parseGoModGraph(modGraphOutput, module, moduleExclusionList); // TODO: We parse the entire graph output for every module?
             codeLocations.add(new CodeLocation(graph, externalIdFactory.createNameVersionExternalId(Forge.GOLANG, module, null)));
         }
         return codeLocations;
