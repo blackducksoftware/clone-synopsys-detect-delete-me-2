@@ -7,11 +7,11 @@
  */
 package com.synopsys.integration.detect.lifecycle.boot.product;
 
-public class ProductBootOptions {
+public class BlackDuckBootOptions {
     private final boolean ignoreConnectionFailures;
     private final boolean testConnections;
 
-    public ProductBootOptions(boolean ignoreConnectionFailures, boolean testConnections) {
+    public BlackDuckBootOptions(boolean ignoreConnectionFailures, boolean testConnections) {
         this.ignoreConnectionFailures = ignoreConnectionFailures;
         this.testConnections = testConnections;
     }

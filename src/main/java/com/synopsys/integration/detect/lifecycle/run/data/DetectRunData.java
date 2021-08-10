@@ -7,25 +7,25 @@
  */
 package com.synopsys.integration.detect.lifecycle.run.data;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 
-public class ProductRunData {
+public class DetectRunData {
     private final BlackDuckRunData blackDuckRunData;
     private final DetectToolFilter detectToolFilter;
 
-    public ProductRunData(final BlackDuckRunData blackDuckRunData, final DetectToolFilter detectToolFilter) {
+    public DetectRunData(@NotNull final BlackDuckRunData blackDuckRunData, @NotNull final DetectToolFilter detectToolFilter) {
         this.blackDuckRunData = blackDuckRunData;
         this.detectToolFilter = detectToolFilter;
     }
-    
+
+    @NotNull
     public BlackDuckRunData getBlackDuckRunData() {
         return blackDuckRunData;
     }
 
-    public boolean shouldUseBlackDuckProduct() {
-        return blackDuckRunData != null;
-    }
-
+    @NotNull
     public DetectToolFilter getDetectToolFilter() {
         return detectToolFilter;
     }

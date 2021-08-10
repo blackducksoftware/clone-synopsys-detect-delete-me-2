@@ -13,7 +13,7 @@ import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectConfigurationFactory;
 import com.synopsys.integration.detect.configuration.DetectInfo;
 import com.synopsys.integration.detect.configuration.DetectableOptionFactory;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.workflow.DetectRunId;
 import com.synopsys.integration.detect.workflow.event.EventSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
@@ -23,7 +23,7 @@ import freemarker.template.Configuration;
 
 //Everything a DetectRun needs supplied from Boot. Ideally the minimum subset of things needed to be passed from Boot to Run.
 public class BootSingletons {
-    private final ProductRunData productRunData;
+    private final DetectRunData detectRunData;
 
     private final DetectRunId detectRunId;
     private final Gson gson;
@@ -40,12 +40,12 @@ public class BootSingletons {
     private final DirectoryManager directoryManager;
     private final Configuration configuration;
 
-    public BootSingletons(final ProductRunData productRunData, final DetectRunId detectRunId, final Gson gson, final DetectInfo detectInfo, final FileFinder fileFinder, final EventSystem eventSystem,
+    public BootSingletons(final DetectRunData detectRunData, final DetectRunId detectRunId, final Gson gson, final DetectInfo detectInfo, final FileFinder fileFinder, final EventSystem eventSystem,
         final DetectorProfiler detectorProfiler,
         final PropertyConfiguration detectConfiguration, final DetectableOptionFactory detectableOptionFactory, final DetectConfigurationFactory detectConfigurationFactory,
         final DirectoryManager directoryManager,
         final Configuration configuration) {
-        this.productRunData = productRunData;
+        this.detectRunData = detectRunData;
         this.detectRunId = detectRunId;
         this.gson = gson;
         this.detectInfo = detectInfo;
@@ -59,8 +59,8 @@ public class BootSingletons {
         this.configuration = configuration;
     }
 
-    public ProductRunData getProductRunData() {
-        return productRunData;
+    public DetectRunData getDetectRunData() {
+        return detectRunData;
     }
 
     public PropertyConfiguration getDetectConfiguration() {
