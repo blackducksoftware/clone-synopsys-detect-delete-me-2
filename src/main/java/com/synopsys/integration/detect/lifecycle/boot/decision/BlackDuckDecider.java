@@ -30,7 +30,6 @@ package com.synopsys.integration.detect.lifecycle.boot.decision;
  * under the License.
  */
 
-import java.nio.file.Path;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -38,13 +37,12 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.connection.BlackDuckConnectionDetails;
 import com.synopsys.integration.detect.configuration.enumeration.BlackduckScanMode;
-import com.synopsys.integration.detect.tool.signaturescanner.BlackDuckSignatureScannerOptions;
 import com.synopsys.integration.detect.workflow.bdio.BdioOptions;
 
-public class ProductDecider {
+public class BlackDuckDecider {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public BlackDuckDecision decideBlackDuck(BlackDuckConnectionDetails blackDuckConnectionDetails, BlackDuckSignatureScannerOptions blackDuckSignatureScannerOptions, BlackduckScanMode scanMode, BdioOptions bdioOptions) {
+    public BlackDuckDecision decideBlackDuck(BlackDuckConnectionDetails blackDuckConnectionDetails, BlackduckScanMode scanMode, BdioOptions bdioOptions) {
         boolean offline = blackDuckConnectionDetails.getOffline();
         Optional<String> blackDuckUrl = blackDuckConnectionDetails.getBlackDuckUrl();
         if (scanMode == BlackduckScanMode.RAPID && !bdioOptions.isBdio2Enabled()) {

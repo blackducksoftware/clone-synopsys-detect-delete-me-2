@@ -41,14 +41,14 @@ import com.synopsys.integration.detect.configuration.help.print.HelpPrinter;
 import com.synopsys.integration.detect.configuration.validation.DeprecationResult;
 import com.synopsys.integration.detect.configuration.validation.DetectConfigurationBootManager;
 import com.synopsys.integration.detect.interactive.InteractiveManager;
+import com.synopsys.integration.detect.lifecycle.boot.decision.BlackDuckDecider;
 import com.synopsys.integration.detect.lifecycle.boot.decision.BlackDuckDecision;
-import com.synopsys.integration.detect.lifecycle.boot.decision.ProductDecider;
 import com.synopsys.integration.detect.lifecycle.boot.decision.RunDecision;
-import com.synopsys.integration.detect.lifecycle.boot.product.ProductBoot;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.boot.product.BlackDuckBoot;
+import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
 import com.synopsys.integration.detect.util.filter.DetectOverrideableFilter;
-import com.synopsys.integration.detect.util.filter.DetectToolFilter;
 import com.synopsys.integration.detect.workflow.airgap.AirGapCreator;
 import com.synopsys.integration.detect.workflow.diagnostic.DiagnosticDecision;
 import com.synopsys.integration.detect.workflow.diagnostic.DiagnosticSystem;
@@ -156,26 +156,25 @@ public class DetectBoot {
 
         logger.info("");
 
-        ProductRunData productRunData;
+        DetectRunData detectRunData;
         try {
-
-            ProductDecider productDecider = new ProductDecider();
-            BlackDuckDecision blackDuckDecision = productDecider.decideBlackDuck(detectConfigurationFactory.createBlackDuckConnectionDetails(), detectConfigurationFactory.createBlackDuckSignatureScannerOptions(),
-                detectConfigurationFactory.createScanMode(), detectConfigurationFactory.createBdioOptions());
-            RunDecision runDecision = new RunDecision(detectConfigurationFactory.createDetectTarget() == DetectTargetType.IMAGE); //TODO: Move to proper decision home. -jp
-            DetectToolFilter detectToolFilter = detectConfigurationFactory.createToolFilter(runDecision, blackDuckDecision);
+            BlackDuckDecision blackDuckDecision = new BlackDuckDecider()
+                                                      .decideBlackDuck(detectConfigurationFactory.createBlackDuckConnectionDetails(), detectConfigurationFactory.createScanMode(), detectConfigurationFactory.createBdioOptions());
 
             logger.debug("Decided what products will be run. Starting product boot.");
+            BlackDuckBoot blackDuckBoot = detectBootFactory.createBlackDuckBoot(detectConfigurationFactory);
+            BlackDuckRunData blackDuckRunData = blackDuckBoot.boot(blackDuckDecision, detectConfigurationFactory.createBlackDuckBootOptions());
 
-            ProductBoot productBoot = detectBootFactory.createProductBoot(detectConfigurationFactory);
-            productRunData = productBoot.boot(blackDuckDecision, detectToolFilter);
+            if (blackDuckRunData == null) {
+                logger.info("Nothing to run, Detect is complete.");
+                return Optional.of(DetectBootResult.exit(detectConfiguration, directoryManager, diagnosticSystem));
+            }
+
+            RunDecision runDecision = new RunDecision(detectConfigurationFactory.createDetectTarget() == DetectTargetType.IMAGE); //TODO: Move to proper decision home. -jp
+            detectRunData = new DetectRunData(blackDuckRunData, detectConfigurationFactory.createToolFilter(runDecision, blackDuckDecision));
+
         } catch (DetectUserFriendlyException e) {
             return Optional.of(DetectBootResult.exception(e, detectConfiguration, directoryManager, diagnosticSystem));
-        }
-
-        if (productRunData == null) {
-            logger.info("No products to run, Detect is complete.");
-            return Optional.of(DetectBootResult.exit(detectConfiguration, directoryManager, diagnosticSystem));
         }
 
         DetectableOptionFactory detectableOptionFactory;
@@ -186,8 +185,8 @@ public class DetectBoot {
             return Optional.of(DetectBootResult.exception(e, detectConfiguration, directoryManager, diagnosticSystem));
         }
 
-        BootSingletons bootSingletons = detectBootFactory.createRunDependencies(productRunData, detectConfiguration, detectableOptionFactory, detectConfigurationFactory, directoryManager, freemarkerConfiguration);
-        return Optional.of(DetectBootResult.run(bootSingletons, detectConfiguration, productRunData, directoryManager, diagnosticSystem));
+        BootSingletons bootSingletons = detectBootFactory.createRunDependencies(detectRunData, detectConfiguration, detectableOptionFactory, detectConfigurationFactory, directoryManager, freemarkerConfiguration);
+        return Optional.of(DetectBootResult.run(bootSingletons, detectConfiguration, detectRunData, directoryManager, diagnosticSystem));
     }
 
     private SortedMap<String, String> collectMaskedRawPropertyValues(PropertyConfiguration propertyConfiguration) throws IllegalAccessException {

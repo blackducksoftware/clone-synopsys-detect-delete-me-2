@@ -36,11 +36,10 @@ import com.synopsys.integration.detect.interactive.InteractiveManager;
 import com.synopsys.integration.detect.interactive.InteractiveModeDecisionTree;
 import com.synopsys.integration.detect.interactive.InteractivePropertySourceBuilder;
 import com.synopsys.integration.detect.interactive.InteractiveWriter;
+import com.synopsys.integration.detect.lifecycle.boot.product.BlackDuckBoot;
+import com.synopsys.integration.detect.lifecycle.boot.product.BlackDuckBootOptions;
 import com.synopsys.integration.detect.lifecycle.boot.product.BlackDuckConnectivityChecker;
-import com.synopsys.integration.detect.lifecycle.boot.product.ProductBoot;
-import com.synopsys.integration.detect.lifecycle.boot.product.ProductBootFactory;
-import com.synopsys.integration.detect.lifecycle.boot.product.ProductBootOptions;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
 import com.synopsys.integration.detect.tool.detector.executable.DetectExecutableOptions;
 import com.synopsys.integration.detect.tool.detector.executable.DetectExecutableResolver;
@@ -86,9 +85,9 @@ public class DetectBootFactory {
         this.fileFinder = fileFinder;
     }
 
-    public BootSingletons createRunDependencies(ProductRunData productRunData, PropertyConfiguration detectConfiguration, DetectableOptionFactory detectableOptionFactory, DetectConfigurationFactory detectConfigurationFactory,
+    public BootSingletons createRunDependencies(DetectRunData detectRunData, PropertyConfiguration detectConfiguration, DetectableOptionFactory detectableOptionFactory, DetectConfigurationFactory detectConfigurationFactory,
         DirectoryManager directoryManager, Configuration configuration) {
-        return new BootSingletons(productRunData, detectRunId, gson, detectInfo, fileFinder, eventSystem, createDetectorProfiler(), detectConfiguration, detectableOptionFactory, detectConfigurationFactory, directoryManager, configuration);
+        return new BootSingletons(detectRunData, detectRunId, gson, detectInfo, fileFinder, eventSystem, createDetectorProfiler(), detectConfiguration, detectableOptionFactory, detectConfigurationFactory, directoryManager, configuration);
     }
 
     public Configuration createFreemarkerConfiguration() {
@@ -152,13 +151,9 @@ public class DetectBootFactory {
         return new DetectorProfiler(eventSystem);
     }
 
-    public ProductBootFactory createProductBootFactory(DetectConfigurationFactory detectConfigurationFactory) {
-        return new ProductBootFactory(detectInfo, eventSystem, detectConfigurationFactory);
-    }
-
-    public ProductBoot createProductBoot(DetectConfigurationFactory detectConfigurationFactory) {
-        ProductBootOptions productBootOptions = detectConfigurationFactory.createProductBootOptions();
-        return new ProductBoot(blackDuckConnectivityChecker, createAnalyticsConfigurationService(), createProductBootFactory(detectConfigurationFactory), productBootOptions);
+    public BlackDuckBoot createBlackDuckBoot(DetectConfigurationFactory detectConfigurationFactory) {
+        BlackDuckBootOptions blackDuckBootOptions = detectConfigurationFactory.createBlackDuckBootOptions();
+        return new BlackDuckBoot(blackDuckConnectivityChecker, createAnalyticsConfigurationService(), detectInfo, eventSystem, detectConfigurationFactory);
     }
 
     public AnalyticsConfigurationService createAnalyticsConfigurationService() {
@@ -171,5 +166,4 @@ public class DetectBootFactory {
         InteractiveModeDecisionTree interactiveModeDecisionTree = new InteractiveModeDecisionTree(detectInfo, blackDuckConnectivityChecker, propertySources, gson);
         return new InteractiveManager(propertySourceBuilder, writer, interactiveModeDecisionTree);
     }
-
 }

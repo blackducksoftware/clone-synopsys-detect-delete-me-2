@@ -52,8 +52,8 @@ import com.synopsys.integration.detect.configuration.enumeration.DetectTool;
 import com.synopsys.integration.detect.configuration.enumeration.ExitCodeType;
 import com.synopsys.integration.detect.lifecycle.run.DetectFontLoaderFactory;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.data.DockerTargetData;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.AggregateDecisionOperation;
 import com.synopsys.integration.detect.lifecycle.run.operation.blackduck.BdioUploadResult;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
@@ -191,7 +191,7 @@ public class OperationFactory { //TODO: OperationRunner
     private final EventSystem eventSystem;
     private final FileFinder fileFinder;
     private final DetectInfo detectInfo;
-    private final ProductRunData productRunData;
+    private final DetectRunData detectRunData;
     private final RapidScanResultAggregator rapidScanResultAggregator;
     private final ProjectEventPublisher projectEventPublisher;
 
@@ -216,7 +216,7 @@ public class OperationFactory { //TODO: OperationRunner
         eventSystem = bootSingletons.getEventSystem();
         fileFinder = bootSingletons.getFileFinder();
         detectInfo = bootSingletons.getDetectInfo();
-        productRunData = bootSingletons.getProductRunData();
+        detectRunData = bootSingletons.getDetectRunData();
 
         operationSystem = utilitySingletons.getOperationSystem();
         codeLocationNameManager = utilitySingletons.getCodeLocationNameManager();

@@ -41,7 +41,7 @@ import com.synopsys.integration.detect.lifecycle.exit.ExitOptions;
 import com.synopsys.integration.detect.lifecycle.exit.ExitResult;
 import com.synopsys.integration.detect.lifecycle.run.DetectRun;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
 import com.synopsys.integration.detect.lifecycle.shutdown.CleanupUtility;
 import com.synopsys.integration.detect.lifecycle.shutdown.ExitCodeManager;
@@ -118,10 +118,9 @@ public class Application implements ApplicationRunner {
             shouldForceSuccess = detectBootResult.shouldForceSuccess();
 
             runApplication(eventSystem, exitCodeManager, detectBootResult);
-            
-            detectBootResult.getProductRunData()
-                .filter(ProductRunData::shouldUseBlackDuckProduct)
-                .map(ProductRunData::getBlackDuckRunData)
+
+            detectBootResult.getDetectRunData()
+                .map(DetectRunData::getBlackDuckRunData)
                 .flatMap(BlackDuckRunData::getPhoneHomeManager)
                 .ifPresent(PhoneHomeManager::phoneHomeOperations);
 
@@ -164,7 +163,7 @@ public class Application implements ApplicationRunner {
 
     private void runApplication(EventSystem eventSystem, ExitCodeManager exitCodeManager, DetectBootResult detectBootResult) {
         Optional<BootSingletons> optionalRunContext = detectBootResult.getBootSingletons();
-        Optional<ProductRunData> optionalProductRunData = detectBootResult.getProductRunData();
+        Optional<DetectRunData> optionalProductRunData = detectBootResult.getDetectRunData();
         if (detectBootResult.getBootType() == DetectBootResult.BootType.RUN && optionalProductRunData.isPresent() && optionalRunContext.isPresent()) {
             logger.debug("Detect will attempt to run.");
             DetectRun detectRun = new DetectRun(exitCodeManager);

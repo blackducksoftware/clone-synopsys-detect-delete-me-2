@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.detect.configuration.DetectUserFriendlyException;
 import com.synopsys.integration.detect.lifecycle.run.data.BlackDuckRunData;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.operation.OperationFactory;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
 import com.synopsys.integration.detect.lifecycle.run.singleton.EventSingletons;
@@ -53,9 +53,9 @@ public class DetectRun {
             UtilitySingletons utilitySingletons = singletonFactory.createUtilitySingletons(eventSingletons, exitCodeManager);
             operationSystem = Optional.of(utilitySingletons.getOperationSystem());
 
-            ProductRunData productRunData = bootSingletons.getProductRunData(); //TODO: Remove run data from boot singletons
+            DetectRunData detectRunData = bootSingletons.getDetectRunData(); //TODO: Remove run data from boot singletons
             OperationFactory operationFactory = createOperationFactory(bootSingletons, utilitySingletons, eventSingletons);
-            StepHelper stepHelper = new StepHelper(utilitySingletons.getOperationSystem(), utilitySingletons.getOperationWrapper(), productRunData.getDetectToolFilter());
+            StepHelper stepHelper = new StepHelper(utilitySingletons.getOperationSystem(), utilitySingletons.getOperationWrapper(), detectRunData.getDetectToolFilter());
 
             UniversalStepRunner stepRunner = new UniversalStepRunner(operationFactory, stepHelper); //Product independent tools
             UniversalToolsResult universalToolsResult = stepRunner.runUniversalTools();
@@ -65,20 +65,18 @@ public class DetectRun {
             operationFactory.publishProjectNameVersionChosen(nameVersion);
             BdioResult bdio = stepRunner.generateBdio(universalToolsResult, nameVersion);
 
-            if (productRunData.shouldUseBlackDuckProduct()) {
-                BlackDuckRunData blackDuckRunData = productRunData.getBlackDuckRunData();
-                if (blackDuckRunData.isRapid() && blackDuckRunData.isOnline()) {
-                    RapidModeStepRunner rapidModeSteps = new RapidModeStepRunner(operationFactory);
-                    rapidModeSteps.runOnline(blackDuckRunData, nameVersion, bdio);
-                } else if (blackDuckRunData.isRapid()) {
-                    logger.info("Rapid Scan is offline, nothing to do.");
-                } else if (blackDuckRunData.isOnline()) {
-                    IntelligentModeStepRunner intelligentModeSteps = new IntelligentModeStepRunner(operationFactory, stepHelper);
-                    intelligentModeSteps.runOnline(blackDuckRunData, bdio, nameVersion, productRunData.getDetectToolFilter(), universalToolsResult.getDockerTargetData());
-                } else {
-                    IntelligentModeStepRunner intelligentModeSteps = new IntelligentModeStepRunner(operationFactory, stepHelper);
-                    intelligentModeSteps.runOffline(nameVersion, universalToolsResult.getDockerTargetData());
-                }
+            BlackDuckRunData blackDuckRunData = detectRunData.getBlackDuckRunData();
+            if (blackDuckRunData.isRapid() && blackDuckRunData.isOnline()) {
+                RapidModeStepRunner rapidModeSteps = new RapidModeStepRunner(operationFactory);
+                rapidModeSteps.runOnline(blackDuckRunData, nameVersion, bdio);
+            } else if (blackDuckRunData.isRapid()) {
+                logger.info("Rapid Scan is offline, nothing to do.");
+            } else if (blackDuckRunData.isOnline()) {
+                IntelligentModeStepRunner intelligentModeSteps = new IntelligentModeStepRunner(operationFactory, stepHelper);
+                intelligentModeSteps.runOnline(blackDuckRunData, bdio, nameVersion, detectRunData.getDetectToolFilter(), universalToolsResult.getDockerTargetData());
+            } else {
+                IntelligentModeStepRunner intelligentModeSteps = new IntelligentModeStepRunner(operationFactory, stepHelper);
+                intelligentModeSteps.runOffline(nameVersion, universalToolsResult.getDockerTargetData());
             }
         } catch (Exception e) {
             logger.error("Detect run failed: {}", getExceptionMessage(e));

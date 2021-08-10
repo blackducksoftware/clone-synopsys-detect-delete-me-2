@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.detect.configuration.DetectProperties;
-import com.synopsys.integration.detect.lifecycle.run.data.ProductRunData;
+import com.synopsys.integration.detect.lifecycle.run.data.DetectRunData;
 import com.synopsys.integration.detect.lifecycle.run.singleton.BootSingletons;
 import com.synopsys.integration.detect.workflow.diagnostic.DiagnosticSystem;
 import com.synopsys.integration.detect.workflow.file.DirectoryManager;
@@ -30,7 +30,7 @@ public class DetectBootResult {
     @Nullable
     private final DirectoryManager directoryManager;
     @Nullable
-    private final ProductRunData productRunData;
+    private final DetectRunData detectRunData;
     @Nullable
     private final File airGapZip;
     @Nullable
@@ -49,7 +49,7 @@ public class DetectBootResult {
         @Nullable DirectoryManager directoryManager,
         @Nullable File airGapZip,
         @Nullable DiagnosticSystem diagnosticSystem,
-        @Nullable ProductRunData productRunData,
+        @Nullable DetectRunData detectRunData,
         @Nullable BootSingletons bootSingletons, @Nullable Exception exception
     ) {
         this.bootType = bootType;
@@ -57,7 +57,7 @@ public class DetectBootResult {
         this.directoryManager = directoryManager;
         this.airGapZip = airGapZip;
         this.diagnosticSystem = diagnosticSystem;
-        this.productRunData = productRunData;
+        this.detectRunData = detectRunData;
         this.bootSingletons = bootSingletons;
         this.exception = exception;
     }
@@ -74,8 +74,8 @@ public class DetectBootResult {
         return Optional.ofNullable(diagnosticSystem);
     }
 
-    public Optional<ProductRunData> getProductRunData() {
-        return Optional.ofNullable(productRunData);
+    public Optional<DetectRunData> getDetectRunData() {
+        return Optional.ofNullable(detectRunData);
     }
 
     public Optional<BootSingletons> getBootSingletons() {
@@ -107,8 +107,8 @@ public class DetectBootResult {
         EXCEPTION
     }
 
-    public static DetectBootResult run(BootSingletons bootSingletons, PropertyConfiguration detectConfiguration, ProductRunData productRunData, DirectoryManager directoryManager, @Nullable DiagnosticSystem diagnosticSystem) {
-        return new DetectBootResult(BootType.RUN, detectConfiguration, directoryManager, null, diagnosticSystem, productRunData, bootSingletons, null);
+    public static DetectBootResult run(BootSingletons bootSingletons, PropertyConfiguration detectConfiguration, DetectRunData detectRunData, DirectoryManager directoryManager, @Nullable DiagnosticSystem diagnosticSystem) {
+        return new DetectBootResult(BootType.RUN, detectConfiguration, directoryManager, null, diagnosticSystem, detectRunData, bootSingletons, null);
     }
 
     public static DetectBootResult exit(PropertyConfiguration detectConfiguration) {
