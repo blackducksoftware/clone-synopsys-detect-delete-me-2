@@ -59,7 +59,6 @@ import com.synopsys.integration.log.LogLevel;
 // java:S1123: Warning about deprecations not having Java doc.
 @SuppressWarnings("java:S1123")
 public class DetectProperties {
-    private static final String POLARIS_CLI_DEPRECATION_MESSAGE = "This property is being removed. Detect will no longer invoke the Polaris CLI.";
     private static final String SBT_REPORT_DEPRECATION_MESSAGE = "This property is being removed. Sbt will no longer parse report files but instead will use a dependency resolution plugin. Please install the appropriate plugin in the future.";
 
     private DetectProperties() {
