@@ -57,7 +57,7 @@ import com.synopsys.integration.log.LogLevel;
 
 // java:S1192: Sonar wants constants defined for fromVersion when setting property info.
 // java:S1123: Warning about deprecations not having Java doc.
-@SuppressWarnings("java:S1123")
+@SuppressWarnings({ "java:S1123", "DeprecatedIsStillUsed" })
 public class DetectProperties {
     private static final String SBT_REPORT_DEPRECATION_MESSAGE = "This property is being removed. Sbt will no longer parse report files but instead will use a dependency resolution plugin. Please install the appropriate plugin in the future.";
 
@@ -1136,29 +1136,6 @@ public class DetectProperties {
             .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
             .setExample("\"-Djline.terminal=jline.UnsupportedTerminal\"");
 
-    public static final DetectProperty<CaseSensitiveStringListProperty> DETECT_SBT_EXCLUDED_CONFIGURATIONS =
-        new DetectProperty<>(new CaseSensitiveStringListProperty("detect.sbt.excluded.configurations"))
-            .setInfo("SBT Configurations Excluded", DetectPropertyFromVersion.VERSION_3_0_0)
-            .setHelp("The names of the sbt configurations to exclude.", "This property accepts filename globbing-style wildcards. Refer to the <i>Advanced</i> > <i>Property wildcard support</i> page for more details.")
-            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
-            .setCategory(DetectCategory.Advanced)
-            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
-
-    public static final DetectProperty<CaseSensitiveStringListProperty> DETECT_SBT_INCLUDED_CONFIGURATIONS =
-        new DetectProperty<>(new CaseSensitiveStringListProperty("detect.sbt.included.configurations"))
-            .setInfo("SBT Configurations Included", DetectPropertyFromVersion.VERSION_3_0_0)
-            .setHelp("The names of the sbt configurations to include.", "This property accepts filename globbing-style wildcards. Refer to the <i>Advanced</i> > <i>Property wildcard support</i> page for more details.")
-            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
-            .setCategory(DetectCategory.Advanced)
-            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
-
-    public static final DetectProperty<IntegerProperty> DETECT_SBT_REPORT_DEPTH =
-        new DetectProperty<>(new IntegerProperty("detect.sbt.report.search.depth", 3))
-            .setInfo("SBT Report Search Depth", DetectPropertyFromVersion.VERSION_4_3_0)
-            .setHelp("Depth the sbt detector will use to search for report files.")
-            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
-            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
-
     public static final DetectProperty<NullablePathProperty> DETECT_SCAN_OUTPUT_PATH =
         new DetectProperty<>(new NullablePathProperty("detect.scan.output.path"))
             .setInfo("Scan Output Path", DetectPropertyFromVersion.VERSION_3_0_0)
@@ -1273,6 +1250,32 @@ public class DetectProperties {
     // username/password ==> api token
     public static final String BDIO1_DEPRECATION_MESSAGE = "This property is being removed, along with the option to generate BDIO in BDIO1 format. In the future, BDIO2 format will be the only option.";
     public static final String AGGREGATION_MODE_DEPRECATION_MESSAGE = "This property is being removed, along with the ability to set the aggregation mode. Detect will only operate in SUBPROJECT mode to more accurately report the dependency graph.";
+
+    @Deprecated
+    public static final DetectProperty<CaseSensitiveStringListProperty> DETECT_SBT_EXCLUDED_CONFIGURATIONS =
+        new DetectProperty<>(new CaseSensitiveStringListProperty("detect.sbt.excluded.configurations"))
+            .setInfo("SBT Configurations Excluded", DetectPropertyFromVersion.VERSION_3_0_0)
+            .setHelp("The names of the sbt configurations to exclude.", "This property accepts filename globbing-style wildcards. Refer to the <i>Advanced</i> > <i>Property wildcard support</i> page for more details.")
+            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
+            .setCategory(DetectCategory.Advanced)
+            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
+
+    @Deprecated
+    public static final DetectProperty<CaseSensitiveStringListProperty> DETECT_SBT_INCLUDED_CONFIGURATIONS =
+        new DetectProperty<>(new CaseSensitiveStringListProperty("detect.sbt.included.configurations"))
+            .setInfo("SBT Configurations Included", DetectPropertyFromVersion.VERSION_3_0_0)
+            .setHelp("The names of the sbt configurations to include.", "This property accepts filename globbing-style wildcards. Refer to the <i>Advanced</i> > <i>Property wildcard support</i> page for more details.")
+            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
+            .setCategory(DetectCategory.Advanced)
+            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
+
+    @Deprecated
+    public static final DetectProperty<IntegerProperty> DETECT_SBT_REPORT_DEPTH =
+        new DetectProperty<>(new IntegerProperty("detect.sbt.report.search.depth", 3))
+            .setInfo("SBT Report Search Depth", DetectPropertyFromVersion.VERSION_4_3_0)
+            .setHelp("Depth the sbt detector will use to search for report files.")
+            .setGroups(DetectGroup.SBT, DetectGroup.SOURCE_SCAN)
+            .setDeprecated(SBT_REPORT_DEPRECATION_MESSAGE, DetectMajorVersion.EIGHT);
 
     @Deprecated
     public static final DetectProperty<NullableStringProperty> DETECT_BOM_AGGREGATE_NAME =
