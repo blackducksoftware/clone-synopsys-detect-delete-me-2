@@ -1338,14 +1338,14 @@ public class DetectProperties {
         for (Field field : allFields) {
             if (field.getType().equals(DetectProperty.class)) {
                 Object property = field.get(Property.class);
-                DetectProperty detectProperty = (DetectProperty) property;
-                convertDetectPropertyToProperty(detectProperty).ifPresent(p -> properties.add(p));
+                DetectProperty<?> detectProperty = (DetectProperty<?>) property;
+                convertDetectPropertyToProperty(detectProperty).ifPresent(properties::add);
             }
         }
         return new Properties(properties);
     }
 
-    private static Optional<Property> convertDetectPropertyToProperty(DetectProperty detectProperty) {
+    private static Optional<Property> convertDetectPropertyToProperty(DetectProperty<?> detectProperty) {
         Property property = detectProperty.getProperty();
         property.setInfo(detectProperty.getName(), detectProperty.getFromVersion());
         if (detectProperty.getPropertyHelpInfo() != null) {
