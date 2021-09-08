@@ -73,6 +73,7 @@ public class MavenCodeLocationPackager {
             }
 
             line = trimLogLevel(line);
+            logger.info("mvn: parsing line: {}", line);
 
             if (parsingProjectSection && currentMavenProject == null) {
                 initializeCurrentMavenProject(modulesFilter, sourcePath, line);
@@ -81,6 +82,7 @@ public class MavenCodeLocationPackager {
 
             boolean finished = line.contains("--------") || endOfTreePattern.matcher(line).matches();
             if (finished) {
+                logger.info("mvn: finished");
                 currentMavenProject = null;
                 dependencyParentStack.clear();
                 parsingProjectSection = false;
@@ -94,12 +96,18 @@ public class MavenCodeLocationPackager {
             if (null == dependency) {
                 continue;
             }
+
+            logger.info("mvn: Found a dependency for currentMavenProject: {} in cleanedLine {}", currentMavenProject, cleanedLine);
             if (currentMavenProject != null) {
+                logger.info("mvn: currentMavenProject.getProjectName(): {}", currentMavenProject.getProjectName());
+                logger.info("mvn: dependency.getExternalId().getName(): {}", dependency.getExternalId().getName());
                 populateGraphDependencies(scopeFilter, dependency, previousLevel);
             }
         }
+        logger.info("mvn: currentGraph.getRootDependencies().size(): {}", currentGraph.getRootDependencies().size());
         addOrphansToGraph(currentGraph, orphans);
 
+        logger.info("codeLocations.size(): {}", codeLocations.size());
         return codeLocations;
     }
 
@@ -125,6 +133,7 @@ public class MavenCodeLocationPackager {
     }
 
     private void initializeCurrentMavenProject(ExcludedIncludedWildcardFilter modulesFilter, String sourcePath, String line) {
+        logger.info("mvn: initializeCurrentMavenProject()");
         // this is the first line of a new code location, the following lines will be the tree of dependencies for this code location
         currentGraph = new MutableMapDependencyGraph();
         MavenParseResult mavenProject = createMavenParseResult(sourcePath, line, currentGraph);
@@ -142,6 +151,7 @@ public class MavenCodeLocationPackager {
     }
 
     private void populateGraphDependencies(ExcludedIncludedWildcardFilter scopeFilter, ScopedDependency dependency, int previousLevel) {
+        logger.info("mvn: populateGraphDependencies(): level: {}, previousLevel: {}", level, previousLevel);
         if (level == 1) {
             // a direct dependency, clear the stack and add this as a potential parent for the next line
             if (scopeFilter.shouldInclude(dependency.scope)) {
