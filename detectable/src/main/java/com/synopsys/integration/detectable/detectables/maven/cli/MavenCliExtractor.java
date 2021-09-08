@@ -24,8 +24,11 @@ import com.synopsys.integration.detectable.detectable.executable.ExecutableFaile
 import com.synopsys.integration.detectable.extraction.Extraction;
 import com.synopsys.integration.detectable.util.ToolVersionLogger;
 import com.synopsys.integration.executable.ExecutableOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MavenCliExtractor {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final DetectableExecutableRunner executableRunner;
     private final MavenCodeLocationPackager mavenCodeLocationPackager;
     private final CommandParser commandParser;
@@ -58,6 +61,7 @@ public class MavenCliExtractor {
         List<CodeLocation> codeLocations = Bds.of(mavenResults)
                                                .map(MavenParseResult::getCodeLocation)
                                                .toList();
+        logger.info("mvn: MavenCliExtractor: codeLocations.size(): {}", codeLocations.size());
 
         Optional<MavenParseResult> firstWithName = Bds.of(mavenResults)
                                                        .firstFiltered(it -> StringUtils.isNotBlank(it.getProjectName()));

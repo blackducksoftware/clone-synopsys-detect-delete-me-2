@@ -47,7 +47,11 @@ public class ExtractionEvaluator extends Evaluator {
                 }
 
                 getDetectorEvaluatorListener().ifPresent(it -> it.extractionEnded(detectorEvaluation));
-
+                try {
+                    logger.info("mvn: ExtractionEvaluator: detectorType: {}; # codelocations: {}", detectorEvaluation.getDetectorType().toString(), detectorEvaluation.getExtraction().getCodeLocations().size());
+                } catch (Exception e) {
+                    logger.info("mnv: ExtractionEvaluator: Exception during logging: {}", e.getMessage());
+                }
                 logger.trace("Extraction result: {}", detectorEvaluation.wasExtractionSuccessful());
 
             }
