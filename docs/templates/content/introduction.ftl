@@ -30,3 +30,4 @@ By default, ${solution_name} examines your source directory to be scanned and di
 * All dependencies are uploaded to ${blackduck_product_name} for analysis; a project is created, and a Bill of Materials (BOM) is generated.
 * You can view the output and analysis in ${blackduck_product_name}.
 
+
