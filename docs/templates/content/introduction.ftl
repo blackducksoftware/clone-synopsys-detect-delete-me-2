@@ -29,3 +29,4 @@ By default, ${solution_name} examines your source directory to be scanned and di
 * The ${blackduck_product_name} signature scanner runs and extracts more dependencies that might not be known to a package manager if there is a connection to ${blackduck_product_name}.
 * All dependencies are uploaded to ${blackduck_product_name} for analysis; a project is created, and a Bill of Materials (BOM) is generated.
 * You can view the output and analysis in ${blackduck_product_name}.
+
