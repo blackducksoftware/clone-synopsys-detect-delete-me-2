@@ -10,7 +10,6 @@ package com.synopsys.integration.detectable.detectables.pip.inspector;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +19,7 @@ import com.synopsys.integration.detectable.ExecutableTarget;
 import com.synopsys.integration.detectable.ExecutableUtils;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
+import com.synopsys.integration.detectable.detectables.pip.PythonProjectInfoResolver;
 import com.synopsys.integration.detectable.detectables.pip.inspector.model.NameVersionCodeLocation;
 import com.synopsys.integration.detectable.detectables.pip.inspector.parser.PipInspectorTreeParser;
 import com.synopsys.integration.detectable.extraction.Extraction;
@@ -29,10 +29,12 @@ import com.synopsys.integration.executable.ExecutableRunnerException;
 public class PipInspectorExtractor {
     private final DetectableExecutableRunner executableRunner;
     private final PipInspectorTreeParser pipInspectorTreeParser;
+    private final PythonProjectInfoResolver pythonProjectInfoResolver;
 
-    public PipInspectorExtractor(DetectableExecutableRunner executableRunner, PipInspectorTreeParser pipInspectorTreeParser) {
+    public PipInspectorExtractor(DetectableExecutableRunner executableRunner, PipInspectorTreeParser pipInspectorTreeParser, PythonProjectInfoResolver pythonProjectInfoResolver) {
         this.executableRunner = executableRunner;
         this.pipInspectorTreeParser = pipInspectorTreeParser;
+        this.pythonProjectInfoResolver = pythonProjectInfoResolver;
     }
 
     public Extraction extract(File directory, ExecutableTarget pythonExe, ExecutableTarget pipExe, File pipInspector, File setupFile, List<Path> requirementFilePaths, String providedProjectName) {
@@ -40,7 +42,7 @@ public class PipInspectorExtractor {
         ToolVersionLogger.log(executableRunner, directory, pipExe);
         Extraction extractionResult;
         try {
-            String projectName = getProjectName(directory, pythonExe, setupFile, providedProjectName);
+            String projectName = pythonProjectInfoResolver.resolveProjectName(directory, pythonExe, setupFile, providedProjectName);
             List<CodeLocation> codeLocations = new ArrayList<>();
             String projectVersion = null;
 
@@ -94,16 +96,5 @@ public class PipInspectorExtractor {
 
         return executableRunner.execute(ExecutableUtils.createFromTarget(sourceDirectory, pythonExe, inspectorArguments)).getStandardOutputAsList();
     }
-
-    private String getProjectName(File directory, ExecutableTarget pythonExe, File setupFile, String providedProjectName) throws ExecutableRunnerException {
-        String projectName = providedProjectName;
-
-        if (StringUtils.isBlank(projectName) && setupFile != null && setupFile.exists()) {
-            List<String> pythonArguments = Arrays.asList(setupFile.getAbsolutePath(), "--name");
-            List<String> output = executableRunner.execute(ExecutableUtils.createFromTarget(directory, pythonExe, pythonArguments)).getStandardOutputAsList();
-            projectName = output.get(output.size() - 1).replace('_', '-').trim();
-        }
-
-        return projectName;
-    }
+    
 }

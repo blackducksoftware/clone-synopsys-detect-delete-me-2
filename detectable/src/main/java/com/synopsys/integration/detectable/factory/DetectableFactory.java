@@ -198,6 +198,7 @@ import com.synopsys.integration.detectable.detectables.pear.parse.PearListParser
 import com.synopsys.integration.detectable.detectables.pear.parse.PearPackageDependenciesParser;
 import com.synopsys.integration.detectable.detectables.pear.parse.PearPackageXmlParser;
 import com.synopsys.integration.detectable.detectables.pear.transform.PearDependencyGraphTransformer;
+import com.synopsys.integration.detectable.detectables.pip.PythonProjectInfoResolver;
 import com.synopsys.integration.detectable.detectables.pip.inspector.PipInspectorDetectable;
 import com.synopsys.integration.detectable.detectables.pip.inspector.PipInspectorDetectableOptions;
 import com.synopsys.integration.detectable.detectables.pip.inspector.PipInspectorExtractor;
@@ -746,8 +747,12 @@ public class DetectableFactory {
         return new PipenvTransformer(externalIdFactory);
     }
 
+    private PythonProjectInfoResolver pythonProjectInfoResolver() {
+        return new PythonProjectInfoResolver(executableRunner);
+    }
+
     private PipenvExtractor pipenvExtractor() {
-        return new PipenvExtractor(executableRunner, pipenvTransformer(), pipenvFreezeParser(), pipenvJsonGraphParser());
+        return new PipenvExtractor(executableRunner, pipenvTransformer(), pipenvFreezeParser(), pipenvJsonGraphParser(), pythonProjectInfoResolver());
     }
 
     private PipInspectorTreeParser pipInspectorTreeParser() {
@@ -755,7 +760,7 @@ public class DetectableFactory {
     }
 
     private PipInspectorExtractor pipInspectorExtractor() {
-        return new PipInspectorExtractor(executableRunner, pipInspectorTreeParser());
+        return new PipInspectorExtractor(executableRunner, pipInspectorTreeParser(), pythonProjectInfoResolver());
     }
 
     private PnpmLockExtractor pnpmLockExtractor() {
