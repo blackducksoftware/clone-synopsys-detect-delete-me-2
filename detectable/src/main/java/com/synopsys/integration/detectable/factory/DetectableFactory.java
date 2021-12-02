@@ -13,7 +13,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import com.synopsys.integration.detectable.util.ToolVersionLogger;
 import org.xml.sax.SAXException;
 
 import com.google.gson.Gson;
@@ -244,6 +243,10 @@ import com.synopsys.integration.detectable.detectables.swift.SwiftCliDetectable;
 import com.synopsys.integration.detectable.detectables.swift.SwiftCliParser;
 import com.synopsys.integration.detectable.detectables.swift.SwiftExtractor;
 import com.synopsys.integration.detectable.detectables.swift.SwiftPackageTransformer;
+import com.synopsys.integration.detectable.detectables.xcode.XcodeSwiftDetectable;
+import com.synopsys.integration.detectable.detectables.xcode.XcodeSwiftExtractor;
+import com.synopsys.integration.detectable.detectables.xcode.process.PackageResolvedFormatChecker;
+import com.synopsys.integration.detectable.detectables.xcode.process.PackageResolvedTransformer;
 import com.synopsys.integration.detectable.detectables.yarn.YarnLockDetectable;
 import com.synopsys.integration.detectable.detectables.yarn.YarnLockExtractor;
 import com.synopsys.integration.detectable.detectables.yarn.YarnLockOptions;
@@ -256,6 +259,7 @@ import com.synopsys.integration.detectable.detectables.yarn.parse.YarnLockParser
 import com.synopsys.integration.detectable.detectables.yarn.parse.entry.YarnLockEntryParser;
 import com.synopsys.integration.detectable.detectables.yarn.parse.entry.section.YarnLockDependencySpecParser;
 import com.synopsys.integration.detectable.detectables.yarn.parse.entry.section.YarnLockEntrySectionParserSet;
+import com.synopsys.integration.detectable.util.ToolVersionLogger;
 
 /*
  Entry point for creating detectables using most
@@ -475,13 +479,29 @@ public class DetectableFactory {
         return new LernaDetectable(environment, fileFinder, lernaResolver, lernaExtractor(npmLockfileOptions, yarnLockOptions, lernaOptions));
     }
 
+    public XcodeSwiftDetectable createXcodeSwiftDetectable(DetectableEnvironment environment) {
+        return new XcodeSwiftDetectable(environment, fileFinder, createXcodeProjectExtractor());
+    }
+
+    public XcodeSwiftExtractor createXcodeProjectExtractor() {
+        return new XcodeSwiftExtractor(gson, createPackageResolvedFormatChecker(), createPackageResolvedTransformer());
+    }
+
+    public PackageResolvedTransformer createPackageResolvedTransformer() {
+        return new PackageResolvedTransformer(externalIdFactory);
+    }
+
+    public PackageResolvedFormatChecker createPackageResolvedFormatChecker() {
+        return new PackageResolvedFormatChecker();
+    }
+
     //#endregion
 
     //#region Utility
 
     private BazelExtractor bazelExtractor() {
         WorkspaceRuleChooser workspaceRuleChooser = new WorkspaceRuleChooser();
-        return new BazelExtractor(executableRunner, externalIdFactory, workspaceRuleChooser);
+        return new BazelExtractor(executableRunner, externalIdFactory, workspaceRuleChooser, toolVersionLogger);
     }
 
     private FilePathGenerator filePathGenerator() {
@@ -539,7 +559,7 @@ public class DetectableFactory {
     }
 
     private CondaCliExtractor condaCliExtractor() {
-        return new CondaCliExtractor(condaListParser(), executableRunner);
+        return new CondaCliExtractor(condaListParser(), executableRunner, toolVersionLogger);
     }
 
     private CpanListParser cpanListParser() {
@@ -547,7 +567,7 @@ public class DetectableFactory {
     }
 
     private CpanCliExtractor cpanCliExtractor() {
-        return new CpanCliExtractor(cpanListParser(), executableRunner);
+        return new CpanCliExtractor(cpanListParser(), executableRunner, toolVersionLogger);
     }
 
     private PackratLockFileParser packratLockFileParser() {
@@ -599,7 +619,7 @@ public class DetectableFactory {
     }
 
     private GoModCommandExecutor goModCommandExecutor() {
-        return new GoModCommandExecutor(executableRunner, toolVersionLogger);
+        return new GoModCommandExecutor(executableRunner);
     }
 
     private GoModGraphGenerator goModGraphGraphGenerator() {
@@ -643,7 +663,7 @@ public class DetectableFactory {
     }
 
     private RebarExtractor rebarExtractor() {
-        return new RebarExtractor(executableRunner, rebar3TreeParser());
+        return new RebarExtractor(executableRunner, rebar3TreeParser(), toolVersionLogger);
     }
 
     private MavenCodeLocationPackager mavenCodeLocationPackager() {
@@ -686,7 +706,7 @@ public class DetectableFactory {
     }
 
     private NpmCliExtractor npmCliExtractor() {
-        return new NpmCliExtractor(executableRunner, npmCliDependencyFinder(), gson);
+        return new NpmCliExtractor(executableRunner, npmCliDependencyFinder(), gson, toolVersionLogger);
     }
 
     private NpmLockfileExtractor npmLockfileExtractor() {
@@ -786,7 +806,7 @@ public class DetectableFactory {
     }
 
     private PubDepsExtractor pubDepsExtractor() {
-        return new PubDepsExtractor(executableRunner, pubDepsParser(), pubSpecYamlNameVersionParser());
+        return new PubDepsExtractor(executableRunner, pubDepsParser(), pubSpecYamlNameVersionParser(), toolVersionLogger);
     }
 
     private PubDepsParser pubDepsParser() {
@@ -899,7 +919,7 @@ public class DetectableFactory {
 
     private GradleInspectorExtractor gradleInspectorExtractor(GradleInspectorOptions gradleInspectorOptions) {
         return new GradleInspectorExtractor(fileFinder, gradleRunner(), gradleReportParser(), gradleReportTransformer(gradleInspectorOptions), gradleRootMetadataParser(),
-                toolVersionLogger);
+            toolVersionLogger);
     }
 
     private DockerExtractor dockerExtractor() {
@@ -951,7 +971,7 @@ public class DetectableFactory {
     }
 
     private SwiftExtractor swiftExtractor() {
-        return new SwiftExtractor(executableRunner, swiftCliParser(), swiftPackageTransformer());
+        return new SwiftExtractor(executableRunner, swiftCliParser(), swiftPackageTransformer(), toolVersionLogger);
     }
 
     private LernaPackageDiscoverer lernaPackageDiscoverer() {
