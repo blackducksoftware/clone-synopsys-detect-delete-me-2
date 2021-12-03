@@ -19,26 +19,25 @@ public class SubProjectAggregateModeTest {
 
     @Test
     void subProjectAggregateModeSmokeTest() throws IOException, IntegrationException {
-        try (DetectDockerTestRunner test = new DetectDockerTestRunner("subproject-aggregate-mode", "detect-7.1.0:1.0.0")) {
-            test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Detect-7.1.0.dockerfile"));
+        DetectDockerTestRunner test = new DetectDockerTestRunner("subproject-aggregate-mode", "detect-7.1.0:1.0.0");
+        test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Detect-7.1.0.dockerfile"));
 
-            BlackDuckTestConnection blackDuckTestConnection = BlackDuckTestConnection.fromEnvironment();
-            BlackDuckAssertions blackduckAssertions = blackDuckTestConnection.projectVersionAssertions("subproject-aggregate-mode-docker", "happy-path");
-            blackduckAssertions.emptyOnBlackDuck();
+        BlackDuckTestConnection blackDuckTestConnection = BlackDuckTestConnection.fromEnvironment();
+        BlackDuckAssertions blackduckAssertions = blackDuckTestConnection.projectVersionAssertions("subproject-aggregate-mode-docker", "happy-path");
+        blackduckAssertions.emptyOnBlackDuck();
 
-            DetectCommandBuilder commandBuilder = new DetectCommandBuilder().defaults().defaultDirectories(test);
-            commandBuilder.connectToBlackDuck(blackDuckTestConnection);
-            commandBuilder.projectNameVersion(blackduckAssertions);
-            String bdioFilename = "testagg";
-            commandBuilder.property("detect.bom.aggregate.name", bdioFilename);
-            commandBuilder.property("detect.bom.aggregate.remediation.mode", "SUBPROJECT");
-            commandBuilder.property("detect.tools", "DETECTOR");
+        DetectCommandBuilder commandBuilder = new DetectCommandBuilder().defaults().defaultDirectories(test);
+        commandBuilder.connectToBlackDuck(blackDuckTestConnection);
+        commandBuilder.projectNameVersion(blackduckAssertions);
+        String bdioFilename = "testagg";
+        commandBuilder.property("detect.bom.aggregate.name", bdioFilename);
+        commandBuilder.property("detect.bom.aggregate.remediation.mode", "SUBPROJECT");
+        commandBuilder.property("detect.tools", "DETECTOR");
 
-            DockerAssertions dockerAssertions = test.run(commandBuilder);
+        DockerAssertions dockerAssertions = test.run(commandBuilder);
 
-            dockerAssertions.successfulOperation("SubProject Aggregate");
-            dockerAssertions.bdioFiles(1);
-            dockerAssertions.bdioFileCreated(bdioFilename + ".bdio");
-        }
+        dockerAssertions.successfulOperation("SubProject Aggregate");
+        dockerAssertions.bdioFiles(1);
+        dockerAssertions.bdioFileCreated(bdioFilename + ".bdio");
     }
 }

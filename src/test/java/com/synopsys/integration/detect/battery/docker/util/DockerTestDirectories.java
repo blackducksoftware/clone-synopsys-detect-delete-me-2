@@ -2,19 +2,13 @@ package com.synopsys.integration.detect.battery.docker.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 
 import com.github.dockerjava.api.model.Bind;
-import com.synopsys.integration.detect.battery.docker.util.delete.TestDeleteDirException;
 
 public class DockerTestDirectories {
     private final File testDirectory;
@@ -24,10 +18,8 @@ public class DockerTestDirectories {
     private File bdioOutputDirectory;
     private File detectOutputDirectory;
 
-    public DockerTestDirectories(String testId) throws IOException {
-        Set<PosixFilePermission> allWriteablePermissions = PosixFilePermissions.fromString("rwxrwxrwx");
-        FileAttribute allWriteabeAttribute = PosixFilePermissions.asFileAttribute(allWriteablePermissions);
-        File dockerTestDirectory = Files.createTempDirectory("docker", allWriteabeAttribute).toFile();
+    public DockerTestDirectories(String testId) {
+        File dockerTestDirectory = SharedDockerDirectory.getRoot();
         testDirectory = new File(dockerTestDirectory, testId);
         testResultDirectory = new File(testDirectory, "result");
         Assertions.assertTrue(testResultDirectory.mkdirs());
@@ -64,16 +56,6 @@ public class DockerTestDirectories {
         detectOutputDirectory = createResultDirectory("output");
         withBinding(detectOutputDirectory, imagePath);
         return imagePath;
-    }
-
-    public void cleanup() throws IOException {
-        File rootTestDir = testDirectory.getParentFile();
-        //TODO- remove this try-catch (for debugging)
-        try {
-            //FileUtils.deleteDirectory(rootTestDir);
-        } catch (Exception e) {
-            throw new TestDeleteDirException();
-        }
     }
 
     public Bind[] getBindings() {
