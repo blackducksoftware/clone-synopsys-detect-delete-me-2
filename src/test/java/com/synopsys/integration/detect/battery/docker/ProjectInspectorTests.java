@@ -11,11 +11,12 @@ import com.synopsys.integration.detect.battery.docker.util.DetectDockerTestRunne
 import com.synopsys.integration.detect.battery.docker.util.DockerAssertions;
 import com.synopsys.integration.detect.configuration.DetectProperties;
 import com.synopsys.integration.detector.base.DetectorType;
+import com.synopsys.integration.exception.IntegrationException;
 
 @Tag("integration")
 public class ProjectInspectorTests {
     @Test
-    void dotnetProjectInspector() throws IOException {
+    void dotnetProjectInspector() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-dotnet-project-inspector", "detect-dotnet-five:1.0.1");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Dotnet5.dockerfile"));
 
@@ -32,7 +33,7 @@ public class ProjectInspectorTests {
     }
 
     @Test
-    void gradleProjectInspector() throws IOException, InterruptedException {
+    void gradleProjectInspector() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-gradle-project-inspector", "gradle-simple:1.0.0");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("SimpleGradle.dockerfile"));
 
@@ -49,7 +50,7 @@ public class ProjectInspectorTests {
     }
 
     @Test
-    void mavenProjectInspectorLegacyIsTheDefault() throws IOException, InterruptedException {
+    void mavenProjectInspectorLegacyIsTheDefault() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-maven-project-inspector-legacy", "maven-simple:1.0.0");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("SimpleMaven.dockerfile"));
 
@@ -67,7 +68,7 @@ public class ProjectInspectorTests {
     }
 
     @Test
-    void mavenProjectInspector() throws IOException, InterruptedException {
+    void mavenProjectInspector() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-maven-project-inspector", "maven-simple:1.0.0");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("SimpleMaven.dockerfile"));
 

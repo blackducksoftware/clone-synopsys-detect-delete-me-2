@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 
 import com.github.dockerjava.api.model.Bind;
+import com.synopsys.integration.exception.IntegrationException;
 
 public class DockerTestDirectories {
     private final File testDirectory;
@@ -18,7 +19,7 @@ public class DockerTestDirectories {
     private File bdioOutputDirectory;
     private File detectOutputDirectory;
 
-    public DockerTestDirectories(String testId) {
+    public DockerTestDirectories(String testId) throws IntegrationException {
         File dockerTestDirectory = SharedDockerDirectory.getRoot();
         testDirectory = new File(dockerTestDirectory, testId);
         testResultDirectory = new File(testDirectory, "result");

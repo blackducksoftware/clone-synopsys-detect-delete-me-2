@@ -10,11 +10,12 @@ import com.synopsys.integration.detect.battery.docker.util.DetectCommandBuilder;
 import com.synopsys.integration.detect.battery.docker.util.DetectDockerTestRunner;
 import com.synopsys.integration.detect.battery.docker.util.DockerAssertions;
 import com.synopsys.integration.detect.configuration.DetectProperties;
+import com.synopsys.integration.exception.IntegrationException;
 
 @Tag("integration")
 public class Dotnet5Test {
     @Test
-    void detectUsesDotnet5() throws IOException {
+    void detectUsesDotnet5() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-dotnet-five", "detect-dotnet-five:1.0.1");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Dotnet5.dockerfile"));
 
