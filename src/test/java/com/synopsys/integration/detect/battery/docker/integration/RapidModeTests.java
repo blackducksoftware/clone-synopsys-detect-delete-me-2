@@ -18,20 +18,19 @@ import com.synopsys.integration.util.NameVersion;
 @Tag("integration")
 public class RapidModeTests {
     SharedDockerTestRunner anyProjectWithRapidResultsInBlackDuck(String testId, NameVersion projectNameVersion) throws IOException, IntegrationException {
-        try (DetectDockerTestRunner runner = new DetectDockerTestRunner(testId, "gradle-simple:1.0.0")) {
-            runner.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("SimpleGradle.dockerfile"));
+        DetectDockerTestRunner runner = new DetectDockerTestRunner(testId, "gradle-simple:1.0.0");
+        runner.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("SimpleGradle.dockerfile"));
 
-            BlackDuckTestConnection blackDuckTestConnection = BlackDuckTestConnection.fromEnvironment();
-            BlackDuckAssertions blackduckAssertions = blackDuckTestConnection.projectVersionAssertions(projectNameVersion);
-            blackduckAssertions.emptyOnBlackDuck();
+        BlackDuckTestConnection blackDuckTestConnection = BlackDuckTestConnection.fromEnvironment();
+        BlackDuckAssertions blackduckAssertions = blackDuckTestConnection.projectVersionAssertions(projectNameVersion);
+        blackduckAssertions.emptyOnBlackDuck();
 
-            DetectCommandBuilder commandBuilder = new DetectCommandBuilder().defaults().defaultDirectories(runner);
-            commandBuilder.connectToBlackDuck(blackDuckTestConnection);
-            commandBuilder.projectNameVersion(blackduckAssertions);
-            commandBuilder.tools(DetectTool.DETECTOR); //All that is needed for a BOM in black duck.
+        DetectCommandBuilder commandBuilder = new DetectCommandBuilder().defaults().defaultDirectories(runner);
+        commandBuilder.connectToBlackDuck(blackDuckTestConnection);
+        commandBuilder.projectNameVersion(blackduckAssertions);
+        commandBuilder.tools(DetectTool.DETECTOR); //All that is needed for a BOM in black duck.
 
-            return new SharedDockerTestRunner(runner, blackDuckTestConnection, blackduckAssertions, commandBuilder);
-        }
+        return new SharedDockerTestRunner(runner, blackDuckTestConnection, blackduckAssertions, commandBuilder);
     }
 
     @Test
