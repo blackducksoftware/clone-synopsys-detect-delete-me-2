@@ -10,11 +10,12 @@ import com.synopsys.integration.detect.battery.docker.util.DetectCommandBuilder;
 import com.synopsys.integration.detect.battery.docker.util.DetectDockerTestRunner;
 import com.synopsys.integration.detect.battery.docker.util.DockerAssertions;
 import com.synopsys.integration.detect.configuration.DetectProperties;
+import com.synopsys.integration.exception.IntegrationException;
 
 @Tag("integration")
 public class ImpactTest {
     @Test
-    void offlineImpact() throws IOException {
+    void offlineImpact() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-impact-test", "detect-impact-test:1.0.0");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Impact.dockerfile"));
 
@@ -29,7 +30,7 @@ public class ImpactTest {
     }
 
     @Test
-    void impactOutputPath() throws IOException {
+    void impactOutputPath() throws IOException, IntegrationException {
         DetectDockerTestRunner test = new DetectDockerTestRunner("detect-impact-output-path-test", "detect-impact-test:1.0.0");
         test.withImageProvider(BuildDockerImageProvider.forDockerfilResourceNamed("Impact.dockerfile"));
 

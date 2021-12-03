@@ -8,6 +8,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.HostConfig;
 import com.synopsys.integration.detect.battery.docker.provider.DockerImageProvider;
 import com.synopsys.integration.detect.battery.util.DetectJar;
+import com.synopsys.integration.exception.IntegrationException;
 
 public class DetectDockerTestRunner {
     public static String WORKING_DIRECTORY_DEFAULT = "/opt/project/src";
@@ -18,7 +19,7 @@ public class DetectDockerTestRunner {
     private DockerTestDirectories dockerTestDirectories;
     private String workingDirectory = WORKING_DIRECTORY_DEFAULT;
 
-    public DetectDockerTestRunner(String testId, String imageName) {
+    public DetectDockerTestRunner(String testId, String imageName) throws IntegrationException {
         this.testId = testId;
         this.imageName = imageName;
         this.dockerTestDirectories = new DockerTestDirectories(testId);
