@@ -10,7 +10,7 @@ public class SharedDockerDirectory {
 
     public static File getRoot() throws IntegrationException {
         if (dockerRoot == null) {
-            String dockerRootPath = "dockerTestDir";//System.getenv(DOCKER_TEST_DIR_PATH_KEY);
+            String dockerRootPath = "/dockerTestDir";//System.getenv(DOCKER_TEST_DIR_PATH_KEY);
             if (dockerRootPath == null) {
                 throw new IntegrationException(String.format("%s must be set to run Detect Docker tests.", DOCKER_TEST_DIR_PATH_KEY));
             }
