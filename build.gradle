@@ -1,4 +1,3 @@
-import com.synopsys.integration.detect.artifactory.UpdateArtifactoryPropertiesTask
 import com.synopsys.integration.detect.battery.UpdateBatteryTask
 import com.synopsys.integration.detect.verification.VerifyBlackDuckDetectTask
 
@@ -7,10 +6,12 @@ buildscript {
         springBootVersion = '2.4.5'
         blackDuckCommonVersion = '59.0.4'
         junitPlatformCustomTestTags = 'docker, battery'
+        javaTargetCompatibility = 8
+        javaSourceCompatibility = 8
     }
 
     apply from: 'https://raw.githubusercontent.com/blackducksoftware/integration-resources/master/gradle_common/buildscript-repositories.gradle', to: buildscript
-    apply from: 'https://raw.githubusercontent.com/blackducksoftware/integration-resources/master/gradle_common/buildscript-dependencies.gradle', to: buildscript
+
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
@@ -20,7 +21,7 @@ buildscript {
 ext['groovy.version'] = '3.0.0'
 
 group = 'com.synopsys.integration'
-version = '7.9.0-SIGQA9-SNAPSHOT'
+version = '7.10.0-SNAPSHOT'
 
 apply plugin: 'com.synopsys.integration.solution'
 apply plugin: 'org.springframework.boot'
@@ -50,10 +51,6 @@ subprojects {
     group = rootProject.group
     version = rootProject.version
     apply plugin: 'com.synopsys.integration.simple'
-
-    license {
-        header rootProject.file('LICENSE')
-    }
 }
 
 allprojects {
@@ -133,9 +130,6 @@ if (project.tasks.findByName('testBattery')) {
 }
 
 task updateBattery(type: UpdateBatteryTask) {}
-task updateArtifactoryProperties(type: UpdateArtifactoryPropertiesTask) {
-    dependsOn artifactoryDeploy
-}
 
 task runDetect(type: JavaExec) {
     dependsOn build
