@@ -1,10 +1,3 @@
-/*
- * synopsys-detect
- *
- * Copyright (c) 2021 Synopsys, Inc.
- *
- * Use subject to the terms and conditions of the Synopsys End User Software License and Maintenance Agreement. All rights reserved worldwide.
- */
 package com.synopsys.integration.detect.configuration;
 
 import java.io.IOException;
@@ -36,8 +29,7 @@ public class DetectInfoUtility {
     }
 
     public List<String> findArchitectures() {
-        return Bds.of("os.arch", "PROCESSOR_ARCHITECTURE", "PROCESSOR_ARCHITEW6432")
-            .map(System::getenv)
+        return Bds.of(System.getProperty("os.arch"), System.getenv("PROCESSOR_ARCHITECTURE"), System.getenv("PROCESSOR_ARCHITEW6432"))
             .filter(StringUtils::isNotBlank)
             .toList();
     }

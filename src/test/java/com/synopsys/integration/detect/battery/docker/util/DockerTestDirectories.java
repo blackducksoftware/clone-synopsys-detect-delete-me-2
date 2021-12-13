@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.junit.jupiter.api.Assertions;
 
 import com.github.dockerjava.api.model.Bind;
-import com.synopsys.integration.detect.battery.docker.util.delete.TestDeleteDirException;
 
 public class DockerTestDirectories {
     private final File testDirectory;
@@ -25,9 +25,14 @@ public class DockerTestDirectories {
     private File detectOutputDirectory;
 
     public DockerTestDirectories(String testId) throws IOException {
-        Set<PosixFilePermission> allWriteablePermissions = PosixFilePermissions.fromString("rwxrwxrwx");
-        FileAttribute allWriteabeAttribute = PosixFilePermissions.asFileAttribute(allWriteablePermissions);
-        File dockerTestDirectory = Files.createTempDirectory("docker", allWriteabeAttribute).toFile();
+        File dockerTestDirectory;
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            Set<PosixFilePermission> allWriteablePermissions = PosixFilePermissions.fromString("rwxrwxrwx");
+            FileAttribute<?> allWriteabeAttribute = PosixFilePermissions.asFileAttribute(allWriteablePermissions);
+            dockerTestDirectory = Files.createTempDirectory("docker", allWriteabeAttribute).toFile();
+        } else {
+            dockerTestDirectory = Files.createTempDirectory("docker").toFile();
+        }
         testDirectory = new File(dockerTestDirectory, testId);
         testResultDirectory = new File(testDirectory, "result");
         Assertions.assertTrue(testResultDirectory.mkdirs());
@@ -67,13 +72,8 @@ public class DockerTestDirectories {
     }
 
     public void cleanup() throws IOException {
-        File rootTestDir = testDirectory.getParentFile();
-        //TODO- remove this try-catch (for debugging)
-        try {
-            //FileUtils.deleteDirectory(rootTestDir);
-        } catch (Exception e) {
-            throw new TestDeleteDirException();
-        }
+        //File rootTestDir = testDirectory.getParentFile();
+        //FileUtils.deleteDirectory(rootTestDir);
     }
 
     public Bind[] getBindings() {
