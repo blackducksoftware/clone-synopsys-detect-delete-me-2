@@ -14,8 +14,7 @@ public class BitbakeBattery {
         DetectorBatteryTestRunner test = new DetectorBatteryTestRunner("bitbake-orig-poky", "bitbake/orig/poky");
         test.sourceFileFromResource("oe-init-build-env");
         test.sourceFileFromResource("task-depends.dot");
-        test.executableFromResourceFiles(DetectProperties.DETECT_BASH_PATH.getProperty(), "bitbake-g.xout");
-        // TODO need at least one more command executor, right?
+        test.executableFromResourceFiles(DetectProperties.DETECT_BASH_PATH.getProperty(), "bitbake-g.xout", "bitbake-layers-show-recipes.xout");
         test.property("detect.bitbake.package.names", "core-image-sato");
         test.expectBdioResources();
         test.run();
