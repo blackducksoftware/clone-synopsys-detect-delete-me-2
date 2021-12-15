@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.bitbake;
+package com.synopsys.integration.detectable.detectables.bitbake.dependency;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,11 +19,12 @@ import com.synopsys.integration.common.util.finder.FileFinder;
 import com.synopsys.integration.detectable.ExecutableTarget;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
-import com.synopsys.integration.detectable.detectables.bitbake.model.BitbakeGraph;
-import com.synopsys.integration.detectable.detectables.bitbake.model.BitbakeRecipe;
-import com.synopsys.integration.detectable.detectables.bitbake.parse.BitbakeGraphTransformer;
-import com.synopsys.integration.detectable.detectables.bitbake.parse.BitbakeRecipesParser;
-import com.synopsys.integration.detectable.detectables.bitbake.parse.GraphParserTransformer;
+import com.synopsys.integration.detectable.detectables.bitbake.common.BitbakeSession;
+import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeGraph;
+import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeRecipe;
+import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
+import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.extraction.Extraction;
 import com.synopsys.integration.detectable.util.ToolVersionLogger;
 import com.synopsys.integration.exception.IntegrationException;

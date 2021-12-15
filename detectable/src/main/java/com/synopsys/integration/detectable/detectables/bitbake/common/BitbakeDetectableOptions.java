@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.bitbake;
+package com.synopsys.integration.detectable.detectables.bitbake.common;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
-package com.synopsys.integration.detectable.detectables.bitbake;
+package com.synopsys.integration.detectable.detectables.bitbake.dependency;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.synopsys.integration.detectable.detectables.bitbake.model.BitbakeRecipe;
+import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeRecipe;
 
 public class BitbakeRecipesToLayerMapConverter {
     public Map<String, String> convert(List<BitbakeRecipe> bitbakeRecipes) {
