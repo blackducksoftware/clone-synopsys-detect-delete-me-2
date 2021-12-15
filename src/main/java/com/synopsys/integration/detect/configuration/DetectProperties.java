@@ -248,7 +248,8 @@ public class DetectProperties {
     public static final DetectProperty<StringListProperty> DETECT_BITBAKE_PACKAGE_NAMES =
         new DetectProperty<>(new StringListProperty("detect.bitbake.package.names", emptyList()))
             .setInfo("BitBake Package Names", DetectPropertyFromVersion.VERSION_4_4_0)
-            .setHelp("A comma-separated list of package names from which dependencies are extracted.")
+            .setHelp("A comma-separated list of names of target images for which dependencies are extracted. " +
+                "If the Bitbake Manifest detector is selected, only the first name in the provided list is used.")
             .setGroups(DetectGroup.BITBAKE, DetectGroup.SOURCE_SCAN);
 
     public static final DetectProperty<StringListProperty> DETECT_BITBAKE_SOURCE_ARGUMENTS =
@@ -259,10 +260,17 @@ public class DetectProperties {
 
     public static final DetectProperty<BooleanProperty> DETECT_BITBAKE_MANIFEST_DETECTOR =
         new DetectProperty<>(new BooleanProperty("detect.bitbake.manifest.detector", false))
-            .setInfo("Select the Bitbake Manifest Detector",
+            .setInfo("Select the Bitbake Manifest detector",
                 DetectPropertyFromVersion.VERSION_7_10_0)
             .setHelp(
-                "If Bitbake applies, use the Bitbake Manifest Detector (vs. the Bitbake Dependency Detector) to produce a layered graph that excludes build tools.")
+                "If Bitbake applies, a value of true selects the Bitbake Manifest detector (vs. the Bitbake Dependency detector). The Bitbake Manifest detector produces a graph for a single target image, organized by layer, that excludes build tools.")
+            .setGroups(DetectGroup.BITBAKE, DetectGroup.SOURCE_SCAN);
+
+    public static final DetectProperty<NullableStringProperty> DETECT_BITBAKE_LICENSE_MANIFEST_FILE =
+        new DetectProperty<>(new NullableStringProperty("detect.bitbake.license.manifest.file.path"))
+            .setInfo("Bitbake license.manifest file path", DetectPropertyFromVersion.VERSION_7_10_0)
+            .setHelp(
+                "If specified, the Bitbake Manifest detector will use the Bitbake license manifest file at this path to derive list of recipes for the target image.")
             .setGroups(DetectGroup.BITBAKE, DetectGroup.SOURCE_SCAN);
 
     public static final DetectProperty<IntegerProperty> DETECT_BITBAKE_SEARCH_DEPTH =

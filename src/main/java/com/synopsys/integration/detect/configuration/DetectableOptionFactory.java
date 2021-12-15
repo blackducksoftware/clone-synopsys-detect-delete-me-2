@@ -12,6 +12,7 @@ import com.synopsys.integration.configuration.config.PropertyConfiguration;
 import com.synopsys.integration.configuration.property.base.NullableProperty;
 import com.synopsys.integration.configuration.property.base.ValuedProperty;
 import com.synopsys.integration.configuration.property.types.path.PathResolver;
+import com.synopsys.integration.configuration.property.types.path.PathValue;
 import com.synopsys.integration.detect.tool.detector.inspectors.nuget.NugetLocatorOptions;
 import com.synopsys.integration.detect.workflow.ArtifactoryConstants;
 import com.synopsys.integration.detect.workflow.diagnostic.DiagnosticSystem;
@@ -74,7 +75,8 @@ public class DetectableOptionFactory {
         List<String> packageNames = getValue(DetectProperties.DETECT_BITBAKE_PACKAGE_NAMES);
         Integer searchDepth = getValue(DetectProperties.DETECT_BITBAKE_SEARCH_DEPTH);
         Boolean useBitbakeManifestDetector = getValue(DetectProperties.DETECT_BITBAKE_MANIFEST_DETECTOR);
-        return new BitbakeDetectableOptions(buildEnvName, sourceArguments, packageNames, searchDepth, getFollowSymLinks(), useBitbakeManifestDetector);
+        String licenseManifestFilePath = getNullableValue(DetectProperties.DETECT_BITBAKE_LICENSE_MANIFEST_FILE);
+        return new BitbakeDetectableOptions(buildEnvName, sourceArguments, packageNames, searchDepth, getFollowSymLinks(), useBitbakeManifestDetector, licenseManifestFilePath);
     }
 
     public ClangDetectableOptions createClangDetectableOptions() {

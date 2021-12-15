@@ -3,6 +3,7 @@ package com.synopsys.integration.detectable.detectables.bitbake.manifest;
 import java.io.File;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +39,17 @@ public class BitbakeManifestExtractor {
         this.toolVersionLogger = toolVersionLogger;
     }
 
-    public Extraction extract(File sourceDirectory, File buildEnvScript, List<String> sourceArguments, List<String> packageNames, boolean followSymLinks, Integer searchDepth, ExecutableTarget bash) {
-        Extraction extraction = new Extraction.Builder()
+    public Extraction extract(File sourceDirectory, File buildEnvScript, List<String> sourceArguments, List<String> packageNames, boolean followSymLinks,
+        Integer searchDepth, ExecutableTarget bash, String licenseManifestFilePath) {
+
+        Extraction extraction;
+        if (StringUtils.isBlank(licenseManifestFilePath)) {
+            extraction = new Extraction.Builder()
+                .failure("The lazy developer of this detectable has yet to implement the code to find the license file, so sadly you need to provide it.")
+                .build();
+            return extraction;
+        }
+        extraction = new Extraction.Builder()
                 .failure("Bitbake Manifest Extractor not implemented yet.")
                 .build();
         return extraction;
