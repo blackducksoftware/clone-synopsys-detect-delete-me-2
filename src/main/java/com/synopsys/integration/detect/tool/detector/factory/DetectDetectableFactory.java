@@ -9,6 +9,7 @@ import com.synopsys.integration.detectable.detectable.inspector.ProjectInspector
 import com.synopsys.integration.detectable.detectable.inspector.nuget.NugetInspectorResolver;
 import com.synopsys.integration.detectable.detectables.bazel.BazelDetectable;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeDetectable;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
 import com.synopsys.integration.detectable.detectables.cargo.CargoDetectable;
 import com.synopsys.integration.detectable.detectables.carthage.CarthageDetectable;
 import com.synopsys.integration.detectable.detectables.clang.ClangDetectable;
@@ -92,6 +93,10 @@ public class DetectDetectableFactory {
 
     public BitbakeDetectable createBitbakeDetectable(DetectableEnvironment environment) {
         return detectableFactory.createBitbakeDetectable(environment, detectableOptionFactory.createBitbakeDetectableOptions(), detectExecutableResolver);
+    }
+
+    public BitbakeManifestDetectable createBitbakeManifestDetectable(DetectableEnvironment environment) {
+        return detectableFactory.createBitbakeManifestDetectable(environment, detectableOptionFactory.createBitbakeDetectableOptions(), detectExecutableResolver);
     }
 
     public CargoDetectable createCargoDetectable(DetectableEnvironment environment) {

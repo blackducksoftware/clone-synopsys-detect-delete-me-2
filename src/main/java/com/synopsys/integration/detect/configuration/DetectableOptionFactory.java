@@ -73,7 +73,8 @@ public class DetectableOptionFactory {
         List<String> sourceArguments = getValue(DetectProperties.DETECT_BITBAKE_SOURCE_ARGUMENTS);
         List<String> packageNames = getValue(DetectProperties.DETECT_BITBAKE_PACKAGE_NAMES);
         Integer searchDepth = getValue(DetectProperties.DETECT_BITBAKE_SEARCH_DEPTH);
-        return new BitbakeDetectableOptions(buildEnvName, sourceArguments, packageNames, searchDepth, getFollowSymLinks());
+        Boolean useBitbakeManifestDetector = getValue(DetectProperties.DETECT_BITBAKE_MANIFEST_DETECTOR);
+        return new BitbakeDetectableOptions(buildEnvName, sourceArguments, packageNames, searchDepth, getFollowSymLinks(), useBitbakeManifestDetector);
     }
 
     public ClangDetectableOptions createClangDetectableOptions() {

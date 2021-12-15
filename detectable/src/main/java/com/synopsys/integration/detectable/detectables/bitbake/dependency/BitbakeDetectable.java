@@ -41,6 +41,10 @@ public class BitbakeDetectable extends Detectable {
         Requirements requirements = new Requirements(fileFinder, environment);
         foundBuildEnvScript = requirements.file(bitbakeDetectableOptions.getBuildEnvName());
 
+        if (bitbakeDetectableOptions.isUseManifestDetector()) {
+            return new PropertyInsufficientDetectableResult("Bitbake Manifest detector was requested so Bitbake Dependency Detector will not run.");
+        }
+
         if (bitbakeDetectableOptions.getPackageNames() == null || bitbakeDetectableOptions.getPackageNames().isEmpty()) {
             return new PropertyInsufficientDetectableResult("Bitbake requires that at least one package name is provided.");
         } else {

@@ -2,6 +2,7 @@ package com.synopsys.integration.detect.tool.detector;
 
 import com.synopsys.integration.detect.tool.detector.factory.DetectDetectableFactory;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeDetectable;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
 import com.synopsys.integration.detectable.detectables.cargo.CargoDetectable;
 import com.synopsys.integration.detectable.detectables.carthage.CarthageDetectable;
 import com.synopsys.integration.detectable.detectables.clang.ClangDetectable;
@@ -70,7 +71,8 @@ public class DetectorRuleFactory {
 
         ruleSet.addDetector(DetectorType.CARTHAGE, "Carthage", CarthageDetectable.class, detectableFactory::createCarthageDetectable).defaults().build();
 
-        ruleSet.addDetector(DetectorType.BITBAKE, "Bitbake", BitbakeDetectable.class, detectableFactory::createBitbakeDetectable).defaults().build();
+        ruleSet.addDetector(DetectorType.BITBAKE, "Bitbake Dependency", BitbakeDetectable.class, detectableFactory::createBitbakeDetectable).defaults().build();
+        ruleSet.addDetector(DetectorType.BITBAKE, "Bitbake Manifest", BitbakeManifestDetectable.class, detectableFactory::createBitbakeManifestDetectable).defaults().build();
 
         ruleSet.addDetector(DetectorType.COCOAPODS, "Pod Lock", PodlockDetectable.class, detectableFactory::createPodLockDetectable).defaults().build();
         ruleSet.addDetector(DetectorType.XCODE, "Xcode Swift", XcodeSwiftDetectable.class, detectableFactory::createXcodeSwiftDetectable).defaults().selfNestable().build();
