@@ -257,6 +257,14 @@ public class DetectProperties {
             .setHelp("A comma-separated list of arguments to supply when sourcing the build environment init script.")
             .setGroups(DetectGroup.BITBAKE, DetectGroup.SOURCE_SCAN);
 
+    public static final DetectProperty<BooleanProperty> DETECT_BITBAKE_MANIFEST_DETECTOR =
+        new DetectProperty<>(new BooleanProperty("detect.bitbake.manifest.detector", false))
+            .setInfo("Select the Bitbake Manifest Detector",
+                DetectPropertyFromVersion.VERSION_7_10_0)
+            .setHelp(
+                "If Bitbake applies, use the Bitbake Manifest Detector (vs. the Bitbake Dependency Detector) to produce a layered graph that excludes build tools.")
+            .setGroups(DetectGroup.BITBAKE, DetectGroup.SOURCE_SCAN);
+
     public static final DetectProperty<IntegerProperty> DETECT_BITBAKE_SEARCH_DEPTH =
         new DetectProperty<>(new IntegerProperty("detect.bitbake.search.depth", 1))
             .setInfo("BitBake Search Depth", DetectPropertyFromVersion.VERSION_6_1_0)

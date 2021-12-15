@@ -54,6 +54,8 @@ import com.synopsys.integration.detectable.detectables.bitbake.dependency.Bitbak
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestExtractor;
 import com.synopsys.integration.detectable.detectables.cargo.CargoDetectable;
 import com.synopsys.integration.detectable.detectables.cargo.CargoExtractor;
 import com.synopsys.integration.detectable.detectables.cargo.parse.CargoLockParser;
@@ -290,6 +292,10 @@ public class DetectableFactory {
 
     public BitbakeDetectable createBitbakeDetectable(DetectableEnvironment environment, BitbakeDetectableOptions bitbakeDetectableOptions, BashResolver bashResolver) {
         return new BitbakeDetectable(environment, fileFinder, bitbakeDetectableOptions, bitbakeExtractor(), bashResolver);
+    }
+
+    public BitbakeManifestDetectable createBitbakeManifestDetectable(DetectableEnvironment environment, BitbakeDetectableOptions bitbakeDetectableOptions, BashResolver bashResolver) {
+        return new BitbakeManifestDetectable(environment, fileFinder, bitbakeDetectableOptions, bitbakeManifestExtractor(), bashResolver);
     }
 
     public CargoDetectable createCargoDetectable(DetectableEnvironment environment) {
@@ -884,6 +890,10 @@ public class DetectableFactory {
 
     private BitbakeExtractor bitbakeExtractor() {
         return new BitbakeExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
+    }
+
+    private BitbakeManifestExtractor bitbakeManifestExtractor() {
+        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
     }
 
     private GraphParserTransformer graphParserTransformer() {

@@ -10,12 +10,24 @@ import com.synopsys.integration.detect.configuration.DetectProperties;
 public class BitbakeBattery {
 
     @Test
-    void test() {
+    void testBitbakeDependencyDetector() {
         DetectorBatteryTestRunner test = new DetectorBatteryTestRunner("bitbake-orig-poky", "bitbake/orig/poky");
         test.sourceFileFromResource("oe-init-build-env");
         test.sourceFileFromResource("task-depends.dot");
         test.executableFromResourceFiles(DetectProperties.DETECT_BASH_PATH.getProperty(), "bitbake-g.xout", "bitbake-layers-show-recipes.xout");
         test.property("detect.bitbake.package.names", "core-image-sato");
+        test.expectBdioResources();
+        test.run();
+    }
+
+    @Test
+    void testBitbakeManifestDetector() {
+        DetectorBatteryTestRunner test = new DetectorBatteryTestRunner("bitbake-orig-poky", "bitbake/orig/poky");
+        test.sourceFileFromResource("oe-init-build-env");
+        test.sourceFileFromResource("task-depends.dot");
+        test.executableFromResourceFiles(DetectProperties.DETECT_BASH_PATH.getProperty(), "bitbake-g.xout", "bitbake-layers-show-recipes.xout");
+        test.property("detect.bitbake.package.names", "core-image-sato");
+        test.property("detect.bitbake.manifest.detector", "true");
         test.expectBdioResources();
         test.run();
     }
