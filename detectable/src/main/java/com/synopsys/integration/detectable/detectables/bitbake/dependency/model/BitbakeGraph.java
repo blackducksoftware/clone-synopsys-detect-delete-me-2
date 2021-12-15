@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.bitbake.model;
+package com.synopsys.integration.detectable.detectables.bitbake.dependency.model;
 
 import java.util.ArrayList;
 import java.util.List;
