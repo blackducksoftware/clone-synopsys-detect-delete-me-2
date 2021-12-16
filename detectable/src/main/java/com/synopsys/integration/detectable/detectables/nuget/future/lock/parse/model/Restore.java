@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.nuget.future.lock.parser.auto;
+package com.synopsys.integration.detectable.detectables.nuget.future.lock.parse.model;
 
 import java.util.Map;
 
@@ -11,4 +11,5 @@ public class Restore {
     public String projectStyle;
 
     public Map<String, RestoreFramework> frameworks;
+
 }
