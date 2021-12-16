@@ -32,7 +32,7 @@ import com.synopsys.integration.util.NameVersion;
 public class NugetInspectorExtractor {
     public static final String INSPECTOR_OUTPUT_PATTERN = "*_inspection.json";
 
-    private final Logger logger = LoggerFactory.getLogger(NugetInspectorExtractor.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final NugetInspectorParser nugetInspectorParser;
     private final FileFinder fileFinder;

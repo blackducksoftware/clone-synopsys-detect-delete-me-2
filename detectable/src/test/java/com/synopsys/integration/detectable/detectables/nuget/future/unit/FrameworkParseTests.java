@@ -1,7 +1,10 @@
 package com.synopsys.integration.detectable.detectables.nuget.future.unit;
 
+import org.junit.jupiter.api.Test;
+
 public class FrameworkParseTests {
 
+    @Test
     void parsesProjectReference() {
         String block = "\"frameworks\": {\n"
             + "        \"uap10.0.10240\": {\n"
