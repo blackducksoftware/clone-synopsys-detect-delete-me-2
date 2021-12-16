@@ -5,6 +5,7 @@ dependencies {
 
     implementation 'org.tomlj:tomlj:1.0.0'
     implementation 'com.moandjiezana.toml:toml4j:0.7.1'
+    implementation 'de.skuzzle:semantic-version:2.1.0'
     implementation 'com.paypal.digraph:digraph-parser:1.0'
     implementation 'org.freemarker:freemarker:2.3.26-incubating'
     implementation 'com.synopsys.integration:integration-bdio:22.1.5'
