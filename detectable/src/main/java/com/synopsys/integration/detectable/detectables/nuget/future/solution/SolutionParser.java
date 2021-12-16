@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.nuget.future;
+package com.synopsys.integration.detectable.detectables.nuget.future.solution;
 
 import java.util.ArrayList;
 import java.util.List;

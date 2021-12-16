@@ -5,8 +5,8 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.synopsys.integration.detectable.detectables.nuget.future.ParsedProject;
-import com.synopsys.integration.detectable.detectables.nuget.future.SolutionParser;
+import com.synopsys.integration.detectable.detectables.nuget.future.solution.ParsedProject;
+import com.synopsys.integration.detectable.detectables.nuget.future.solution.SolutionParser;
 import com.synopsys.integration.detectable.util.FunctionalTestFiles;
 
 public class SolutionParserFunctionalTest {

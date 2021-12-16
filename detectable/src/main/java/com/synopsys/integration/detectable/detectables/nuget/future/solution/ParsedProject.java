@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.nuget.future;
+package com.synopsys.integration.detectable.detectables.nuget.future.solution;
 
 public class ParsedProject {
     private final String path;
