@@ -20,6 +20,7 @@ import com.synopsys.integration.detectable.ExecutableTarget;
 import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
 import com.synopsys.integration.detectable.detectables.bitbake.common.BitbakeSession;
+import com.synopsys.integration.detectable.detectables.bitbake.common.TaskDependsDotFile;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeGraph;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeRecipe;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
@@ -91,14 +92,10 @@ public class BitbakeExtractor {
     }
 
     private BitbakeGraph generateBitbakeGraph(BitbakeSession bitbakeSession, File sourceDirectory, String packageName, boolean followSymLinks, Integer searchDepth) throws ExecutableRunnerException, IOException, IntegrationException {
-        File taskDependsFile = bitbakeSession.executeBitbakeForDependencies(sourceDirectory, packageName, followSymLinks, searchDepth)
-            .orElseThrow(() -> new IntegrationException("Failed to find file \"task-depends.dot\"."));
-
-        logger.trace(FileUtils.readFileToString(taskDependsFile, Charset.defaultCharset()));
-
+        TaskDependsDotFile taskDependsDotFile = new TaskDependsDotFile(); // TODO inject
+        File taskDependsFile = taskDependsDotFile.generate(bitbakeSession, sourceDirectory, packageName, followSymLinks, searchDepth);
         InputStream dependsFileInputStream = FileUtils.openInputStream(taskDependsFile);
         GraphParser graphParser = new GraphParser(dependsFileInputStream);
-
         return graphParserTransformer.transform(graphParser);
     }
 }

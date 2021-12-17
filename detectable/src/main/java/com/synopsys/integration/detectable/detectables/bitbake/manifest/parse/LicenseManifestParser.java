@@ -32,7 +32,6 @@ public class LicenseManifestParser {
             }
             String key = lineParts[0].trim();
             String value = lineParts[1].trim();
-            System.out.printf("key: %s; value: %s\n", key, value);
             if ("RECIPE NAME".equals(key)) {
                 recipeName = value;
             } else if ("PACKAGE VERSION".equals(key)) {

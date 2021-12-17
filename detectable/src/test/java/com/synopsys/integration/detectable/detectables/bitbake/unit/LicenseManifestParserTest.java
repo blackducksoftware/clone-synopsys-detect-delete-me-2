@@ -15,7 +15,6 @@ public class LicenseManifestParserTest {
 
     @Test
     void test() throws IntegrationException {
-        LicenseManifestParser parser = new LicenseManifestParser();
 
         List<String> licenseManifestFileLines = new ArrayList<>();
         licenseManifestFileLines.add("PACKAGE NAME: adwaita-icon-theme");
@@ -33,7 +32,10 @@ public class LicenseManifestParserTest {
         licenseManifestFileLines.add("RECIPE NAME: alsa-lib");
         licenseManifestFileLines.add("LICENSE: LGPLv2.1 & GPLv2+");
         licenseManifestFileLines.add("");
+
+        LicenseManifestParser parser = new LicenseManifestParser();
         Map<String, String> imageRecipes = parser.collectImageRecipes(licenseManifestFileLines);
+
         assertEquals(2, imageRecipes.keySet().size());
         assertEquals("3.34.3", imageRecipes.get("adwaita-icon-theme"));
         assertEquals("1.2.5.1", imageRecipes.get("alsa-lib"));
