@@ -1,7 +1,8 @@
-package com.synopsys.integration.detectable.detectables.bitbake.common.parse;
+package com.synopsys.integration.detectable.detectables.bitbake.manifest.parse;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -13,13 +14,8 @@ import com.synopsys.integration.detectable.detectables.bitbake.common.model.Bitb
 import com.synopsys.integration.log.IntLogger;
 import com.synopsys.integration.log.Slf4jIntLogger;
 
-public class BitbakeRecipesParser {
+public class BitbakeManifestRecipesParser {
     private final IntLogger logger = new Slf4jIntLogger(LoggerFactory.getLogger(this.getClass()));
-    private final Supplier<Collection<String>> layerCollectionCreator;
-
-    public BitbakeRecipesParser(Supplier<Collection<String>> layerCollectionCreator) {
-        this.layerCollectionCreator = layerCollectionCreator;
-    }
 
     /**
      * @param showRecipeLines is the executable output.
@@ -57,7 +53,7 @@ public class BitbakeRecipesParser {
             }
 
             String recipeName = line.replace(":", "").trim();
-            return new BitbakeRecipe(recipeName, layerCollectionCreator.get());
+            return new BitbakeRecipe(recipeName, new HashSet<>());
         } else if (currentRecipe != null && line.startsWith("  ")) {
             // Parse the layer and version for the current component
             String trimmedLine = line.trim();

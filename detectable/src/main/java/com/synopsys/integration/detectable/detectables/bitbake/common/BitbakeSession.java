@@ -13,8 +13,6 @@ import com.synopsys.integration.common.util.finder.FileFinder;
 import com.synopsys.integration.detectable.ExecutableTarget;
 import com.synopsys.integration.detectable.ExecutableUtils;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
-import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
-import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
 import com.synopsys.integration.detectable.util.ToolVersionLogger;
 import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.executable.ExecutableOutput;
@@ -27,19 +25,17 @@ public class BitbakeSession {
 
     private final FileFinder fileFinder;
     private final DetectableExecutableRunner executableRunner;
-    private final BitbakeRecipesParser bitbakeRecipesParser;
     private final File workingDirectory;
     private final File buildEnvScript;
     private final List<String> sourceArguments;
     private final ExecutableTarget bashExecutable;
     private final ToolVersionLogger toolVersionLogger;
 
-    public BitbakeSession(FileFinder fileFinder, DetectableExecutableRunner executableRunner, BitbakeRecipesParser bitbakeRecipesParser,
+    public BitbakeSession(FileFinder fileFinder, DetectableExecutableRunner executableRunner,
         File workingDirectory, File buildEnvScript, List<String> sourceArguments,
         ExecutableTarget bashExecutable, ToolVersionLogger toolVersionLogger) {
         this.fileFinder = fileFinder;
         this.executableRunner = executableRunner;
-        this.bitbakeRecipesParser = bitbakeRecipesParser;
         this.workingDirectory = workingDirectory;
         this.buildEnvScript = buildEnvScript;
         this.sourceArguments = sourceArguments;
@@ -77,11 +73,11 @@ public class BitbakeSession {
 
     }
 
-    public Map<String, BitbakeRecipe> executeBitbakeForRecipeLayerCatalog() throws ExecutableRunnerException, IOException, IntegrationException {
+    public List<String> executeBitbakeForRecipeLayerLines() throws ExecutableRunnerException, IOException, IntegrationException {
         final String bitbakeCommand = "bitbake-layers show-recipes";
         ExecutableOutput executableOutput = runBitbake(bitbakeCommand);
         if (executableOutput.getReturnCode() == 0) {
-            return bitbakeRecipesParser.parseShowRecipes(executableOutput.getStandardOutputAsList());
+            return executableOutput.getStandardOutputAsList();
         } else {
             throw new IntegrationException("Running command '%s' returned a non-zero exit code. Failed to extract bitbake recipe mapping.");
         }

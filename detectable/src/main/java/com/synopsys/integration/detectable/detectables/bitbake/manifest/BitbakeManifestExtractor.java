@@ -18,7 +18,7 @@ import com.synopsys.integration.detectable.ExecutableTarget;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
 import com.synopsys.integration.detectable.detectables.bitbake.common.BitbakeSession;
 import com.synopsys.integration.detectable.detectables.bitbake.common.TaskDependsDotFile;
-import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.BitbakeManifestRecipesParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
@@ -37,17 +37,17 @@ public class BitbakeManifestExtractor {
     private final FileFinder fileFinder;
     private final GraphParserTransformer graphParserTransformer;
     private final BitbakeGraphTransformer bitbakeGraphTransformer;
-    private final BitbakeRecipesParser bitbakeRecipesParser;
+    private final BitbakeManifestRecipesParser bitbakeManifestRecipesParser;
     private final BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap;
     private final ToolVersionLogger toolVersionLogger;
 
     public BitbakeManifestExtractor(DetectableExecutableRunner executableRunner, FileFinder fileFinder, GraphParserTransformer graphParserTransformer, BitbakeGraphTransformer bitbakeGraphTransformer,
-        BitbakeRecipesParser bitbakeRecipesParser, BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap, ToolVersionLogger toolVersionLogger) {
+        BitbakeManifestRecipesParser bitbakeManifestRecipesParser, BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap, ToolVersionLogger toolVersionLogger) {
         this.executableRunner = executableRunner;
         this.fileFinder = fileFinder;
         this.graphParserTransformer = graphParserTransformer;
         this.bitbakeGraphTransformer = bitbakeGraphTransformer;
-        this.bitbakeRecipesParser = bitbakeRecipesParser;
+        this.bitbakeManifestRecipesParser = bitbakeManifestRecipesParser;
         this.bitbakeRecipesToLayerMap = bitbakeRecipesToLayerMap;
         this.toolVersionLogger = toolVersionLogger;
     }
@@ -59,7 +59,7 @@ public class BitbakeManifestExtractor {
         String packageName = packageNames.get(0);
 
         // TODO inject?
-        BitbakeSession bitbakeSession = new BitbakeSession(fileFinder, executableRunner, bitbakeRecipesParser, sourceDirectory, buildEnvScript, sourceArguments, bash, toolVersionLogger);
+        BitbakeSession bitbakeSession = new BitbakeSession(fileFinder, executableRunner, sourceDirectory, buildEnvScript, sourceArguments, bash, toolVersionLogger);
 
         Extraction extraction;
         if (StringUtils.isBlank(licenseManifestFilePath)) {
@@ -80,7 +80,8 @@ public class BitbakeManifestExtractor {
             List<String> licenseManifestFileLines = readLicenseManifestFile(licenseManifestFilePath);
             Map<String, String> imageRecipes = licenseManifestParser.collectImageRecipes(licenseManifestFileLines);
             logger.info("Found {} image recipes in license.manifest file", imageRecipes.size());
-            Map<String, BitbakeRecipe> bitbakeRecipes = bitbakeSession.executeBitbakeForRecipeLayerCatalog();
+            List<String> bitbakeRecipeCatalogLines = bitbakeSession.executeBitbakeForRecipeLayerLines();
+            Map<String, BitbakeRecipe> bitbakeRecipes = bitbakeManifestRecipesParser.parseShowRecipes(bitbakeRecipeCatalogLines);
             logger.info("Found {} recipes in show-recipes output", bitbakeRecipes.size());
         } catch (IntegrationException | ExecutableRunnerException | IOException e) {
             extraction = new Extraction.Builder()
