@@ -3,6 +3,7 @@ package com.synopsys.integration.detectable.detectables.bitbake.common;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class BitbakeSession {
 
     }
 
-    public List<BitbakeRecipe> executeBitbakeForRecipeLayerCatalog() throws ExecutableRunnerException, IOException, IntegrationException {
+    public Map<String, BitbakeRecipe> executeBitbakeForRecipeLayerCatalog() throws ExecutableRunnerException, IOException, IntegrationException {
         final String bitbakeCommand = "bitbake-layers show-recipes";
         ExecutableOutput executableOutput = runBitbake(bitbakeCommand);
         if (executableOutput.getReturnCode() == 0) {

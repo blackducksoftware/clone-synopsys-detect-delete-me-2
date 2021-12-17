@@ -80,7 +80,7 @@ public class BitbakeManifestExtractor {
             List<String> licenseManifestFileLines = readLicenseManifestFile(licenseManifestFilePath);
             Map<String, String> imageRecipes = licenseManifestParser.collectImageRecipes(licenseManifestFileLines);
             logger.info("Found {} image recipes in license.manifest file", imageRecipes.size());
-            List<BitbakeRecipe> bitbakeRecipes = bitbakeSession.executeBitbakeForRecipeLayerCatalog();
+            Map<String, BitbakeRecipe> bitbakeRecipes = bitbakeSession.executeBitbakeForRecipeLayerCatalog();
             logger.info("Found {} recipes in show-recipes output", bitbakeRecipes.size());
         } catch (IntegrationException | ExecutableRunnerException | IOException e) {
             extraction = new Extraction.Builder()
