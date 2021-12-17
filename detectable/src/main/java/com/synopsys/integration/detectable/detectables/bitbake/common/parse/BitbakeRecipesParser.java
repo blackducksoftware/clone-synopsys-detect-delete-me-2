@@ -1,8 +1,9 @@
 package com.synopsys.integration.detectable.detectables.bitbake.common.parse;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,8 +25,8 @@ public class BitbakeRecipesParser {
      * @param showRecipeLines is the executable output.
      * @return Recipe names mapped to a recipe's the layer names.
      */
-    public List<BitbakeRecipe> parseShowRecipes(List<String> showRecipeLines) {
-        List<BitbakeRecipe> bitbakeRecipes = new ArrayList<>();
+    public Map<String, BitbakeRecipe> parseShowRecipes(List<String> showRecipeLines) {
+        Map<String, BitbakeRecipe> bitbakeRecipes = new HashMap<>();
 
         boolean started = false;
         BitbakeRecipe currentRecipe = null;
@@ -42,17 +43,17 @@ public class BitbakeRecipesParser {
         }
 
         if (currentRecipe != null) {
-            bitbakeRecipes.add(currentRecipe);
+            bitbakeRecipes.put(currentRecipe.getName(), currentRecipe);
         }
 
         return bitbakeRecipes;
     }
 
-    private BitbakeRecipe parseLine(String line, BitbakeRecipe currentRecipe, List<BitbakeRecipe> bitbakeRecipes) {
+    private BitbakeRecipe parseLine(String line, BitbakeRecipe currentRecipe, Map<String, BitbakeRecipe> bitbakeRecipes) {
         if (line.contains(":") && !line.startsWith("  ")) {
             // Parse beginning of new component
             if (currentRecipe != null) {
-                bitbakeRecipes.add(currentRecipe);
+                bitbakeRecipes.put(currentRecipe.getName(), currentRecipe);
             }
 
             String recipeName = line.replace(":", "").trim();
