@@ -1,5 +1,8 @@
 package com.synopsys.integration.detectable.factory;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -879,8 +882,12 @@ public class DetectableFactory {
         return new YarnLockExtractor(yarnLockParser(), yarnPackager(), packageJsonFiles(), yarnLockOptions);
     }
 
-    private BitbakeRecipesParser bitbakeRecipesParser() {
-        return new BitbakeRecipesParser();
+    private BitbakeRecipesParser bitbakeDependencyRecipesParser() {
+        return new BitbakeRecipesParser(ArrayList::new);
+    }
+
+    private BitbakeRecipesParser bitbakeManifestRecipesParser() {
+        return new BitbakeRecipesParser(HashSet::new);
     }
 
     private BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap() {
@@ -888,11 +895,11 @@ public class DetectableFactory {
     }
 
     private BitbakeExtractor bitbakeExtractor() {
-        return new BitbakeExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
+        return new BitbakeExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeDependencyRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
     }
 
     private BitbakeManifestExtractor bitbakeManifestExtractor() {
-        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
+        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeManifestRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
     }
 
     private GraphParserTransformer graphParserTransformer() {
