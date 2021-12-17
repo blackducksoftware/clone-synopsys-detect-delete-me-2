@@ -21,8 +21,8 @@ public class BitbakeManifestRecipesParser {
      * @param showRecipeLines is the executable output.
      * @return Recipe names mapped to a recipe's the layer names.
      */
-    public Map<String, BitbakeRecipe> parseShowRecipes(List<String> showRecipeLines) {
-        Map<String, BitbakeRecipe> bitbakeRecipes = new HashMap<>();
+    public ShowRecipesResults parseShowRecipes(List<String> showRecipeLines) {
+        ShowRecipesResults showRecipesResults = new ShowRecipesResults();
 
         boolean started = false;
         BitbakeRecipe currentRecipe = null;
@@ -34,22 +34,22 @@ public class BitbakeManifestRecipesParser {
             if (!started && line.trim().startsWith("=== Available recipes: ===")) {
                 started = true;
             } else if (started) {
-                currentRecipe = parseLine(line, currentRecipe, bitbakeRecipes);
+                currentRecipe = parseLine(line, currentRecipe, showRecipesResults);
             }
         }
 
         if (currentRecipe != null) {
-            bitbakeRecipes.put(currentRecipe.getName(), currentRecipe);
+            showRecipesResults.addRecipe(currentRecipe);
         }
 
-        return bitbakeRecipes;
+        return showRecipesResults;
     }
 
-    private BitbakeRecipe parseLine(String line, BitbakeRecipe currentRecipe, Map<String, BitbakeRecipe> bitbakeRecipes) {
+    private BitbakeRecipe parseLine(String line, BitbakeRecipe currentRecipe, ShowRecipesResults showRecipesResults) {
         if (line.contains(":") && !line.startsWith("  ")) {
             // Parse beginning of new component
             if (currentRecipe != null) {
-                bitbakeRecipes.put(currentRecipe.getName(), currentRecipe);
+                showRecipesResults.addRecipe(currentRecipe);
             }
 
             String recipeName = line.replace(":", "").trim();
@@ -62,6 +62,7 @@ public class BitbakeManifestRecipesParser {
 
             if (indexOfFirstSpace != -1 && indexOfLastSpace != -1 && indexOfLastSpace + 1 < trimmedLine.length()) {
                 String layer = trimmedLine.substring(0, indexOfFirstSpace);
+                showRecipesResults.addLayer(layer);
                 currentRecipe.addLayerName(layer);
             } else {
                 logger.debug(String.format("Failed to parse layer for component '%s' from line '%s'.", currentRecipe.getName(), line));
