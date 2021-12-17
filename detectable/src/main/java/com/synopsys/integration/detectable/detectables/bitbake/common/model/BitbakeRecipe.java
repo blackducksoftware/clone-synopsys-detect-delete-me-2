@@ -7,7 +7,7 @@ public class BitbakeRecipe {
     private final String name;
     private final Collection<String> layerNames;
 
-    public BitbakeRecipe(String name, List<String> layerNames) {
+    public BitbakeRecipe(String name, Collection<String> layerNames) {
         this.name = name;
         this.layerNames = layerNames;
     }
