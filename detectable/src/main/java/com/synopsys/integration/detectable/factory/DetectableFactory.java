@@ -52,7 +52,8 @@ import com.synopsys.integration.detectable.detectables.bitbake.common.BitbakeDet
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeExtractor;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
-import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeDependencyRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.BitbakeManifestRecipesParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestExtractor;
@@ -882,12 +883,12 @@ public class DetectableFactory {
         return new YarnLockExtractor(yarnLockParser(), yarnPackager(), packageJsonFiles(), yarnLockOptions);
     }
 
-    private BitbakeRecipesParser bitbakeDependencyRecipesParser() {
-        return new BitbakeRecipesParser(ArrayList::new);
+    private BitbakeDependencyRecipesParser bitbakeDependencyRecipesParser() {
+        return new BitbakeDependencyRecipesParser();
     }
 
-    private BitbakeRecipesParser bitbakeManifestRecipesParser() {
-        return new BitbakeRecipesParser(HashSet::new);
+    private BitbakeManifestRecipesParser bitbakeManifestRecipesParser() {
+        return new BitbakeManifestRecipesParser();
     }
 
     private BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap() {
