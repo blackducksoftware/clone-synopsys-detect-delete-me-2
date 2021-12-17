@@ -1,10 +1,11 @@
-package com.synopsys.integration.detectable.detectables.bitbake.dependency.model;
+package com.synopsys.integration.detectable.detectables.bitbake.common.model;
 
+import java.util.Collection;
 import java.util.List;
 
 public class BitbakeRecipe {
     private final String name;
-    private final List<String> layerNames;
+    private final Collection<String> layerNames;
 
     public BitbakeRecipe(String name, List<String> layerNames) {
         this.name = name;
@@ -15,7 +16,7 @@ public class BitbakeRecipe {
         return name;
     }
 
-    public List<String> getLayerNames() {
+    public Collection<String> getLayerNames() {
         return layerNames;
     }
 

@@ -12,8 +12,8 @@ import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
 import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
-import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeGraph;
-import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeNode;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeNode;
 import com.synopsys.integration.log.IntLogger;
 import com.synopsys.integration.log.Slf4jIntLogger;
 

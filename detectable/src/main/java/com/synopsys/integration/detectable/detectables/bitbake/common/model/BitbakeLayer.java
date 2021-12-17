@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.bitbake.dependency.model;
+package com.synopsys.integration.detectable.detectables.bitbake.common.model;
 
 public class BitbakeLayer {
     private final String name;

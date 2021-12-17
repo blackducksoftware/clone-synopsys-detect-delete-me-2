@@ -1,4 +1,4 @@
-package com.synopsys.integration.detectable.detectables.bitbake.dependency.model;
+package com.synopsys.integration.detectable.detectables.bitbake.common.model;
 
 import java.util.HashSet;
 import java.util.Optional;

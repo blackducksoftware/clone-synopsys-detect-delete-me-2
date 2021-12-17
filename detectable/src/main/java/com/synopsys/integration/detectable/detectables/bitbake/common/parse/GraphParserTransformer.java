@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.paypal.digraph.parser.GraphEdge;
 import com.paypal.digraph.parser.GraphNode;
 import com.paypal.digraph.parser.GraphParser;
-import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeGraph;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
 
 public class GraphParserTransformer {
     public BitbakeGraph transform(GraphParser graphParser) {
