@@ -21,8 +21,8 @@ import com.synopsys.integration.detectable.detectables.bitbake.common.TaskDepend
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.BitbakeRecipesParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
-import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeGraph;
-import com.synopsys.integration.detectable.detectables.bitbake.dependency.model.BitbakeRecipe;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.LicenseManifestParser;
 import com.synopsys.integration.detectable.extraction.Extraction;
