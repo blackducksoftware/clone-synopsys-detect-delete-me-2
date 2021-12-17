@@ -50,6 +50,7 @@ import com.synopsys.integration.detectable.detectables.bitbake.dependency.Bitbak
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeDependencyRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesOutputParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
@@ -897,7 +898,7 @@ public class DetectableFactory {
     }
 
     private BitbakeManifestExtractor bitbakeManifestExtractor() {
-        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeShowRecipesOutputParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
+        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeManifestGraphTransformer(), bitbakeShowRecipesOutputParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
     }
 
     private GraphParserTransformer graphParserTransformer() {
@@ -906,6 +907,10 @@ public class DetectableFactory {
 
     private BitbakeGraphTransformer bitbakeGraphTransformer() {
         return new BitbakeGraphTransformer(externalIdFactory);
+    }
+
+    private BitbakeManifestGraphTransformer bitbakeManifestGraphTransformer() {
+        return new BitbakeManifestGraphTransformer(/*externalIdFactory*/);
     }
 
     private ClangPackageManagerInfoFactory clangPackageManagerInfoFactory() {

@@ -36,17 +36,17 @@ public class BitbakeManifestExtractor {
     private final DetectableExecutableRunner executableRunner;
     private final FileFinder fileFinder;
     private final GraphParserTransformer graphParserTransformer;
-    private final BitbakeGraphTransformer bitbakeGraphTransformer;
+    private final BitbakeManifestGraphTransformer bitbakeManifestGraphTransformer;
     private final ShowRecipesOutputParser showRecipesOutputParser;
     private final BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap;
     private final ToolVersionLogger toolVersionLogger;
 
-    public BitbakeManifestExtractor(DetectableExecutableRunner executableRunner, FileFinder fileFinder, GraphParserTransformer graphParserTransformer, BitbakeGraphTransformer bitbakeGraphTransformer,
+    public BitbakeManifestExtractor(DetectableExecutableRunner executableRunner, FileFinder fileFinder, GraphParserTransformer graphParserTransformer, BitbakeManifestGraphTransformer bitbakeManifestGraphTransformer,
         ShowRecipesOutputParser showRecipesOutputParser, BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap, ToolVersionLogger toolVersionLogger) {
         this.executableRunner = executableRunner;
         this.fileFinder = fileFinder;
         this.graphParserTransformer = graphParserTransformer;
-        this.bitbakeGraphTransformer = bitbakeGraphTransformer;
+        this.bitbakeManifestGraphTransformer = bitbakeManifestGraphTransformer;
         this.showRecipesOutputParser = showRecipesOutputParser;
         this.bitbakeRecipesToLayerMap = bitbakeRecipesToLayerMap;
         this.toolVersionLogger = toolVersionLogger;
@@ -83,6 +83,7 @@ public class BitbakeManifestExtractor {
             List<String> bitbakeRecipeCatalogLines = bitbakeSession.executeBitbakeForRecipeLayerLines();
             ShowRecipesResults showRecipesResults = showRecipesOutputParser.parse(bitbakeRecipeCatalogLines);
             logger.info("Found {} recipes on {} layers in show-recipes output", showRecipesResults.getRecipes().size(), showRecipesResults.getLayerNames().size());
+            bitbakeManifestGraphTransformer.generateGraph(imageRecipes, showRecipesResults, bitbakeGraph);
         } catch (IntegrationException | ExecutableRunnerException | IOException e) {
             extraction = new Extraction.Builder()
                 .failure(e.getMessage())
