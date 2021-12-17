@@ -25,6 +25,7 @@ import com.synopsys.integration.detectable.detectables.bitbake.common.model.Bitb
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.LicenseManifestParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesResults;
 import com.synopsys.integration.detectable.extraction.Extraction;
 import com.synopsys.integration.detectable.util.ToolVersionLogger;
 import com.synopsys.integration.exception.IntegrationException;
@@ -81,8 +82,8 @@ public class BitbakeManifestExtractor {
             Map<String, String> imageRecipes = licenseManifestParser.collectImageRecipes(licenseManifestFileLines);
             logger.info("Found {} image recipes in license.manifest file", imageRecipes.size());
             List<String> bitbakeRecipeCatalogLines = bitbakeSession.executeBitbakeForRecipeLayerLines();
-            Map<String, BitbakeRecipe> bitbakeRecipes = bitbakeManifestRecipesParser.parseShowRecipes(bitbakeRecipeCatalogLines);
-            logger.info("Found {} recipes in show-recipes output", bitbakeRecipes.size());
+            ShowRecipesResults showRecipesResults = bitbakeManifestRecipesParser.parseShowRecipes(bitbakeRecipeCatalogLines);
+            logger.info("Found {} recipes on {} layers in show-recipes output", showRecipesResults.getRecipes().size(), showRecipesResults.getLayerNames().size());
         } catch (IntegrationException | ExecutableRunnerException | IOException e) {
             extraction = new Extraction.Builder()
                 .failure(e.getMessage())
