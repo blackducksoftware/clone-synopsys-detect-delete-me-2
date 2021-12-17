@@ -1,8 +1,5 @@
 package com.synopsys.integration.detectable.factory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -53,7 +50,7 @@ import com.synopsys.integration.detectable.detectables.bitbake.dependency.Bitbak
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeDependencyRecipesParser;
-import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.BitbakeManifestRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesOutputParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestExtractor;
@@ -887,8 +884,8 @@ public class DetectableFactory {
         return new BitbakeDependencyRecipesParser();
     }
 
-    private BitbakeManifestRecipesParser bitbakeManifestRecipesParser() {
-        return new BitbakeManifestRecipesParser();
+    private ShowRecipesOutputParser bitbakeShowRecipesOutputParser() {
+        return new ShowRecipesOutputParser();
     }
 
     private BitbakeRecipesToLayerMapConverter bitbakeRecipesToLayerMap() {
@@ -900,7 +897,7 @@ public class DetectableFactory {
     }
 
     private BitbakeManifestExtractor bitbakeManifestExtractor() {
-        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeManifestRecipesParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
+        return new BitbakeManifestExtractor(executableRunner, fileFinder, graphParserTransformer(), bitbakeGraphTransformer(), bitbakeShowRecipesOutputParser(), bitbakeRecipesToLayerMap(), toolVersionLogger);
     }
 
     private GraphParserTransformer graphParserTransformer() {

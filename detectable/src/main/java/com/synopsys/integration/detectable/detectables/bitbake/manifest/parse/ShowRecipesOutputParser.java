@@ -14,14 +14,10 @@ import com.synopsys.integration.detectable.detectables.bitbake.common.model.Bitb
 import com.synopsys.integration.log.IntLogger;
 import com.synopsys.integration.log.Slf4jIntLogger;
 
-public class BitbakeManifestRecipesParser {
+public class ShowRecipesOutputParser {
     private final IntLogger logger = new Slf4jIntLogger(LoggerFactory.getLogger(this.getClass()));
 
-    /**
-     * @param showRecipeLines is the executable output.
-     * @return Recipe names mapped to a recipe's the layer names.
-     */
-    public ShowRecipesResults parseShowRecipes(List<String> showRecipeLines) {
+    public ShowRecipesResults parse(List<String> showRecipeLines) {
         ShowRecipesResults showRecipesResults = new ShowRecipesResults();
 
         boolean started = false;
