@@ -13,6 +13,7 @@ import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeNode;
+import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesResults;
 
 public class BitbakeManifestGraphTransformer {
@@ -34,7 +35,18 @@ public class BitbakeManifestGraphTransformer {
             }
             for (BitbakeNode candidateNode : bitbakeGraph.getNodes()) {
                 if (imageRecipeEntry.getKey().equals(candidateNode.getName())) {
-                    logger.info("\t\tFound recipe in task-depends.dot data with children: {}", candidateNode.getChildren());
+                    logger.info("\t\tImage recipe {} children: {}", imageRecipeEntry.getKey(), candidateNode.getChildren());
+                    for (String child : candidateNode.getChildren()) {
+                        BitbakeRecipe childRecipe = showRecipesResult.getRecipes().get(child);
+                        if (childRecipe != null) {
+                            for (String childRecipeLayerName : childRecipe.getLayerNames()) {
+                                logger.info("\t\t\t\tChild recipe {} layer: {}", child, childRecipeLayerName);
+                                if (!"meta".equals(childRecipeLayerName)) {
+                                    logger.warn("\t\t\t***Child recipe {} was found on layer {}", child, childRecipeLayerName);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -43,11 +43,11 @@ public class BitbakeManifestDetectable extends Detectable {
         foundBuildEnvScript = requirements.file(bitbakeDetectableOptions.getBuildEnvName());
 
         if (!bitbakeDetectableOptions.isUseManifestDetector()) {
-            return new PropertyInsufficientDetectableResult("Bitbake Manifest detector was not requested.");
+            return new PropertyInsufficientDetectableResult("Bitbake Manifest detector was not requested (detect.bitbake.manifest.detector is false).");
         }
 
-        if (bitbakeDetectableOptions.getPackageNames() == null || bitbakeDetectableOptions.getPackageNames().isEmpty()) {
-            return new PropertyInsufficientDetectableResult("Bitbake requires that at least one target image name is provided.");
+        if (bitbakeDetectableOptions.getPackageNames() == null || (bitbakeDetectableOptions.getPackageNames().size() != 1)) {
+            return new PropertyInsufficientDetectableResult("Bitbake requires that at exactly one target image name is provided.");
         } else {
             requirements.explain(new PropertyProvided("Bitbake Target Image Names"));
         }
