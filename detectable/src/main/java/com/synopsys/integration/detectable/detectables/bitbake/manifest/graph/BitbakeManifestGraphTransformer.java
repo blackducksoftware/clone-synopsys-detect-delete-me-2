@@ -1,11 +1,16 @@
-package com.synopsys.integration.detectable.detectables.bitbake.manifest;
+package com.synopsys.integration.detectable.detectables.bitbake.manifest.graph;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.bdio.graph.DependencyGraph;
+import com.synopsys.integration.bdio.graph.MutableDependencyGraph;
+import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
+import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeNode;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesResults;
@@ -14,6 +19,8 @@ public class BitbakeManifestGraphTransformer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public DependencyGraph generateGraph(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraph) {
+        MutableDependencyGraph dependencyGraph = new MutableMapDependencyGraph();
+        Map<String, Dependency> namesToExternalIds = new HashMap<>();
 
         for (Map.Entry<String, String> imageRecipeEntry : imageRecipes.entrySet()) {
             logger.info("\tImage recipe: {}:{}", imageRecipeEntry.getKey(), imageRecipeEntry.getValue());
@@ -22,13 +29,16 @@ public class BitbakeManifestGraphTransformer {
             } else {
                 logger.info("\t\tLayers: unknown");
             }
+            if (StringUtils.isBlank(imageRecipeEntry.getValue())) {
+                logger.warn("*** NO VERSION for recipe {}", imageRecipeEntry.getKey());
+            }
             for (BitbakeNode candidateNode : bitbakeGraph.getNodes()) {
                 if (imageRecipeEntry.getKey().equals(candidateNode.getName())) {
                     logger.info("\t\tFound recipe in task-depends.dot data with children: {}", candidateNode.getChildren());
                 }
             }
         }
-        return null;
+        return dependencyGraph;
     }
 
     private void oldBad(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraph) {

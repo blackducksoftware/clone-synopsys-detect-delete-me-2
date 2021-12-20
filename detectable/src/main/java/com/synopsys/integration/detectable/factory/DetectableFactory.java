@@ -50,7 +50,7 @@ import com.synopsys.integration.detectable.detectables.bitbake.dependency.Bitbak
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeDependencyRecipesParser;
-import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestGraphTransformer;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.graph.BitbakeManifestGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesOutputParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.BitbakeManifestDetectable;
