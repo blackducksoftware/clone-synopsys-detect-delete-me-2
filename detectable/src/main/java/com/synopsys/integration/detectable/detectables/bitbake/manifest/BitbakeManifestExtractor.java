@@ -55,7 +55,6 @@ public class BitbakeManifestExtractor {
     public Extraction extract(File sourceDirectory, File buildEnvScript, List<String> sourceArguments, List<String> packageNames, boolean followSymLinks,
         Integer searchDepth, ExecutableTarget bash, String licenseManifestFilePath) {
 
-        // TODO check that there is one? or is that done elsewhere?
         String packageName = packageNames.get(0);
 
         // TODO inject?
