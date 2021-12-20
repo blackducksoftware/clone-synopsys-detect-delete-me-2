@@ -910,7 +910,7 @@ public class DetectableFactory {
     }
 
     private BitbakeManifestGraphTransformer bitbakeManifestGraphTransformer() {
-        return new BitbakeManifestGraphTransformer(/*externalIdFactory*/);
+        return new BitbakeManifestGraphTransformer(externalIdFactory);
     }
 
     private ClangPackageManagerInfoFactory clangPackageManagerInfoFactory() {
