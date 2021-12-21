@@ -98,6 +98,10 @@ public class BitbakeManifestGraphTransformer {
             return;
         }
 
+        if (recipesAddedToGraph.contains(recipeName)) {
+            return;
+        }
+
         nodeCount++;
         //logger.info("[{}] Adding recipe {}:{} to graph (count: {})", depth, recipeName, recipeVersion, nodeCount);
         recipesAddedToGraph.add(recipeName);
