@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class BitbakeManifestGraphTransformer {
         MutableDependencyGraph dependencyGraph = new MutableMapDependencyGraph();
         Map<String, Dependency> namesToExternalIds = new HashMap<>();
 
-        // TODO: Do this before calling this method!
+        // TODO: Feels like this should be done before this method is called
         Map<String, BitbakeNode> recipeVersionLookup = toMap(bitbakeGraphFromTaskDepends);
 
         // TODO: It takes less than a second per layer loop, but still: It'd be nice to have
@@ -41,7 +42,7 @@ public class BitbakeManifestGraphTransformer {
 
         for (String currentLayerName : showRecipesResult.getLayerNames()) {
             logger.info("*** layer: {}", currentLayerName);
-            ExternalId layerExternalId = externalIdFactory.createYoctoExternalId("layer", currentLayerName, "0.0");
+            ExternalId layerExternalId = generateLayerExternalId(currentLayerName);
             logger.info("*** layerExternalId for layer: {}: {}", currentLayerName, layerExternalId.toString());
 
             for (Map.Entry<String, String> candidateImageRecipeEntry : imageRecipes.entrySet()) {
@@ -69,8 +70,9 @@ public class BitbakeManifestGraphTransformer {
                     continue;
                 }
 
-                ExternalId externalId = externalIdFactory.createYoctoExternalId(currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion);
-                logger.info("*** externalId for recipe: {}:{}:{}: {}", currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion, externalId.toString());
+                //ExternalId externalId = externalIdFactory.createYoctoExternalId(currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion);
+                ExternalId imageRecipeExternalId = generateRecipeExternalId(currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion);
+                logger.info("*** externalId for recipe: {}:{}:{}: {}", currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion, imageRecipeExternalId.toString());
 
                 // TODO pretty inefficient to search through all nodes every time. Why isn't this a map?
 
@@ -92,7 +94,8 @@ public class BitbakeManifestGraphTransformer {
                                         logger.warn("Missing version for recipe {}", childRecipe.getName());
                                         continue;
                                     }
-                                    ExternalId childExternalId = externalIdFactory.createYoctoExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
+                                    //ExternalId childExternalId = externalIdFactory.createYoctoExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
+                                    ExternalId childExternalId = generateRecipeExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
                                     logger.info("*** childExternalId for child recipe: {}:{}:{}: {}", childPrimaryLayer, childRecipe.getName(), childRecipeVersion, childExternalId.toString());
                                 } else {
                                     logger.warn("Don't have a primary layer for {}", childRecipe.getName());
@@ -106,11 +109,24 @@ public class BitbakeManifestGraphTransformer {
         return dependencyGraph;
     }
 
+    // TODO this feels like we could build this map while generating the BitbakeGraph
     private Map<String, BitbakeNode> toMap(BitbakeGraph bitbakeGraph) {
         Map<String, BitbakeNode> byNameMap = new HashMap<>();
         for (BitbakeNode node : bitbakeGraph.getNodes()) {
             byNameMap.put(node.getName(), node);
         }
         return byNameMap;
+    }
+
+    private ExternalId generateRecipeExternalId(String layerName, String recipeName, @NotNull String recipeVersion) {
+        if (recipeVersion.contains("AUTOINC")) {
+            recipeVersion = recipeVersion.replaceFirst("AUTOINC\\+[\\w|\\d]*", "X");
+        }
+        ExternalId externalId = externalIdFactory.createYoctoExternalId(layerName, recipeName, recipeVersion);
+        return externalId;
+    }
+
+    private ExternalId generateLayerExternalId(String layerName) {
+        return externalIdFactory.createYoctoExternalId("layer", layerName, "0.0");
     }
 }
