@@ -1,9 +1,11 @@
 package com.synopsys.integration.detectable.detectables.bitbake.manifest.graph;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +21,7 @@ import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeNode;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.model.BitbakeNodesByName;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesResults;
 import com.synopsys.integration.exception.IntegrationException;
 
@@ -26,16 +29,23 @@ public class BitbakeManifestGraphTransformer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ExternalIdFactory externalIdFactory;
 
+    // TODO remove:
+    private int nodeCount = 0;
+
     public BitbakeManifestGraphTransformer(ExternalIdFactory externalIdFactory) {
         this.externalIdFactory = externalIdFactory;
     }
 
     public DependencyGraph generateGraph(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends) {
         MutableDependencyGraph dependencyGraph = new MutableMapDependencyGraph();
-        Map<String, Dependency> namesToExternalIds = new HashMap<>();
 
-        // TODO: Feels like this should be done before this method is called
+        // TODO shouldn't need both of these:
+        List<String> recipesAddedToGraph = new ArrayList<>(bitbakeGraphFromTaskDepends.getNodes().size());
+        Map<String, Dependency> namesToExternalIds = new HashMap<>(bitbakeGraphFromTaskDepends.getNodes().size());
+
+        // TODO: Feels like these should be done before this method is called (and maybe be more consistent w/ each other?)
         Map<String, BitbakeNode> recipeVersionLookup = toMap(bitbakeGraphFromTaskDepends);
+        BitbakeNodesByName bitbakeNodesByName = new BitbakeNodesByName(bitbakeGraphFromTaskDepends);
 
         // TODO: It takes less than a second per layer loop, but still: It'd be nice to have
         // in advance a list of recipes per layer, assuming that's easy
@@ -54,59 +64,90 @@ public class BitbakeManifestGraphTransformer {
                     logger.warn("*** NO VERSION for recipe {}", candidateImageRecipeName);
                     continue;
                 }
-
-                //logger.info("\tImage recipe: {}:{}", candidateImageRecipeName, candidateImageRecipeVersion);
-                if (showRecipesResult.getRecipes().containsKey(candidateImageRecipeName)) {
-                    Collection<String> candidateImageRecipeLayers = showRecipesResult.getRecipes().get(candidateImageRecipeName).getLayerNames();
-                    //logger.info("\t\tLayers: {}", showRecipesResult.getRecipes().get(candidateImageRecipeName).getLayerNames());
-                    if (candidateImageRecipeLayers.contains(currentLayerName)) {
-                        logger.info("Recipe {} is associated with layer {}", candidateImageRecipeName, currentLayerName);
-                    } else {
-                        //logger.info("Recipe {} is not associated with layer {}", candidateImageRecipeName, currentLayerName);
-                        continue;
-                    }
-                } else {
-                    logger.warn("No layer list found for recipe {}", candidateImageRecipeName);
-                    continue;
-                }
-
-                //ExternalId externalId = externalIdFactory.createYoctoExternalId(currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion);
-                ExternalId imageRecipeExternalId = generateRecipeExternalId(currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion);
-                logger.info("*** externalId for recipe: {}:{}:{}: {}", currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion, imageRecipeExternalId.toString());
-
-                // TODO pretty inefficient to search through all nodes every time. Why isn't this a map?
-
-                for (BitbakeNode candidateNodeFromTaskDepends : bitbakeGraphFromTaskDepends.getNodes()) {
-                    if (candidateImageRecipeName.equals(candidateNodeFromTaskDepends.getName())) {
-                        for (String child : candidateNodeFromTaskDepends.getChildren()) {
-                            BitbakeRecipe childRecipe = showRecipesResult.getRecipes().get(child);
-                            if (childRecipe != null) {
-                                if (childRecipe.getPrimaryLayer().isPresent()) {
-                                    String childPrimaryLayer = childRecipe.getPrimaryLayer().get();
-                                    BitbakeNode childRecipeNode = recipeVersionLookup.get(childRecipe.getName());
-                                    if (childRecipeNode == null) {
-                                        // TODO this should never happen
-                                        logger.warn("Missing node for recipe {}", childRecipe.getName());
-                                        continue;
-                                    }
-                                    String childRecipeVersion = childRecipeNode.getVersion().orElse(null);
-                                    if (childRecipeVersion == null) {
-                                        logger.warn("Missing version for recipe {}", childRecipe.getName());
-                                        continue;
-                                    }
-                                    //ExternalId childExternalId = externalIdFactory.createYoctoExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
-                                    ExternalId childExternalId = generateRecipeExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
-                                    logger.info("*** childExternalId for child recipe: {}:{}:{}: {}", childPrimaryLayer, childRecipe.getName(), childRecipeVersion, childExternalId.toString());
-                                } else {
-                                    logger.warn("Don't have a primary layer for {}", childRecipe.getName());
-                                }
-                            }
-                        }
-                    }
-                }
+                addRecipeToGraph(showRecipesResult, bitbakeGraphFromTaskDepends, bitbakeNodesByName, recipeVersionLookup,
+                    currentLayerName, candidateImageRecipeName, candidateImageRecipeVersion, 0, new ArrayList<>(), recipesAddedToGraph);
             }
         }
+        logger.info("# recipes added to graph: {}", recipesAddedToGraph.size());
         return dependencyGraph;
+    }
+
+    private void addRecipeToGraph(ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends, BitbakeNodesByName bitbakeNodesByName,
+        Map<String, BitbakeNode> recipeVersionLookup, String recipeLayer, String recipeName,
+        String recipeVersion, int depth, List<String> recipeDependencyBreadcrumbs, List<String> recipesAddedToGraph) {
+
+        //logger.trace("[{}] Will add recipe {}:{} to graph IF it's direct and associated with this layer, or transitive", depth, recipeName, recipeVersion);
+
+        if (depth == 0) {
+            if (showRecipesResult.getRecipes().containsKey(recipeName)) {
+                Collection<String> candidateImageRecipeLayers = showRecipesResult.getRecipes().get(recipeName).getLayerNames();
+                if (candidateImageRecipeLayers.contains(recipeLayer)) {
+                    logger.info("Recipe {} is a direct dependency and associated with this layer ({})", recipeName, recipeLayer);
+                } else {
+                    logger.trace("Recipe {} is a direct dependency not associated with this layer ({})", recipeName, recipeLayer);
+                    return;
+                }
+            } else {
+                logger.warn("No layer list found for recipe {}", recipeName);
+                return;
+            }
+        }
+        //logger.info("recipeDependencyBreadcrumbs: {}", recipeDependencyBreadcrumbs);
+        if (recipeDependencyBreadcrumbs.contains(recipeName)) {
+            //logger.info("Recipe {} is already in breadcrumb list {}; not adding it (again) to graph", recipeName, recipeDependencyBreadcrumbs);
+            return;
+        }
+
+        nodeCount++;
+        //logger.info("[{}] Adding recipe {}:{} to graph (count: {})", depth, recipeName, recipeVersion, nodeCount);
+        recipesAddedToGraph.add(recipeName);
+        recipeDependencyBreadcrumbs.add(recipeName);
+
+        ExternalId imageRecipeExternalId = generateRecipeExternalId(recipeLayer, recipeName, recipeVersion);
+        //logger.info("*** externalId for recipe: {}:{}:{}: {}", recipeLayer, recipeName, recipeVersion, imageRecipeExternalId.toString());
+
+        Optional<BitbakeNode> recipeNode = bitbakeNodesByName.get(recipeName);
+        if (recipeNode.isPresent()) {
+            //logger.info("Recipe {} has {} children", recipeName, recipeNode.get().getChildren().size());
+            for (String childRecipeName : recipeNode.get().getChildren()) {
+                //logger.info("[{}] looking at recipe {}'s child: {}", depth, recipeName, childRecipeName);
+                if (childRecipeName.endsWith("-native")) {
+                    //logger.info("Omitting native recipe {}", childRecipeName);
+                    continue;
+                }
+                BitbakeRecipe childRecipe = showRecipesResult.getRecipes().get(childRecipeName);
+                if (childRecipe != null) {
+                    if (childRecipe.getPrimaryLayer().isPresent()) {
+                        String childPrimaryLayer = childRecipe.getPrimaryLayer().get();
+                        BitbakeNode childRecipeNode = recipeVersionLookup.get(childRecipe.getName());
+                        if (childRecipeNode == null) {
+                            // TODO this should never happen
+                            logger.warn("Missing node for recipe {}", childRecipe.getName());
+                            continue;
+                        } // use !ifPresent:
+                        String childRecipeVersion = childRecipeNode.getVersion().orElse(null);
+                        if (childRecipeVersion == null) {
+                            logger.warn("Missing version for recipe {}", childRecipe.getName());
+                            continue;
+                        }
+                        //ExternalId childExternalId = generateRecipeExternalId(childPrimaryLayer, childRecipe.getName(), childRecipeVersion);
+                        //logger.info("*** childExternalId for child recipe: {}:{}:{}: {}", childPrimaryLayer, childRecipe.getName(), childRecipeVersion, childExternalId.toString());
+                        addRecipeToGraph(showRecipesResult, bitbakeGraphFromTaskDepends, bitbakeNodesByName, recipeVersionLookup,
+                            childPrimaryLayer, childRecipe.getName(), childRecipeVersion, depth + 1, recipeDependencyBreadcrumbs, recipesAddedToGraph);
+                    } else {
+                        logger.warn("Don't have a primary layer for {}", childRecipe.getName());
+                    }
+                } else {
+                    logger.warn("Recipe {} not found in showRecipesResults", childRecipeName);
+                }
+            }
+        } else {
+            logger.warn("Recipe {} not found in bitbakeNodesByName", recipeName);
+        }
+        if (!recipeDependencyBreadcrumbs.get(recipeDependencyBreadcrumbs.size()-1).equals(recipeName)) {
+            throw new UnsupportedOperationException(String.format("What??? Expected recipe %s to be the last breadcrumb!", recipeName));
+        }
+        recipeDependencyBreadcrumbs.remove(recipeName);
     }
 
     // TODO this feels like we could build this map while generating the BitbakeGraph
