@@ -32,7 +32,7 @@ public class NuGetVersionExpressionParser {
         }
     }
 
-    private NameVersionRange parseForTokens(String versionRangeText, String tokens, Function<Version, NuGetVersionRange> rangeFunction) {
+    private NameVersionRange parseForTokens(String versionRangeText, String tokens, Function<NuGetVersion, NuGetVersionRange> rangeFunction) {
         String[] pieces = StringUtils.split(versionRangeText, tokens);
         if (pieces.length == 1) {
             logger.warn("Unknown package format '" + versionRangeText + "', treating opening expression as dependency name: " + pieces[0]);
@@ -42,7 +42,7 @@ public class NuGetVersionExpressionParser {
             return new NameVersionRange(versionRangeText, null);
         }
         String name = pieces[0].trim();
-        Version minVersion = Version.parseVersion(pieces[1].trim());
+        NuGetVersion minVersion = NuGetVersion.TryParse(pieces[1].trim());
         return new NameVersionRange(name, rangeFunction.apply(minVersion));
     }
 }
