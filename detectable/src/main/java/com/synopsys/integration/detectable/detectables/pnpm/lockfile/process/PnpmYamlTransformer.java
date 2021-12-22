@@ -75,9 +75,7 @@ public class PnpmYamlTransformer {
             String packageId = packageEntry.getKey();
             if (rootPackageIds.contains(packageId)) {
                 Optional<Dependency> dep = buildDependencyFromPackageId(packageId);
-                if (dep.isPresent()) {
-                    graphBuilder.addChildToRoot(dep.get());
-                }
+                dep.ifPresent(graphBuilder::addChildToRoot);
             }
             PnpmPackage pnpmPackage = packageEntry.getValue();
             if (dependencyTypeFilter.shouldReportDependencyType(pnpmPackage.getDependencyType())) {
@@ -86,9 +84,7 @@ public class PnpmYamlTransformer {
                     Optional<Dependency> dep = buildDependencyFromPackageId(packageId);
                     if (dep.isPresent()) {
                         Optional<Dependency> child = buildDependencyFromPackageId(dependencyPackageId);
-                        if (child.isPresent()) {
-                            graphBuilder.addChildWithParent(child.get(), dep.get());
-                        }
+                        child.ifPresent(c -> graphBuilder.addChildWithParent(c, dep.get()));
                     }
                 }
             }
@@ -141,10 +137,11 @@ public class PnpmYamlTransformer {
 
     private Optional<Dependency> buildDependencyFromPackageId(String packageId) {
         Optional<NameVersion> nameVersion = parseNameVersionFromId(packageId);
-        if (!nameVersion.isPresent()) {
-            return Optional.empty();
+        if (nameVersion.isPresent()) {
+            Dependency dep = new Dependency(externalIdFactory.createNameVersionExternalId(Forge.NPMJS, nameVersion.get().getName(), nameVersion.get().getVersion()));
+            return Optional.of(dep);
         }
-        return Optional.of(new Dependency(externalIdFactory.createNameVersionExternalId(Forge.NPMJS, nameVersion.get().getName(), nameVersion.get().getVersion())));
+        return Optional.empty();
     }
 
 }
