@@ -39,6 +39,9 @@ public class BitbakeManifestGraphTransformer {
     public DependencyGraph generateGraph(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends) {
         MutableDependencyGraph dependencyGraph = new MutableMapDependencyGraph();
 
+        // TODO it seems we can't afford a graph (way too many nodes). Have to follow task-depends graph to find dependencies, but add as
+        // a flat list; each recipe only once (this presumably is why Jake did it that way).
+
         // TODO shouldn't need both of these:
         List<String> recipesAddedToGraph = new ArrayList<>(bitbakeGraphFromTaskDepends.getNodes().size());
         Map<String, Dependency> namesToExternalIds = new HashMap<>(bitbakeGraphFromTaskDepends.getNodes().size());
