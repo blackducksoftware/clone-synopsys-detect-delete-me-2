@@ -1,53 +1,92 @@
 package com.synopsys.integration.detectable.detectables.nuget.future.range;
 
+import javax.annotation.Nullable;
+
+import org.jetbrains.annotations.NotNull;
+
 import de.skuzzle.semantic.Version;
 
 public class NuGetVersionRange {
-    /*
-    Real world examples:
-        "[4.1.6, )"
-        "[0.0.5-preview, )"
-        "[2.3.4.270, )"
-        "4.0.1"
-     */
-    private final boolean hasMinVersion;
-    private boolean includeMinVersion;
-    private final Version minVersion;
+    private final boolean includeMinVersion;
+    @Nullable
+    private final NuGetVersion minVersion;
 
-    private final boolean hasMaxVersion;
-    private boolean includeMaxVersion;
-    private final Version maxVersion;
+    private final boolean includeMaxVersion;
+    @Nullable
+    private final NuGetVersion maxVersion;
 
-    public NuGetVersionRange(boolean hasMinVersion, boolean includeMinVersion, Version minVersion, boolean hasMaxVersion, boolean includeMaxVersion, Version maxVersion) {
-        this.hasMinVersion = hasMinVersion;
+    public NuGetVersionRange(@Nullable NuGetVersion minVersion, boolean includeMinVersion, @Nullable NuGetVersion maxVersion, boolean includeMaxVersion, NuGetFloatRange floatRange, String originalString) {
         this.includeMinVersion = includeMinVersion;
         this.minVersion = minVersion;
-        this.hasMaxVersion = hasMaxVersion;
         this.includeMaxVersion = includeMaxVersion;
         this.maxVersion = maxVersion;
     }
 
-    public Version bestVersion(Version... versions) { //TODO: implement
-        //basically filter out too high
-        //then filter out too low
-        //then pick the greatest
-        return versions[0];
+    public static NuGetVersionRange forExact(NuGetVersion version) {
+        return new NuGetVersionRange(version, true, version, true, null, null);
     }
 
-    public static NuGetVersionRange forExact(Version version) {
-        return new NuGetVersionRange(true, true, version, true, true, version);
+    public static NuGetVersionRange forMaximumInclusive(NuGetVersion version) {
+        return new NuGetVersionRange(null, false, version, true, null, null);
     }
 
-    public static NuGetVersionRange forMaximumInclusive(Version version) {
-        return new NuGetVersionRange(false, false, null, true, true, version);
+    public static NuGetVersionRange forMaximumExclusive(NuGetVersion version) {
+        return new NuGetVersionRange(null, false, version, false, null, null);
     }
-    public static NuGetVersionRange forMaximumExclusive(Version version) {
-        return new NuGetVersionRange(false, false, null, true, false, version);
+
+    public static NuGetVersionRange forMinimumInclusive(NuGetVersion version) {
+        return new NuGetVersionRange(version, true, version, true, null, null);
     }
-    public static NuGetVersionRange forMinimumInclusive(Version version) {
-        return new NuGetVersionRange(true, true, version, true, true, version);
+
+    public static NuGetVersionRange forMinimumExclusive(NuGetVersion version) {
+        return new NuGetVersionRange(version, false, null, false, null, null);
     }
-    public static NuGetVersionRange forMinimumExclusive(Version version) {
-        return new NuGetVersionRange(true, false, version, false, false, null);
+
+    public boolean hasMinVersion() {
+        return minVersion != null;
+    }
+
+    public boolean includeMinVersion() {
+        return includeMinVersion;
+    }
+
+    @Nullable
+    public NuGetVersion minVersion() {
+        return minVersion;
+    }
+
+    public boolean hasMaxVersion() {
+        return maxVersion != null;
+    }
+
+    public boolean includeMaxVersion() {
+        return includeMaxVersion;
+    }
+
+    @Nullable
+    public NuGetVersion maxVersion() {
+        return maxVersion;
+    }
+
+    public boolean Satisfies(@NotNull NuGetVersion version) {
+        // Determine if version is in the given range using the comparer.
+        boolean condition = true;
+        if (minVersion != null) {
+            if (includeMinVersion) {
+                condition = NuGetVersionCompare.Compare(minVersion, version) <= 0;
+            } else {
+                condition = NuGetVersionCompare.Compare(minVersion, version) < 0;
+            }
+        }
+
+        if (maxVersion != null) {
+            if (includeMaxVersion) {
+                condition &= NuGetVersionCompare.Compare(maxVersion, version) >= 0;
+            } else {
+                condition &= NuGetVersionCompare.Compare(maxVersion, version) > 0;
+            }
+        }
+
+        return condition;
     }
 }
