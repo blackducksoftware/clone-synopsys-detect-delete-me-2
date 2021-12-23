@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.paypal.digraph.parser.GraphParser;
+import com.synopsys.integration.bdio.graph.DependencyGraph;
 import com.synopsys.integration.common.util.finder.FileFinder;
 import com.synopsys.integration.detectable.ExecutableTarget;
+import com.synopsys.integration.detectable.detectable.codelocation.CodeLocation;
 import com.synopsys.integration.detectable.detectable.executable.DetectableExecutableRunner;
 import com.synopsys.integration.detectable.detectables.bitbake.common.BitbakeSession;
 import com.synopsys.integration.detectable.detectables.bitbake.common.TaskDependsDotFile;
@@ -70,6 +72,7 @@ public class BitbakeManifestExtractor {
 
         LicenseManifestParser licenseManifestParser = new LicenseManifestParser(); // TODO inject
         TaskDependsDotFile taskDependsDotFile = new TaskDependsDotFile(); // TODO inject
+        DependencyGraph dependencyGraph;
         try {
             File taskDependsFile = taskDependsDotFile.generate(bitbakeSession, sourceDirectory, packageName, followSymLinks, searchDepth);
             InputStream dependsFileInputStream = FileUtils.openInputStream(taskDependsFile);
@@ -82,16 +85,16 @@ public class BitbakeManifestExtractor {
             List<String> bitbakeRecipeCatalogLines = bitbakeSession.executeBitbakeForRecipeLayerLines();
             ShowRecipesResults showRecipesResults = showRecipesOutputParser.parse(bitbakeRecipeCatalogLines);
             logger.info("Found {} recipes on {} layers in show-recipes output", showRecipesResults.getRecipes().size(), showRecipesResults.getLayerNames().size());
-            bitbakeManifestGraphTransformer.generateGraph(imageRecipes, showRecipesResults, bitbakeGraph);
+            dependencyGraph = bitbakeManifestGraphTransformer.generateGraph(imageRecipes, showRecipesResults, bitbakeGraph);
         } catch (IntegrationException | ExecutableRunnerException | IOException e) {
             extraction = new Extraction.Builder()
                 .failure(e.getMessage())
                 .build();
             return extraction;
         }
-
+        CodeLocation codeLocation = new CodeLocation(dependencyGraph);
         extraction = new Extraction.Builder()
-            .failure("Lots more work to do on this detector.")
+            .success(codeLocation)
             .build();
         return extraction;
     }
