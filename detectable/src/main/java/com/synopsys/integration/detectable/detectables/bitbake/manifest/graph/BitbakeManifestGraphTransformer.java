@@ -32,7 +32,7 @@ public class BitbakeManifestGraphTransformer {
 
     public DependencyGraph generateGraph(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends) {
 
-        BitbakeManifestGraphBuilderInterface graphBuilder = new BitbakeManifestGraphBuilderByLayer(bitbakeManifestExternalIdGenerator);
+        BitbakeManifestGraphBuilder graphBuilder = new BitbakeManifestGraphBuilderByLayer(bitbakeManifestExternalIdGenerator);
 
         // TODO it seems we can't afford a graph (way too many nodes). Have to follow task-depends graph to find dependencies, but add as
         // a flat list; each recipe only once (this presumably is why Jake did it that way).
@@ -69,7 +69,7 @@ public class BitbakeManifestGraphTransformer {
     }
 
     private void addRecipeToGraph(ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends, BitbakeNodesByName bitbakeNodesByName,
-        Map<String, BitbakeNode> recipeVersionLookup, BitbakeManifestGraphBuilderInterface graphBuilder, String parentRecipeName, String currentLayer, String recipeLayer, String recipeName,
+        Map<String, BitbakeNode> recipeVersionLookup, BitbakeManifestGraphBuilder graphBuilder, String parentRecipeName, String currentLayer, String recipeLayer, String recipeName,
         String recipeVersion, int depth, List<String> recipeDependencyBreadcrumbs, List<String> recipesAddedToGraph) {
 
         //logger.trace("[{}] Will add recipe {}:{} to graph IF it's direct and associated with this layer, or transitive", depth, recipeName, recipeVersion);

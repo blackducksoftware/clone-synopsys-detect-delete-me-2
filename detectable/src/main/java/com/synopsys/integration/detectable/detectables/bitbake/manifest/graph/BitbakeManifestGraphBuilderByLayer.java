@@ -19,7 +19,7 @@ import com.synopsys.integration.bdio.model.externalid.ExternalId;
 // TODO Since we can't build full graph, maybe transitives should be pushed down a layer under a dummy node to get the categorization right
 // So, first level: all direct dependencies plus a fake one under which ALL transitives go
 
-public class BitbakeManifestGraphBuilderByLayer implements BitbakeManifestGraphBuilderInterface {
+public class BitbakeManifestGraphBuilderByLayer implements BitbakeManifestGraphBuilder {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator;
     private MutableDependencyGraph dependencyGraph;
@@ -32,7 +32,7 @@ public class BitbakeManifestGraphBuilderByLayer implements BitbakeManifestGraphB
     }
 
     @Override
-    public BitbakeManifestGraphBuilderInterface addLayer(String layerName) {
+    public BitbakeManifestGraphBuilder addLayer(String layerName) {
         if (layerDependenciesAdded.get(layerName) != null) {
             logger.warn("Attempt to add layer {} to graph more than once");
             return this;
@@ -47,7 +47,7 @@ public class BitbakeManifestGraphBuilderByLayer implements BitbakeManifestGraphB
     }
 
     @Override
-    public BitbakeManifestGraphBuilderInterface addRecipe(String currentLayer, @Nullable String parentRecipeName, String recipeLayer, String recipeName, String recipeVersion) {
+    public BitbakeManifestGraphBuilder addRecipe(String currentLayer, @Nullable String parentRecipeName, String recipeLayer, String recipeName, String recipeVersion) {
         if (recipeDependenciesAdded.containsKey(recipeName)) {
             // if we were building a true graph, we wouldn't do this
             return this;
