@@ -10,9 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.synopsys.integration.bdio.graph.MutableDependencyGraph;
 import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
-import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 
-public class BitbakeManifestGraphBuilderTwoLevel implements BitbakeManifestGraphBuilderInterface {
+public class BitbakeManifestGraphBuilderTwoLevel implements BitbakeManifestGraphBuilder {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator;
     private MutableDependencyGraph dependencyGraph;
@@ -23,12 +22,12 @@ public class BitbakeManifestGraphBuilderTwoLevel implements BitbakeManifestGraph
         dependencyGraph = new MutableMapDependencyGraph();
     }
     @Override
-    public BitbakeManifestGraphBuilderInterface addLayer(final String layerName) {
+    public BitbakeManifestGraphBuilder addLayer(final String layerName) {
         return this;
     }
 
     @Override
-    public BitbakeManifestGraphBuilderInterface addRecipe(final String currentLayer, @Nullable final String parentRecipeName, final String recipeLayer, final String recipeName, final String recipeVersion) {
+    public BitbakeManifestGraphBuilder addRecipe(final String currentLayer, @Nullable final String parentRecipeName, final String recipeLayer, final String recipeName, final String recipeVersion) {
         return null;
     }
 
