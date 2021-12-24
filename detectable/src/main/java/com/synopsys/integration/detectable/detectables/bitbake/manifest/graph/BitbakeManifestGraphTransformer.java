@@ -8,37 +8,31 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.synopsys.integration.bdio.graph.DependencyGraph;
-import com.synopsys.integration.bdio.graph.MutableDependencyGraph;
-import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
-import com.synopsys.integration.bdio.model.externalid.ExternalId;
-import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeGraph;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeNode;
 import com.synopsys.integration.detectable.detectables.bitbake.common.model.BitbakeRecipe;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.model.BitbakeNodesByName;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesResults;
-import com.synopsys.integration.exception.IntegrationException;
 
 public class BitbakeManifestGraphTransformer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final ExternalIdFactory externalIdFactory;
+    private final BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator;
 
     // TODO remove:
     private int nodeCount = 0;
 
-    public BitbakeManifestGraphTransformer(ExternalIdFactory externalIdFactory) {
-        this.externalIdFactory = externalIdFactory;
+    public BitbakeManifestGraphTransformer(BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator) {
+        this.bitbakeManifestExternalIdGenerator = bitbakeManifestExternalIdGenerator;
     }
 
     public DependencyGraph generateGraph(Map<String, String> imageRecipes, ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends) {
 
-        BitbakeManifestGraphBuilder graphBuilder = new BitbakeManifestGraphBuilder(externalIdFactory);
+        BitbakeManifestGraphBuilderInterface graphBuilder = new BitbakeManifestGraphBuilderByLayer(bitbakeManifestExternalIdGenerator);
 
         // TODO it seems we can't afford a graph (way too many nodes). Have to follow task-depends graph to find dependencies, but add as
         // a flat list; each recipe only once (this presumably is why Jake did it that way).
@@ -75,7 +69,7 @@ public class BitbakeManifestGraphTransformer {
     }
 
     private void addRecipeToGraph(ShowRecipesResults showRecipesResult, BitbakeGraph bitbakeGraphFromTaskDepends, BitbakeNodesByName bitbakeNodesByName,
-        Map<String, BitbakeNode> recipeVersionLookup, BitbakeManifestGraphBuilder graphBuilder, String parentRecipeName, String currentLayer, String recipeLayer, String recipeName,
+        Map<String, BitbakeNode> recipeVersionLookup, BitbakeManifestGraphBuilderInterface graphBuilder, String parentRecipeName, String currentLayer, String recipeLayer, String recipeName,
         String recipeVersion, int depth, List<String> recipeDependencyBreadcrumbs, List<String> recipesAddedToGraph) {
 
         //logger.trace("[{}] Will add recipe {}:{} to graph IF it's direct and associated with this layer, or transitive", depth, recipeName, recipeVersion);

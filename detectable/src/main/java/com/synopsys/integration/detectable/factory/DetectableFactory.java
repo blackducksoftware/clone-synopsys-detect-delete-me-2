@@ -50,6 +50,7 @@ import com.synopsys.integration.detectable.detectables.bitbake.dependency.Bitbak
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.BitbakeRecipesToLayerMapConverter;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.dependency.parse.BitbakeDependencyRecipesParser;
+import com.synopsys.integration.detectable.detectables.bitbake.manifest.graph.BitbakeManifestExternalIdGenerator;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.graph.BitbakeManifestGraphTransformer;
 import com.synopsys.integration.detectable.detectables.bitbake.manifest.parse.ShowRecipesOutputParser;
 import com.synopsys.integration.detectable.detectables.bitbake.common.parse.GraphParserTransformer;
@@ -909,8 +910,11 @@ public class DetectableFactory {
         return new BitbakeGraphTransformer(externalIdFactory);
     }
 
+    private BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator() {
+        return new BitbakeManifestExternalIdGenerator(externalIdFactory);
+    }
     private BitbakeManifestGraphTransformer bitbakeManifestGraphTransformer() {
-        return new BitbakeManifestGraphTransformer(externalIdFactory);
+        return new BitbakeManifestGraphTransformer(bitbakeManifestExternalIdGenerator());
     }
 
     private ClangPackageManagerInfoFactory clangPackageManagerInfoFactory() {

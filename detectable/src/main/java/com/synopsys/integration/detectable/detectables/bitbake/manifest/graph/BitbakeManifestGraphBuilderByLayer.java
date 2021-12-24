@@ -1,11 +1,8 @@
 package com.synopsys.integration.detectable.detectables.bitbake.manifest.graph;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,27 +11,34 @@ import com.synopsys.integration.bdio.graph.MutableDependencyGraph;
 import com.synopsys.integration.bdio.graph.MutableMapDependencyGraph;
 import com.synopsys.integration.bdio.model.dependency.Dependency;
 import com.synopsys.integration.bdio.model.externalid.ExternalId;
-import com.synopsys.integration.bdio.model.externalid.ExternalIdFactory;
 
-public class BitbakeManifestGraphBuilder {
+// TODO right now transitives recipes are placed under the layer of the direct dependency under which they are FIRST found, which is random
+// They should be under their own layer
+// That makes layer nodes seem redundant, since the recipe ID contains its layer
+// ==> So, get rid of layer nodes
+// TODO Since we can't build full graph, maybe transitives should be pushed down a layer under a dummy node to get the categorization right
+// So, first level: all direct dependencies plus a fake one under which ALL transitives go
+
+public class BitbakeManifestGraphBuilderByLayer implements BitbakeManifestGraphBuilderInterface {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final ExternalIdFactory externalIdFactory;
+    private final BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator;
     private MutableDependencyGraph dependencyGraph;
     private final Map<String, Dependency> layerDependenciesAdded = new HashMap<>();
     private final Map<String, Dependency> recipeDependenciesAdded = new HashMap<>();
 
-    public BitbakeManifestGraphBuilder(ExternalIdFactory externalIdFactory) {
-        this.externalIdFactory = externalIdFactory;
+    public BitbakeManifestGraphBuilderByLayer(BitbakeManifestExternalIdGenerator bitbakeManifestExternalIdGenerator) {
+        this.bitbakeManifestExternalIdGenerator = bitbakeManifestExternalIdGenerator;
         dependencyGraph = new MutableMapDependencyGraph();
     }
 
-    public BitbakeManifestGraphBuilder addLayer(String layerName) {
+    @Override
+    public BitbakeManifestGraphBuilderInterface addLayer(String layerName) {
         if (layerDependenciesAdded.get(layerName) != null) {
             logger.warn("Attempt to add layer {} to graph more than once");
             return this;
         }
         logger.info("*** layer: {}", layerName);
-        ExternalId layerExternalId = generateLayerExternalId(layerName);
+        ExternalId layerExternalId = bitbakeManifestExternalIdGenerator.generateLayerExternalId(layerName);
         Dependency layerDependency = new Dependency(layerExternalId);
         dependencyGraph.addChildToRoot(layerDependency);
         layerDependenciesAdded.put(layerName, layerDependency);
@@ -42,12 +46,13 @@ public class BitbakeManifestGraphBuilder {
         return this;
     }
 
-    public BitbakeManifestGraphBuilder addRecipe(String currentLayer, @Nullable String parentRecipeName, String recipeLayer, String recipeName, String recipeVersion) {
+    @Override
+    public BitbakeManifestGraphBuilderInterface addRecipe(String currentLayer, @Nullable String parentRecipeName, String recipeLayer, String recipeName, String recipeVersion) {
         if (recipeDependenciesAdded.containsKey(recipeName)) {
             // if we were building a true graph, we wouldn't do this
             return this;
         }
-        ExternalId imageRecipeExternalId = generateRecipeExternalId(recipeLayer, recipeName, recipeVersion);
+        ExternalId imageRecipeExternalId = bitbakeManifestExternalIdGenerator.generateRecipeExternalId(recipeLayer, recipeName, recipeVersion);
         Dependency recipeDependency = new Dependency(imageRecipeExternalId);
         // If we wanted a true graph: if (parentRecipeName != null) parentDependency = recipeDependenciesAdded.get(parentRecipeName);
         Dependency parentDependency = layerDependenciesAdded.get(currentLayer);
@@ -58,19 +63,8 @@ public class BitbakeManifestGraphBuilder {
         return this;
     }
 
+    @Override
     public MutableDependencyGraph build() {
         return dependencyGraph;
-    }
-
-    private ExternalId generateRecipeExternalId(String layerName, String recipeName, @NotNull String recipeVersion) {
-        if (recipeVersion.contains("AUTOINC")) {
-            recipeVersion = recipeVersion.replaceFirst("AUTOINC\\+[\\w|\\d]*", "X");
-        }
-        ExternalId externalId = externalIdFactory.createYoctoExternalId(layerName, recipeName, recipeVersion);
-        return externalId;
-    }
-
-    private ExternalId generateLayerExternalId(String layerName) {
-        return externalIdFactory.createYoctoExternalId("layer", layerName, "0.0");
     }
 }
